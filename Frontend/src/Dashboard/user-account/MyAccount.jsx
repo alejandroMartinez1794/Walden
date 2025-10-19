@@ -8,6 +8,8 @@ import { BASE_URL } from '../../config';
 
 import Loading from "../../components/Loader/Loading";
 import Error from "../../components/Error/Error";
+import MyCalendar from './MyCalendar';
+
 
 const MyAccount = () => {
   const { dispatch } = useContext(authContext);
@@ -121,7 +123,18 @@ const MyAccount = () => {
                 </button>
               </div>
 
-              {tab === 'bookings' && <MyBookings />}
+              {tab === 'bookings' && (
+                <>
+                  <MyBookings />
+
+                  <div className="mt-10">
+                    <h2 className="text-2xl font-bold mb-4 text-headingColor">Tu Calendario</h2>
+                    <MyCalendar />
+                  </div>
+                </>
+              )}
+
+
               {tab === 'settings' && <Profile user={userData} />}
             </div>
           </div>

@@ -44,10 +44,10 @@ const Header = () => {
 
   const userDashboardLink =
     role?.toLowerCase() === 'doctor'
-      ? '/dashboard/doctor'
+      ? '/doctors/profile/me'
       : role?.toLowerCase() === 'paciente'
       ? '/users/profile/me'
-      : '/dashboard';
+      : '/login';
 
       console.log("user:", user);
       console.log("role:", role);

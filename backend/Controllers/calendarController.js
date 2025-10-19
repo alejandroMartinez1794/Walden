@@ -1,13 +1,13 @@
 // backend/Controllers/calendarController.js
+
 import { google } from 'googleapis';
 import GoogleToken from '../Models/GoogleTokenSchema.js';
 import User from '../Models/UserSchema.js';
 import { createJWT } from '../utils/jwt.js';
 import oAuth2Client from '../config/google.js';
 import jwt from 'jsonwebtoken';
-import getOAuthClientWithUserTokens from '../utils/getOAuthClientWithUserTokens.js'; // Ajusta el path si lo tienes en otro lado
+import {getOAuthClientWithUserTokens} from '../utils/getOAuthClientWithUserTokens.js';
 import Booking from '../models/BookingSchema.js';
-
 
 /**
  * 🔗 Genera URL de autenticación de Google
@@ -68,7 +68,6 @@ export const handleGoogleCallback = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // 🌐 Redirección al frontend con token y user en la URL
     const frontendRedirect = `http://localhost:5173/google-auth-redirect?token=${token}&user=${encodeURIComponent(
       JSON.stringify({
         id: user._id,
@@ -87,27 +86,28 @@ export const handleGoogleCallback = async (req, res) => {
   }
 };
 
-
 /**
  * 🗓️ Crear evento en Google Calendar
  */
 export const createCalendarEvent = async (req, res) => {
   try {
     console.log("📥 Petición recibida para crear evento");
+
     const { summary, description, start, end, attendees, doctorId, reason } = req.body;
 
     if (!summary || !start || !end || !doctorId) {
-      return res.status(400).json({ success: false, message: 'Faltan campos requeridos: summary, start, end o doctorId' });
+      return res.status(400).json({
+        success: false,
+        message: 'Faltan campos requeridos: summary, start, end o doctorId',
+      });
     }
 
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    console.log("✅ Token decodificado:", decoded);
 
     const userId = decoded.id;
     const oAuth2Client = await getOAuthClientWithUserTokens(userId);
-
     const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
 
     const event = {
@@ -131,8 +131,7 @@ export const createCalendarEvent = async (req, res) => {
 
     console.log("📅 Evento creado:", response.data);
 
-    // 🧠 Guardar en MongoDB
-    await Booking.create({
+    const newBooking = await Booking.create({
       user: userId,
       doctor: doctorId,
       appointmentDate: start,
@@ -140,11 +139,20 @@ export const createCalendarEvent = async (req, res) => {
       calendarEventId: response.data.id,
     });
 
-    res.status(200).json({ success: true, data: response.data });
+    // Devuelve el evento de Google y el booking en Mongo
+    res.status(201).json({
+      success: true,
+      message: "Cita creada correctamente",
+      calendarEvent: response.data,
+      booking: newBooking,
+    });
 
   } catch (err) {
     console.error("❌ Error creando evento:", err.response?.data || err.message || err);
-    res.status(500).json({ success: false, message: "No se pudo crear el evento" });
+    res.status(500).json({
+      success: false,
+      message: "No se pudo crear el evento",
+    });
   }
 };
 
@@ -155,26 +163,23 @@ export const createCalendarEvent = async (req, res) => {
 export const getCalendarEvents = async (req, res) => {
   try {
     const userId = req.user.id;
-
-    const tokenDoc = await GoogleToken.findOne({ userId });
-    if (!tokenDoc) return res.status(404).json({ error: 'Token de Google no encontrado' });
-
-    oAuth2Client.setCredentials({
-      access_token: tokenDoc.access_token,
-      refresh_token: tokenDoc.refresh_token,
-    });
-
+    const oAuth2Client = await getOAuthClientWithUserTokens(userId);
     const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
     const response = await calendar.events.list({
       calendarId: 'primary',
-      timeMin: new Date().toISOString(),
-      maxResults: 10,
+      timeMin: new Date('1970-01-01T00:00:00Z').toISOString(),
+      timeMax: new Date('2100-01-01T00:00:00Z').toISOString(),
+      maxResults: 2500,
       singleEvents: true,
       orderBy: 'startTime',
     });
 
-    res.status(200).json({ events: response.data.items });
+    res.status(200).json({  
+      success: true,
+      message: "Eventos obtenidos correctamente",
+      data: response.data.items,
+    });
   } catch (error) {
     console.error('❌ Error al obtener eventos:', error);
     res.status(500).json({ error: 'No se pudieron obtener los eventos' });
@@ -189,14 +194,7 @@ export const updateCalendarEvent = async (req, res) => {
     const userId = req.user.id;
     const { eventId, summary, description, startTime, endTime, reason } = req.body;
 
-    const tokenDoc = await GoogleToken.findOne({ userId });
-    if (!tokenDoc) return res.status(404).json({ error: 'Token no encontrado' });
-
-    oAuth2Client.setCredentials({
-      access_token: tokenDoc.access_token,
-      refresh_token: tokenDoc.refresh_token,
-    });
-
+    const oAuth2Client = await getOAuthClientWithUserTokens(userId);
     const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
     const updatedEvent = await calendar.events.update({
@@ -210,7 +208,6 @@ export const updateCalendarEvent = async (req, res) => {
       },
     });
 
-    // 🧠 Actualizar también en MongoDB
     await Booking.findOneAndUpdate(
       { calendarEventId: eventId },
       {
@@ -235,14 +232,7 @@ export const deleteCalendarEvent = async (req, res) => {
     const userId = req.user.id;
     const { eventId } = req.params;
 
-    const tokenDoc = await GoogleToken.findOne({ userId });
-    if (!tokenDoc) return res.status(404).json({ error: 'Token no encontrado' });
-
-    oAuth2Client.setCredentials({
-      access_token: tokenDoc.access_token,
-      refresh_token: tokenDoc.refresh_token,
-    });
-
+    const oAuth2Client = await getOAuthClientWithUserTokens(userId);
     const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
     await calendar.events.delete({
@@ -250,7 +240,6 @@ export const deleteCalendarEvent = async (req, res) => {
       eventId,
     });
 
-    // 🧠 Eliminar también en MongoDB
     await Booking.findOneAndDelete({ calendarEventId: eventId });
 
     res.status(200).json({ message: 'Evento eliminado' });
@@ -260,4 +249,3 @@ export const deleteCalendarEvent = async (req, res) => {
     res.status(500).json({ error: 'No se pudo eliminar el evento' });
   }
 };
-

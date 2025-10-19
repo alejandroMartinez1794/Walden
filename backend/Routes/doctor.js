@@ -5,6 +5,10 @@ import {
     getAllDoctor,
     getSingleDoctor,
     getDoctorProfile,
+    getDoctorAppointments,
+    confirmDoctorAppointment,
+    cancelDoctorAppointment,
+    rescheduleDoctorAppointment,
 }   from "../Controllers/doctorController.js";
 
 import { authenticate, restrict } from "../auth/verifyToken.js";
@@ -23,5 +27,10 @@ router.delete ("/:id", authenticate, restrict(['doctor']), deleteDoctor);
 
 router.get ("/profile/me", authenticate, restrict(['doctor']), getDoctorProfile);
 
+// Appointments endpoints for doctor dashboard
+router.get("/appointments", authenticate, restrict(['doctor']), getDoctorAppointments);
+router.patch("/appointments/:id/confirm", authenticate, restrict(['doctor']), confirmDoctorAppointment);
+router.patch("/appointments/:id/cancel", authenticate, restrict(['doctor']), cancelDoctorAppointment);
+router.patch("/appointments/:id/reschedule", authenticate, restrict(['doctor']), rescheduleDoctorAppointment);
 
 export default router;

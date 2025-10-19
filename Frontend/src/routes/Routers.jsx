@@ -41,6 +41,15 @@ const Routers = () => {
                     </ProtectedRoute>
                 }
             />
+            {/* Alias to support previous link */}
+            <Route
+                path="/dashboard/doctor"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <Dashboard />
+                    </ProtectedRoute>
+                }
+            />
             
             {/* ✅ NUEVA RUTA PARA REDIRECCIÓN DESDE GOOGLE */}
             <Route path="/google-auth-redirect" element={<GoogleAuthRedirect />} />

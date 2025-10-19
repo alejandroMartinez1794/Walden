@@ -1,7 +1,7 @@
 // backend/auth/verifyToken.js
 import jwt from 'jsonwebtoken';
 import Doctor from '../models/DoctorSchema.js';
-import User from '../Models/UserSchema.js';
+import User from '../models/UserSchema.js';
 
 // ✅ Middleware para verificar el token JWT
 export const authenticate = async (req, res, next) => {
@@ -15,7 +15,11 @@ export const authenticate = async (req, res, next) => {
     const token = authToken.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    req.user = decoded; // contiene { id, role }
+  // Persistir información del usuario en la request para uso posterior
+  // decoded debe contener al menos: { id, role }
+  req.user = decoded;
+  req.userId = decoded.id; // compatibilidad con controladores que usan req.userId
+  req.role = decoded.role;
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
