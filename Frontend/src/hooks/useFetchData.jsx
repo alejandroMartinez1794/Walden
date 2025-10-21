@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { token } from '../config';
 
 const useFetchData = (url) => {
-    
-    const [data, setData]  = useState([]);
+    const [data, setData] = useState([]); // Inicializar como array vacío
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -11,29 +9,33 @@ const useFetchData = (url) => {
         const fetchData = async () => {
             setLoading(true);
             try {
+                const token = localStorage.getItem('token');
+                console.log("🔑 Token desde localStorage (useFetchData):", token);
                 const res = await fetch(url, {
-                    headers: {Authorization : `Bearer ${token}`}
-                })
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
                 const result = await res.json();
 
-                if(!res.ok) {
-                    throw new Error(result.message + '🤢');
+                if (!res.ok) {
+                    throw new Error(result.message + ' 🤢');
                 }
 
-                setData(result.data);
-                setLoading(false);
-            }   catch (err) {
-                setLoading(false);
+                setData(result.data || []); // Asegurarse de que siempre sea un array
+            } catch (err) {
                 setError(err.message);
-            }    
+            } finally {
+                setLoading(false);
+            }
         };
+
         fetchData();
-    },[url]);
-    
+    }, [url]);
+
     return {
         data,
         loading,
-        error
+        error,
     };
 };
 

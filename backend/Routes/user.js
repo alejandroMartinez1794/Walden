@@ -12,17 +12,17 @@ import { authenticate, restrict } from "../auth/verifyToken.js";
 
 const router = express.Router();
 
-router.get ("/:id", authenticate, restrict(['patient']), getSingleUser);
+router.get ("/:id", authenticate, restrict(['paciente']), getSingleUser);
 router.get ("/", authenticate, restrict(['admin']),  getAllUser);
-router.put ("/:id", authenticate, restrict(['patient']), updateUser);
-router.delete ("/:id", authenticate, restrict(['patient']), deleteUser);
+router.put ("/:id", authenticate, restrict(['paciente']), updateUser);
+router.delete ("/:id", authenticate, restrict(['paciente']), deleteUser);
 
-router.get ("/profile/me", authenticate, restrict(['patient']), getUserProfile);
+router.get ("/profile/me", authenticate, restrict(['paciente']), getUserProfile);
 
 router.get (
     "/appointments/my-appointments",
     authenticate,
-    restrict(['patient']),
+    restrict(['paciente']),
     getMyAppointments);
 
 export default router; 

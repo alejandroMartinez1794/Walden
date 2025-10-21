@@ -5,120 +5,136 @@ import { toast } from 'react-toastify';
 import { authContext } from '../context/AuthContext.jsx';
 import Hashloader from 'react-spinners/HashLoader';
 
+const Login = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { dispatch } = useContext(authContext);
 
-const Login   = () => {
+  const handleInputChange = e => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    });
+  const submitHandler = async event => {
+    event.preventDefault();
+    setLoading(true);
 
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
-    const { dispatch } = useContext(authContext);
+    try {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
 
-    const handleInputChange = e => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });  
-    };
-    
-    
-    const submitHandler = async event => {
+      const result = await res.json();
 
-        event.preventDefault();
-        setLoading(true);
+      if (!res.ok) {
+        throw new Error(result.message);
+      }
 
-        try {
-            const res = await fetch ( `${BASE_URL}/auth/login`, {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: {
+          user: result.data,
+          token: result.token,
+          role: result.role,
+        },
+      });
 
-            const result = await res.json();
+      console.log(result, "login data");
 
-            if(!res.ok) {
-                throw new Error(result.message);
-            }
+      setLoading(false);
+      toast.success(result.message);
+      navigate('/home');
 
-            dispatch({ 
-                type: 'LOGIN_SUCCESS',
-                payload: {
-                    user: result.data,
-                    token: result.token,
-                    role: result.role,
-                },
-            } );
+    } catch (err) {
+      toast.error(err.message);
+      setLoading(false);
+    }
+  };
+  console.log("BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
 
-            console.log(result, "login data");
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/calendar/google-auth`;
+  };
 
-            setLoading(false)
-            toast.success(result.message)
-            navigate('/home');
+  return (
+    <section className="px-5 lg:px-0">
+      <div className="w-full max-w-[570px] mx-auto rounded-lg shadow-md md:p-10">
+        <h3 className="text-headingColor text-[22px] leading-9 font-bold md-10">
+          Hello! <span className="text-primaryColor"> Welcome </span> Back 🎊
+        </h3>
 
-        }   catch (err) {
-            toast.error(err.message);
-            setLoading(false);
-        } 
-    };
+        <form className="py-4 md:py-0" onSubmit={submitHandler}>
+          <div className="mb-5">
+            <input
+              type="email"
+              placeholder="Enter your Email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="w-full  py-3 border-b border-solid border-[#0066ff61] focus:outline-none
+              focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
+              placeholder: text-textColor  cursor-pointer"
+              required
+            />
+          </div>
 
-    return (
-        <section className="px-5 lg:px-0">
-            <div className="w-full max-w-[570px] mx-auto rounded-lg shadow-md md:p-10">
-                <h3 className="text-headingColor text-[22px] leading-9 font-bold md-10">
-                    Hello! <span className="text-primaryColor"> Welcome </span> Back 🎊
-                </h3>
+          <div className="mb-5">
+            <input
+              type="password"
+              placeholder="Enter your Password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full  py-3 border-b border-solid border-[#0066ff61] focus:outline-none
+              focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
+              placeholder: text-textColor cursor-pointer"
+              required
+            />
+          </div>
 
-                <form className="py-4 md:py-0" onSubmit={submitHandler}>
-                    <div className="mb-5">
-                        <input
-                            type="email"
-                            placeholder="Enter your Email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className="w-full  py-3 border-b border-solid border-[#0066ff61] focus:outline-none
-                            focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
-                            placeholder: text-textColor  cursor-pointer"
-                            required
-                        />
-                    </div>
+          <div className='mt-7'>
+            <button
+              type="submit"
+              className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 px-3"
+            >
+              {loading ? <Hashloader size={25} color="#fff" /> : "Login"}
+            </button>
+          </div>
 
-                    <div className="mb-5">
-                        <input
-                            type="password"
-                            placeholder="Enter your Password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className="w-full  py-3 border-b border-solid border-[#0066ff61] focus:outline-none
-                            focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
-                            placeholder: text-textColor cursor-pointer"
-                            required
-                        />
-                    </div>
+          {/* Botón de Google */}
+          <div className="mt-5">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:shadow-md transition"
+            >
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google icon"
+                className="w-6 h-6"
+              />
+              <span>Continuar con Google</span>
+            </button>
+          </div>
 
-                    <div className='mt-7'>
-                        <button
-                            type="submit"
-                            className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 px-3"
-                        >
-                            {loading ? <Hashloader size={25} color="#fff"/> :"Login"}
-                        </button>
-                    </div>
-
-                    <p className='mt-8 text-textColor text-center'>
-                        Don&apos;t have an account? {""}
-                        <Link to= "/register" className='text-primaryColor font-medium ml-1'> 
-                            Register
-                        </Link>
-                    </p>
-                </form>
-            </div>
-        </section>
-    );
+          <p className='mt-8 text-textColor text-center'>
+            Don&apos;t have an account? {" "}
+            <Link to="/register" className='text-primaryColor font-medium ml-1'>
+              Register
+            </Link>
+          </p>
+        </form>
+      </div>
+    </section>
+  );
 };
 
 export default Login;

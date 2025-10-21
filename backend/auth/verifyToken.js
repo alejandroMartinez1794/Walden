@@ -1,62 +1,48 @@
-import jwt from "jsonwebtoken";
+// backend/auth/verifyToken.js
+import jwt from 'jsonwebtoken';
 import Doctor from '../models/DoctorSchema.js';
-import User from "../models/UserSchema.js";
+import User from '../models/UserSchema.js';
 
-
+// ✅ Middleware para verificar el token JWT
 export const authenticate = async (req, res, next) => {
-    
-    // Get the token from the header
-    const authToken = req.headers.authorization;
+  const authToken = req.headers.authorization;
 
-    // Check token if exists
+  if (!authToken || !authToken.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, message: 'No token, authorization denied' });
+  }
 
-    if (!authToken || !authToken.startsWith("Bearer ")) {
-        return res
-        .status(401)
-        .json({ success: false, message: "No token, authorization denied" });
+  try {
+    const token = authToken.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+  // Persistir información del usuario en la request para uso posterior
+  // decoded debe contener al menos: { id, role }
+  req.user = decoded;
+  req.userId = decoded.id; // compatibilidad con controladores que usan req.userId
+  req.role = decoded.role;
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Token expired' });
     }
-
-    try {
-        const token = authToken.split(" ")[1];
-
-        //verify token
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-        req.userId = decoded.id
-        req.role = decoded.role
-
-        next(); //must be called the next function
-    }   catch (err) { 
-        if (err.name === 'TokenExpiredError') {
-            return res.status(401).json({ message: "Token expired" })
-        }
-
-        return res.status(401).json({success:false, message: "Invalid token" });
-    }    
+    return res.status(401).json({ success: false, message: 'Invalid token' });
+  }
 };
 
-export const restrict = roles => async (req, res, next)  => { 
-    // roles is an array of roles that are allowed to access the route
-    const userId = req.userId
-    // Get the user from the database
-    let user;
-    // Check if the user is a patient or a doctor
-    const patient = await User.findById(userId)
-    const doctor = await Doctor.findById(userId)
+// ✅ Middleware para restringir rutas por rol
+export const restrict = (roles) => async (req, res, next) => {
+  const userId = req.user.id; // usamos "id", no "_id"
+  const userRole = req.user.role;
 
-    if (patient) {
-        user = patient
-    }
-    if (doctor) {
-        user = doctor
-    }
-    // Check if the user has the role to access the route
-    if (!roles.includes(user.role)) {
-        return res
-        .status(403)
-        .json({ success: false, message: "You are not authorized" })
-    }  
+  // Si quieres validar que el usuario existe en la base de datos:
+  const user = await User.findById(userId) || await Doctor.findById(userId);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+  }
 
-    next();
-} 
+  if (!roles.includes(userRole)) {
+    return res.status(403).json({ success: false, message: 'You are not authorized' });
+  }
+
+  next();
+};
