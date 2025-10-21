@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Loader from '../../components/Loader/Loading';
 import Error from '../../components/Error/Error';
 import useGetProfile  from "../../hooks/useFetchData";
@@ -7,7 +8,8 @@ import Tabs from './Tabs';
 import starIcon from '../../assets/images/Star.png';
 import DoctorAbout from './../../pages/Doctors/DoctorAbout';
 import Profile from './Profile';
-import Appointments from './Appointments';
+import AppointmentsElite from './AppointmentsElite';
+import DoctorInsightsElite from './DoctorInsightsElite';
 
 
 const Dashboard = () => {
@@ -57,6 +59,43 @@ const Dashboard = () => {
                             <div className='mt-8'>
                                 {tab === 'overview' && (
                                     <div>
+                                        {/* Psychology System Card - NUEVO */}
+                                        <div className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-2xl p-6 text-white">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-3">
+                                                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                                        </svg>
+                                                        <div>
+                                                            <h2 className="text-2xl font-bold">🧠 Sistema de Psicología Clínica</h2>
+                                                            <p className="text-purple-100 text-sm">Terapia Cognitivo-Conductual (TCC) Profesional</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-purple-50 mb-4">
+                                                        Sistema avanzado para gestión de pacientes, sesiones SOAP, evaluaciones estandarizadas (PHQ-9, BDI-II), 
+                                                        registro de pensamientos automáticos, planes de tratamiento y gráficas de evolución.
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-2 mb-4">
+                                                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">✅ Notas SOAP</span>
+                                                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">✅ PHQ-9 / BDI-II</span>
+                                                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">✅ Pensamientos Automáticos</span>
+                                                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">✅ Alertas de Riesgo</span>
+                                                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">✅ Gráficas de Evolución</span>
+                                                    </div>
+                                                </div>
+                                                <Link 
+                                                    to="/psychology/dashboard"
+                                                    className="ml-6 bg-white text-purple-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
+                                                >
+                                                    Acceder al Sistema
+                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                                    </svg>
+                                                </Link>
+                                            </div>
+                                        </div>
+
                                         <div className='flex items-center gap-4 mb-10'>
                                             <figure className='max-w-[200px] max-h-[200px]'>
                                                 <img src={data?.photo} alt="" className='w-full'/> 
@@ -97,10 +136,10 @@ const Dashboard = () => {
                                 )}
 
                                 {tab === 'appointments' && (
-                                    <Appointments appointments={data.appointments}/>
+                                    <AppointmentsElite appointments={data.appointments}/>
                                 )}
                                 {tab === 'settings' && <Profile doctorData={data}/>}
-                                {tab === 'doctor-insights' && <DoctorInsights />}
+                                {tab === 'doctor-insights' && <DoctorInsightsElite />}
                             </div>
 
                         </div>

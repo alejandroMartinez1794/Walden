@@ -3,6 +3,10 @@ import { authContext } from '../../context/AuthContext';
 
 import MyBookings from './MyBookings';
 import Profile from './Profile';
+import PatientDashboard from './PatientDashboard';
+import MedicalHistory from './MedicalHistoryNew';
+import Medications from './Medications';
+import HealthTracker from './HealthTrackerNew';
 
 import { BASE_URL } from '../../config';
 
@@ -13,7 +17,7 @@ import MyCalendar from './MyCalendar';
 
 const MyAccount = () => {
   const { dispatch } = useContext(authContext);
-  const [tab, setTab] = useState('bookings');
+  const [tab, setTab] = useState('dashboard');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -104,12 +108,20 @@ const MyAccount = () => {
 
             {/* Main content */}
             <div className='md:col-span-2 md:px-[30px]'>
-              <div className='mb-5'>
+              <div className='mb-5 flex gap-2 flex-wrap'>
+                <button
+                  onClick={() => setTab('dashboard')}
+                  className={`${
+                    tab === 'dashboard' && 'bg-primaryColor text-white'
+                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+                >
+                  Dashboard
+                </button>
                 <button
                   onClick={() => setTab('bookings')}
                   className={`${
                     tab === 'bookings' && 'bg-primaryColor text-white'
-                  } py-2 mr-4 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor`}
+                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                 >
                   My Bookings
                 </button>
@@ -117,11 +129,37 @@ const MyAccount = () => {
                   onClick={() => setTab('settings')}
                   className={`${
                     tab === 'settings' && 'bg-primaryColor text-white'
-                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor`}
+                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                 >
                   Profile Settings
                 </button>
+                <button
+                  onClick={() => setTab('history')}
+                  className={`${
+                    tab === 'history' && 'bg-primaryColor text-white'
+                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+                >
+                  Medical History
+                </button>
+                  <button
+                    onClick={() => setTab('medications')}
+                    className={`${
+                      tab === 'medications' && 'bg-primaryColor text-white'
+                    } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+                  >
+                    Medications
+                  </button>
+                    <button
+                      onClick={() => setTab('health')}
+                      className={`${
+                        tab === 'health' && 'bg-primaryColor text-white'
+                      } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+                    >
+                      Health Tracker
+                    </button>
               </div>
+
+              {tab === 'dashboard' && <PatientDashboard userData={userData} />}
 
               {tab === 'bookings' && (
                 <>
@@ -136,6 +174,12 @@ const MyAccount = () => {
 
 
               {tab === 'settings' && <Profile user={userData} />}
+
+              {tab === 'history' && <MedicalHistory userId={userData._id} />}
+
+              {tab === 'medications' && <Medications />}
+
+              {tab === 'health' && <HealthTracker />}
             </div>
           </div>
         )}

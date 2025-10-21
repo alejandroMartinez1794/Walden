@@ -2,7 +2,7 @@
 
 import { google } from 'googleapis';
 import GoogleToken from '../Models/GoogleTokenSchema.js';
-import User from '../Models/UserSchema.js';
+import User from '../models/UserSchema.js';
 import { createJWT } from '../utils/jwt.js';
 import oAuth2Client from '../config/google.js';
 import jwt from 'jsonwebtoken';
@@ -93,7 +93,10 @@ export const createCalendarEvent = async (req, res) => {
   try {
     console.log("📥 Petición recibida para crear evento");
 
-    const { summary, description, start, end, attendees, doctorId, reason } = req.body;
+  // Admitimos tanto start/end como startTime/endTime
+  let { summary, description, start, end, startTime, endTime, attendees, doctorId, reason } = req.body;
+  start = start || startTime;
+  end = end || endTime;
 
     if (!summary || !start || !end || !doctorId) {
       return res.status(400).json({
@@ -102,11 +105,13 @@ export const createCalendarEvent = async (req, res) => {
       });
     }
 
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-    const userId = decoded.id;
+    // Usuario autenticado provisto por middleware authenticate
+    const userId = req.user?.id || (() => {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      return decoded.id;
+    })();
     const oAuth2Client = await getOAuthClientWithUserTokens(userId);
     const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
 
@@ -148,10 +153,11 @@ export const createCalendarEvent = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Error creando evento:", err.response?.data || err.message || err);
-    res.status(500).json({
+    console.error('❌ Error creando evento:', err.response?.data || err.message || err);
+    const status = err.code === 401 ? 401 : 500;
+    res.status(status).json({
       success: false,
-      message: "No se pudo crear el evento",
+      message: err.message || 'No se pudo crear el evento',
     });
   }
 };

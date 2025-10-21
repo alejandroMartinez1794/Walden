@@ -1,6 +1,6 @@
 // backend/Controllers/bookingController.js
 import Booking from '../models/BookingSchema.js';
-import { createCalendarEvent } from './calendarController.js';
+import { createCalendarEvent, deleteCalendarEvent } from './calendarController.js';
 
 /**
  * 📅 Crear nueva cita médica
@@ -100,5 +100,27 @@ export const cancelBooking = async (req, res) => {
   } catch (error) {
     console.error('❌ Error al cancelar la cita:', error);
     res.status(500).json({ error: 'Error al cancelar la cita' });
+  }
+};
+/**
+ * 📋 Obtener todas las citas del usuario
+ */
+export const getUserBookings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const bookings = await Booking.find({ user: userId })
+      .populate('doctor', 'name specialization photo')
+      .sort({ appointmentDate: -1 });
+
+    res.status(200).json({
+      success: true,
+      message: 'Citas obtenidas correctamente',
+      data: bookings,
+    });
+
+  } catch (error) {
+    console.error('❌ Error al obtener citas:', error);
+    res.status(500).json({ error: 'Error al obtener las citas' });
   }
 };

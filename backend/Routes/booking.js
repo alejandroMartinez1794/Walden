@@ -1,11 +1,16 @@
 import express from 'express';
-import { createBooking, cancelBooking } from '../Controllers/bookingController.js';
+import { createBooking, cancelBooking, getUserBookings } from '../Controllers/bookingController.js';
 import { authenticate  } from '../auth/verifyToken.js';
 
 const router = express.Router();
 
+// Obtener todas las citas del usuario autenticado
+router.get('/', authenticate, getUserBookings);
+
 // Ruta protegida para crear cita
 router.post('/', authenticate , createBooking);
-router.delete('/:bookingId', authenticate, cancelBooking); // 👈 esta es nueva
+
+// Cancelar una cita específica
+router.delete('/:bookingId', authenticate, cancelBooking);
 
 export default router;

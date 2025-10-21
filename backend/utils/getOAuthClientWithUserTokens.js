@@ -36,6 +36,33 @@ export const getOAuthClientWithUserTokens = async (userId) => {
     expiry_date: tokenDoc.expiry_date,
   });
 
+  // Persistir automáticamente tokens refrescados
+  client.on('tokens', async (tokens) => {
+    try {
+      const update = {};
+      if (tokens.access_token) update.access_token = tokens.access_token;
+      if (tokens.refresh_token) update.refresh_token = tokens.refresh_token;
+      if (tokens.expiry_date) update.expiry_date = tokens.expiry_date;
+      if (Object.keys(update).length > 0) {
+        await GoogleToken.findOneAndUpdate(
+          { userId },
+          { $set: update },
+          { new: true, upsert: true }
+        );
+        console.log('🔄 Tokens de Google actualizados para usuario', userId);
+      }
+    } catch (e) {
+      console.warn('⚠️ No se pudo persistir el refresh de tokens:', e.message);
+    }
+  });
+
+  // Forzar verificación/refresh si es necesario
+  try {
+    await client.getAccessToken();
+  } catch (e) {
+    console.warn('⚠️ No se pudo obtener access token inmediato, continuará en primera llamada:', e.message);
+  }
+
   // Devolver el cliente configurado
   return client;
 };

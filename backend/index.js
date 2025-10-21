@@ -9,6 +9,9 @@ import doctorRoute from './Routes/doctor.js';
 import reviewRoute from './Routes/review.js';
 import calendarRoutes from './Routes/calendar.js';
 import bookingRoute from './Routes/booking.js';
+import psychologyRoute from './Routes/psychology.js';
+import healthRoute from './Routes/health.js';
+import clinicalRoutes from './Routes/clinical.js';
 
 
 
@@ -50,6 +53,9 @@ app.use('/api/v1/doctors', doctorRoute);
 app.use('/api/v1/reviews', reviewRoute);
 app.use('/api/v1/calendar', calendarRoutes);
 app.use('/api/v1/bookings', bookingRoute);
+app.use('/api/v1/psychology', psychologyRoute); // Nuevas rutas de psicología
+app.use('/api/v1/health', healthRoute); // Rutas de salud del paciente
+app.use('/api/v1/clinical', clinicalRoutes);
     
 
 
