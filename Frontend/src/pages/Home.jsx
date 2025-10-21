@@ -91,7 +91,7 @@ const Home = () => {
             {/*---------hero section end -------- */}
 
             <section>
-                <div classsName="container"> 
+                <div className="container"> 
                     <div className="lg:w-[470px] mx-auto">
                         <h2 className="heading text-center">
                             Providing the best medical services

@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 
 import { useNavigate } from "react-router-dom";
 import uploadImageToCloudinary from '../../utils/uploadCloudinary';
-import { BASE_URL, token } from '../../config';
+import { BASE_URL } from '../../config';
 import { toast } from 'react-toastify';
 import HashLoader from 'react-spinners/HashLoader';
 
@@ -24,7 +24,13 @@ const Profile = ({user}) => {
     const navigate = useNavigate();
 
     useEffect ( () => {
-        setFormData({ name: user.name, email: user.email, photo:user.photo, gender:user.gender, bloodType:user.bloodType });
+        setFormData({ 
+            name: user?.name || "", 
+            email: user?.email || "", 
+            photo: user?.photo || null, 
+            gender: user?.gender || "", 
+            bloodType: user?.bloodType || "" 
+        });
     }, [user]);
 
     const handleInputChange = e => {
@@ -36,7 +42,7 @@ const Profile = ({user}) => {
 
         const data = await uploadImageToCloudinary(file)
     
-        setSelectFile(data.url);
+        setSelectFile(file);
         setFormData({ ...formData, photo: data.url });
     };
 
@@ -50,7 +56,7 @@ const Profile = ({user}) => {
                 method: 'put',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}` 
+                    Authorization: `Bearer ${localStorage.getItem('token')}` 
                 },
                 body: JSON.stringify(formData)
             });

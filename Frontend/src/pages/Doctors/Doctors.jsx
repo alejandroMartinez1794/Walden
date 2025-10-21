@@ -60,7 +60,7 @@ const Doctors = () => {
                 <div className='container'>
                     {loading && <Loader />}
                     {error && <Error />}
-                    {!loading && !error && (
+                        {!loading && !error && doctors && (
                         <div className='grid grid-cols-1 sm:grid-col-2 md:grid-cols-3 lg:grid-col-4 gap-5'>
                             {doctors.map(doctor => (
                                 <Doctorcard key={doctor.id} doctor={doctor}/>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AiOutlineDelete } from "react-icons/ai";
 import uploadImageToCloudinary from "../../utils/uploadCloudinary";
-import { BASE_URL, token } from "../../config";
+import { BASE_URL } from "../../config";
 import { toast } from "react-toastify";
 
 
@@ -25,18 +25,18 @@ const Profile = ({doctorData}) => {
 
     useEffect(() => {
         setFormData({
-            name: doctorData?.name,
-            email: doctorData?.email,
-            phone: doctorData?.phone,
-            bio: doctorData?.bio,
-            gender: doctorData?.gender,
-            specialization: doctorData?.specialization,
-            ticketPrice: doctorData?.ticketPrice, 
-            qualifications: doctorData?.qualifications,
-            experiences: doctorData?.experiences,
-            timeSlots: doctorData?.timeSlots,
-            about: doctorData?.about,
-            photo: doctorData?.photo,
+            name: doctorData?.name || "",
+            email: doctorData?.email || "",
+            phone: doctorData?.phone || "",
+            bio: doctorData?.bio || "",
+            gender: doctorData?.gender || "",
+            specialization: doctorData?.specialization || "",
+            ticketPrice: doctorData?.ticketPrice ?? 0,
+            qualifications: doctorData?.qualifications || [],
+            experiences: doctorData?.experiences || [],
+            timeSlots: doctorData?.timeSlots || [],
+            about: doctorData?.about || "",
+            photo: doctorData?.photo || null,
         });
     }, [doctorData]);
 
@@ -59,7 +59,7 @@ const Profile = ({doctorData}) => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify(formData),
             });
@@ -73,7 +73,7 @@ const Profile = ({doctorData}) => {
             toast.success(result.message);
     
         } catch (error) {
-            toast.error(err.message);
+            toast.error(error.message);
         }
     };
 

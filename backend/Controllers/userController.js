@@ -88,60 +88,45 @@ export const getAllUser = async (req, res) => {
 };
 
 export const getUserProfile = async (req, res) => {
-    const userId = req.userId
-
+    const userId = req.user.id; // ✅ Cambio aquí
+  
     try {
-        const user = await User.findById(userId);
-
-        if(!user) {
-            return res
-                .status(404)
-                .json({ success: false, message: "User not found" });
-        }
-
-        const { password, ...rest } = user._doc
-    
-        res
-            .status(200)
-            .json({ 
-                success: true, 
-                message:'Profile info is getting', 
-                data: {...rest}
-            });
-    
-    }   catch (error) {
-        res
-            .status(500)
-            .json({ success: false, message: "Something went wrong, cannot get" });
+      const user = await User.findById(userId).select("-password");
+  
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+  
+      res.status(200).json({ 
+        success: true,
+        message: 'Profile info retrieved',
+        data: user
+      });
+    } catch (error) {
+      console.error("❌ Error en getUserProfile:", error);
+      res.status(500).json({ success: false, message: "Server error" });
     }
-};
+  };
+  
 
 export const getMyAppointments = async (req, res) => {
-
     try {
-
-        // step -1: retrieve appointments from booking for specific user
-        const booking = await Booking.find({ user: req.userId })
-
-        // step -2: extract doctor id from appointments bookings
-        const doctorIds = booking.map(el=>el.doctor)     
-
-        // step -3: retrieve doctor using doctorIds
-        const doctors = await Doctor.find({ _id: { $in: doctorIds }}).select(
-            "-password"
-        );
-
-        res
-            .status(200)
-            .json({
-                success: true,
-                message: "Appointments are getting",
-                data: doctors,
-        });
-    
-    }   catch (err) {
-        res
-            .status(500)
-            .json({ success: false, message: "Something went wrong, cannot get" });
+      const userId = req.user.id; // ✅ Cambio aquí
+  
+      const booking = await Booking.find({ user: userId });
+  
+      const doctorIds = booking.map(el => el.doctor);
+  
+      const doctors = await Doctor.find({ _id: { $in: doctorIds } }).select("-password");
+  
+      res.status(200).json({
+        success: true,
+        message: "Appointments retrieved",
+        data: doctors,
+      });
+    } catch (err) {
+      console.error("❌ Error en getMyAppointments:", err);
+      res.status(500).json({ success: false, message: "Server error" });
     }
-}
+  };
+  
