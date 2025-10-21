@@ -69,54 +69,46 @@ const { data, loading, error } = useFetchData(`${BASE_URL}/doctors`);
 **Nested routes pattern**: Reviews are nested under doctors:
 ```javascript
 // In doctor.js
-router.use('/:doctorId/reviews', reviewRouter);
-// Enables: /api/v1/doctors/:doctorId/reviews
-```
 
-## Development Workflow
+# Medicare Booking — Guía breve para agentes de código (en español)
 
-**Start backend** (from `backend/`):
-```bash
-npm run start-dev  # Uses nodemon for hot reload
-# OR
-npm start  # Production mode
-```
+Orientación rápida para hacer cambios productivos en este repositorio (concisa y accionable).
 
-**Start frontend** (from `Frontend/`):
-```bash
-npm run dev  # Vite dev server on port 5173
-```
+Arquitectura y dónde mirar
+- Full‑stack: `Frontend/` (React + Vite + Tailwind) y `backend/` (Node/Express + Mongoose + Google APIs).
+- Rutas principales montadas en `backend/index.js`: `/api/v1/auth`, `/api/v1/users`, `/api/v1/doctors`, `/api/v1/reviews`, `/api/v1/calendar`, `/api/v1/bookings`, `/api/v1/psychology`, `/api/v1/health`, `/api/v1/clinical`.
 
-**Environment variables** (`.env` in `backend/`):
-- `MONGO_URL` - MongoDB connection string
-- `JWT_SECRET_KEY` - for token signing
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` - OAuth credentials
-- `PORT` - backend port (default 8000)
+Autenticación y roles (crítico)
+- JWT en header: `Authorization: Bearer <token>`; el middleware en `backend/auth/verifyToken.js` establece `req.user`, `req.userId`, `req.role`.
+- Valores de rol usados: `"paciente"`, `"doctor"`, `"admin"`.
+- El middleware `restrict(roles)` valida que el usuario exista (revisa `User` y `Doctor`) y luego verifica el rol.
 
-## Key Files Reference
+Integración con Google Calendar
+- Endpoints de OAuth: `/api/v1/calendar/google-auth` y `/api/v1/calendar/google-callback` (ver `backend/config/google.js`).
+- Los tokens se persisten por usuario en `GoogleTokenSchema` y `getOAuthClientWithUserTokens(userId)` carga el cliente con esos tokens; hay hooks que reescriben los tokens refrescados en MongoDB.
+- Los `Booking` se sincronizan con eventos de calendario (revisar campo `calendarEventId` en `BookingSchema.js`).
 
-- `backend/index.js` - Express app setup, CORS, route mounting
-- `backend/auth/verifyToken.js` - Auth middleware (`authenticate`, `restrict`)
-- `backend/config/google.js` - Google OAuth2 client configuration
-- `Frontend/src/context/AuthContext.jsx` - Global auth state management
-- `Frontend/src/routes/ProtectedRoute.jsx` - Role-based route protection
-- `Frontend/src/hooks/useFetchData.jsx` - Reusable authenticated fetch hook
+Convenciones del frontend
+- Estado de auth guardado en localStorage: claves `user`, `token`, `role`. Ver `Frontend/src/context/AuthContext.jsx`.
+- Hook `Frontend/src/hooks/useFetchData.jsx` lee `token` desde localStorage y añade el header `Authorization` en las peticiones.
+- Rutas protegidas usan `Frontend/src/routes/ProtectedRoute.jsx`. Páginas de OAuth de Google: `GoogleAuthRedirect.jsx` y `GoogleCallback.jsx`.
 
-## Database Conventions
+Flujos de desarrollo
+- Backend (desde `backend/`):
+	- npm run start-dev  # nodemon para desarrollo
+	- npm start          # producción
+- Frontend (desde `Frontend/`):
+	- npm run dev        # servidor Vite
 
-**Mongoose models** with soft error handling:
-```javascript
-export default mongoose.models.ModelName || mongoose.model('ModelName', schema);
-```
+Patrones y particularidades del proyecto
+- El repositorio usa módulos ES (`package.json` incluye `"type": "module"`); usa `import`/`export`.
+- Las respuestas API usan la forma: `{ success: boolean, message: string, data: any }` — controladores esperan/retornan este formato.
+- Muchos controladores esperan `req.userId` (el middleware `verifyToken` establece tanto `req.user.id` como `req.userId`).
+- Los helpers de Google esperan que el documento de tokens incluya `userId`; cuando añadas funciones nuevas, guarda `userId` en `GoogleTokenSchema`.
 
-**References**: Use `mongoose.Types.ObjectId` with `ref` for relationships (e.g., `appointments`, `reviews`)
+Archivos para abrir primero al cambiar comportamiento
+- `backend/auth/verifyToken.js`, `backend/config/google.js`, `backend/utils/getOAuthClientWithUserTokens.js`
+- `backend/Controllers/*Controller.js` (lógica de negocio)
+- `Frontend/src/context/AuthContext.jsx`, `Frontend/src/hooks/useFetchData.jsx`, `Frontend/src/routes/ProtectedRoute.jsx`
 
-**Mixed authentication**: `UserSchema` includes `authProvider` field (`"local"` or `"google"`) - Google users may not have passwords
-
-## Common Patterns
-
-- **API responses**: `{ success: boolean, message: string, data: any }`
-- **Error handling**: Try-catch in controllers, return appropriate HTTP status codes
-- **Role values**: Use `"paciente"`, `"doctor"`, `"admin"` (note Spanish spelling for patient)
-- **Token format**: Always `Bearer <token>` in Authorization header
-- **Calendar event sync**: Bookings include `calendarEventId` to maintain sync with Google Calendar
+Si algo no queda claro, indícame exactamente qué cambio (archivos/líneas) quieres y lo actualizo, agrego pruebas pequeñas o conecto tokens/rutas según haga falta.

@@ -58,10 +58,10 @@ const Login = () => {
       setLoading(false);
     }
   };
-  console.log("BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
-
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/calendar/google-auth`;
+    // Usar la constante BASE_URL del frontend en lugar de depender de VITE_BACKEND_URL
+    // Evita rutas como /undefined/calendar/google-auth cuando la variable de entorno no está definida
+    window.location.href = `${BASE_URL}/calendar/google-auth`;
   };
 
   return (
