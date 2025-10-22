@@ -26,63 +26,58 @@ const Home = () => {
         <>
             { /*---------Hero Section-------- */}
             
-            <section className="hero_section pt-[60px] 2xl:h-[800px]">                  
+            <section className="hero_section pt-[60px] pb-24 lg:pb-32 2xl:h-[800px]">                  
                 <div className="container">
-                    <div className="flex flex-col lg:flex-row gap-[90px] items-center justify-between">
+                    <div className="flex flex-col lg:flex-row gap-20 items-start lg:items-center justify-between">
                     
                         {/*---------Hero Content-------- */}
-                        <div>
-                            <div className="lg:w-[570px]">                
+                        <div className="lg:w-6/12">
+                            <div className="lg:max-w-[520px]">                
                                 <h1 className="text-[36px] leading-[46px] text-headingColor font-[800] md:text-[60px]
                                 md:leading-[70px]">
-                                    We help patients live a healthy, longer life
+                                    Más que una sesión, una experiencia de autocomprensión.
                                 </h1>
                                 <p className="text_para">
-                                    We provide the best medical services for our patients and always try to improve their quality of life.
-                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus repellat asperiores similique 
-                                    cupiditate unde. At consequuntur deleniti enim, veniam reiciendis aperiam architecto nisi, iusto 
-                                    voluptatibus quaerat non laboriosam iste. Molestias.
+                                    A través de la Terapia Cognitivo-Conductual (TCC), te acompaño a reconocer los patrones que sostienen tu ansiedad, tu tristeza o tu cansancio mental; y a construir, paso a paso, una mente más clara, estable y en paz.
                                 </p>
 
-                                <button className="btn"> Request an Appointment </button>
+                                <p className="text_para mt-4">
+                                    No es terapia automatizada, es atención clínica, humana y adaptada a tu ritmo —en un entorno digital que respeta tus procesos y te da herramientas reales para crecer.
+                                </p>
+
+                                <button className="btn">Inicia tu proceso terapéutico</button>
                             </div>
 
-                            {/*---------Hero counter-------- */}
+                            {/*---------Hero indicators (Español)-------- */}
                             <div className="mt-[30px] lg:mt-[70] flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-[30px]">
-                                <div>
-                                    <h2 className="text-[36px] leading-[56px] lg:text-[44px] lg:leading-[54px] font-[700] text-headingColor">
-                                        30+
-                                    </h2>
-                                    <span className="w-[100px] h-2 bg-yellowColor rounded-full block mt-[-14px]"></span>  
-                                    <p className= "text_para">Years of Experience </p>
-                                </div>
-                                
-                                <div>
-                                    <h2 className="text-[36px] leading-[56px] lg:text-[44px] lg:leading-[54px] font-[700] text-headingColor">
-                                        15+
-                                    </h2>
-                                    <span className="w-[100px] h-2 bg-purpleColor rounded-full block mt-[-14px]"></span>  
-                                    <p className= "text_para"> Clinic Location </p>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">🧭</span>
+                                    <p className="text_para">Experiencia sólida en atención psicológica clínica</p>
                                 </div>
 
-                                <div>
-                                    <h2 className="text-[36px] leading-[56px] lg:text-[44px] lg:leading-[54px] font-[700] text-headingColor">
-                                        100%
-                                    </h2>
-                                    <span className="w-[100px] h-2 bg-irisBlueColor rounded-full block mt-[-14px]"></span>  
-                                    <p className= "text_para"> Patient Satisfaction </p>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">💻</span>
+                                    <p className="text_para">Terapia digital personalizada y confidencial</p>
                                 </div>
-                            </div>    
+
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">🌿</span>
+                                    <p className="text_para">Enfoque especializado en ansiedad y depresión</p>
+                                </div>
+                            </div>
                         </div>
                         {/*---------Hero Content-------- */}
 
-                        <div className="flex gap-[30px] justify-end">
-                            <div>
-                                <img src={heroImg01} alt=""/>
-                            </div>
-                            <div className = "mt-[30px]" >
-                                <img src={heroImg02} alt="" className="w-full mb-[30px]" />
-                                <img src={heroImg03} alt="" className="w-full" />
+                        <div className="lg:w-6/12 flex items-center justify-end">
+                            <div className="flex items-center gap-8 lg:gap-10">
+                                <div className="w-[280px] sm:w-[360px] md:w-[440px] lg:w-[560px]">
+                                    <img src={heroImg01} alt="Imagen principal" className="w-full h-auto rounded-lg shadow-lg object-cover" />
+                                </div>
+
+                                <div className="flex flex-col gap-6 pt-6 lg:pt-0">
+                                    <img src={heroImg02} alt="Secundaria 1" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
+                                    <img src={heroImg03} alt="Secundaria 2" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -90,7 +85,7 @@ const Home = () => {
             </section>       
             {/*---------hero section end -------- */}
 
-            <section>
+            <section className="mt-12 lg:mt-20">
                 <div className="container"> 
                     <div className="lg:w-[470px] mx-auto">
                         <h2 className="heading text-center">
