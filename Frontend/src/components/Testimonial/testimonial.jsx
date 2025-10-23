@@ -49,6 +49,8 @@ const Testimonial = () => {
                     </div>
                     <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
                         “Aprendí a reconocer mis pensamientos y entender mis emociones. Hoy manejo mi ansiedad con herramientas que realmente funcionan.”
+                        <br />
+                        — María G., paciente en terapia cognitivo-conductual.
                     </p>    
                 </div>
             </SwiperSlide>
@@ -71,6 +73,8 @@ const Testimonial = () => {
                     </div>
                     <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
                         “Nunca imaginé que la terapia en línea pudiera sentirse tan cercana. Siento acompañamiento real y resultados que puedo medir.”
+                        <br />
+                        — Andrés P., paciente con seguimiento digital.
                     </p>    
                 </div>
             </SwiperSlide>
@@ -93,6 +97,31 @@ const Testimonial = () => {
                     </div>
                     <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
                         “Aquí no solo encontré orientación, sino una forma práctica de entenderme mejor. Es un proceso que realmente transforma.”
+                        <br />
+                        — Laura M., paciente en tratamiento integral.
+                    </p>    
+                </div>
+            </SwiperSlide>
+            <SwiperSlide>
+                <div className="py-[30px] px-5 rounded-3">
+                    <div className="flex items-center gap-[13px]">
+                        <img src={patientAvatar} alt=""/> 
+                        <div>
+                            <h4 className="text-[18px] leading-[30px] font-semibold text-headingColor">
+                                Alejandro Martinez 
+                            </h4>
+                            <div className="flex items-center gap-[2px]">
+                                <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                <HiStar className="text-yellowColor w-[18px] h-5"/>
+                            </div>    
+                        </div>
+                    </div>
+                    <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
+                        "I have taken medical services from them. They treat so well and 
+                        they are providing the best medical services"
                     </p>    
                 </div>
             </SwiperSlide>
