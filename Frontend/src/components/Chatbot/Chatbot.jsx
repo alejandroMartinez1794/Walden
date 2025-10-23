@@ -44,6 +44,18 @@ const Chatbot = () => {
     }
   }, [isOpen, user]);
 
+  // Exponer función global para abrir el chatbot desde otros componentes
+  useEffect(() => {
+    window.openChatbot = () => setIsOpen(true);
+    return () => {
+      try {
+        delete window.openChatbot;
+      } catch (e) {
+        window.openChatbot = undefined;
+      }
+    };
+  }, []);
+
   const handleSendMessage = async (text, quickReply = false) => {
     // Verificar si es una acción rápida que requiere navegación
     const actionHandled = handleQuickAction(text, navigate, user);

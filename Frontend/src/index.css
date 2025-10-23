@@ -15,6 +15,43 @@
 
     .btn{
         @apply bg-primaryColor py-[15px] px-[35px] rounded-[50px] text-white font-[600] mt-[38px];
+        transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s ease, filter .22s ease;
+        will-change: transform, box-shadow;
+    }
+
+    /* Apply the same interactive styles to all native buttons and submit inputs */
+    button,
+    input[type="button"],
+    input[type="submit"] {
+        transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s ease, filter .22s ease;
+        will-change: transform, box-shadow;
+        cursor: pointer;
+    }
+
+    /* Hover / focus effect "bien chimba" */
+    .btn:hover,
+    button:hover,
+    input[type="button"]:hover,
+    input[type="submit"]:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 14px 40px rgba(34,50,80,0.12), 0 6px 18px rgba(126,163,149,0.12);
+        filter: saturate(1.05) brightness(1.02);
+    }
+
+    .btn:active,
+    button:active,
+    input[type="button"]:active,
+    input[type="submit"]:active {
+        transform: translateY(-2px) scale(0.995);
+        box-shadow: 0 8px 20px rgba(34,50,80,0.08);
+    }
+
+    .btn:focus-visible,
+    button:focus-visible,
+    input[type="button"]:focus-visible,
+    input[type="submit"]:focus-visible{
+        outline: 3px solid rgba(126,163,149,0.18);
+        outline-offset: 4px;
     }
 
     .heading{

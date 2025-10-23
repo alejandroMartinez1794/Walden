@@ -45,7 +45,18 @@ const Home = () => {
                                     No es terapia automatizada, es atención clínica, humana y adaptada a tu ritmo —en un entorno digital que respeta tus procesos y te da herramientas reales para crecer.
                                 </p>
 
-                                <button className="btn">Inicia tu proceso terapéutico</button>
+                                                                <div className="flex justify-center mt-6">
+                                                                    <button
+                                                                        className="btn"
+                                                                        onClick={() => {
+                                                                            if (typeof window !== 'undefined' && window.openChatbot) {
+                                                                                window.openChatbot();
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        Inicia tu proceso terapéutico
+                                                                    </button>
+                                                                </div>
                             </div>
 
                             {/*---------Hero indicators (Español)-------- */}
@@ -190,20 +201,31 @@ const Home = () => {
                     <div className="flex items-center justify-between flex-col lg:flex-row">
                             {/*---feature content---*/}
                         <div className="xl:w-[670px]">
-                            <h2 className="heading">
+                            <h2 className="heading text-center">
                                     Atención psicológica virtual, cuando la necesites.
                                 </h2>
                                 <p className="text_para mt-2">Recibe acompañamiento profesional sin importar dónde estés. Nuestra plataforma te conecta con psicólogos clínicos especializados en Terapia Cognitivo-Conductual (TCC) y enfoques de tercera generación, garantizando una atención basada en la ciencia y la confidencialidad.</p>
 
                                 <ul className="pl-4 mt-4 space-y-3">
-                                    <li className="text_para">Agenda tu cita fácilmente: selecciona el horario que mejor se ajuste a tu rutina.</li>
-                                    <li className="text_para">Elige a tu profesional: revisa los perfiles de nuestros psicólogos y selecciona el que más se adapte a tus necesidades.</li>
-                                    <li className="text_para">Comienza tu proceso terapéutico: accede a tu sesión en línea desde cualquier dispositivo, en un entorno seguro y privado.</li>
+                                    <li className="text_para flex items-start gap-3">
+                                        <span className="inline-block text-2xl mt-1">🗓️</span>
+                                        <span>Agenda tu cita fácilmente: selecciona el horario que mejor se ajuste a tu rutina.</span>
+                                    </li>
+                                    <li className="text_para flex items-start gap-3">
+                                        <span className="inline-block text-2xl mt-1">💬</span>
+                                        <span>Sesiones en línea, con rigor clínico y acompañamiento humano: Cada proceso terapéutico se diseña desde la evidencia científica, adaptado a tu historia y tus objetivos.</span>
+                                    </li>
+                                    <li className="text_para flex items-start gap-3">
+                                        <span className="inline-block text-2xl mt-1">🧠</span>
+                                        <span>Comienza tu proceso terapéutico: accede a tu sesión en línea desde cualquier dispositivo, en un entorno seguro y privado.</span>
+                                    </li>
                                 </ul>
 
-                                <Link to="/">
-                                    <button className="btn">Conoce más</button> 
-                                </Link>
+                                <div className="flex justify-center mt-6">
+                                    <Link to="/">
+                                        <button className="btn">Conoce más</button>
+                                    </Link>
+                                </div>
                         </div>
 
                                 {/*---feature image---*/}
