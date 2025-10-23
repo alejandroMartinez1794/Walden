@@ -48,15 +48,15 @@ const ClinicalHero = () => {
             {/* Metrics */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🌿</span>
+                <span className="text-2xl">🧠</span>
                 <span className="text-sm">Psicología clínica especializada en TCC</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🧠</span>
+                <span className="text-2xl">❤️‍�</span>
                 <span className="text-sm">Enfoque en ansiedad y depresión</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">💬</span>
+                <span className="text-2xl">�</span>
                 <span className="text-sm">Atención 100% en línea y personalizada</span>
               </div>
             </div>

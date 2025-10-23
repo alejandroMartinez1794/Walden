@@ -89,10 +89,10 @@ const Home = () => {
                 <div className="container"> 
                     <div className="lg:w-[470px] mx-auto">
                         <h2 className="heading text-center">
-                            Providing the best medical services
+                            Acompañamiento psicológico centrado en ti
                         </h2>
                         <p className= "text_para text-center">
-                            World-class care for everyone. Our health System offers unmatched, expert health care,
+                            Cada proceso terapéutico es un espacio para comprender, sanar y reconstruir tu bienestar emocional desde la evidencia y la empatía.
                         </p>
                     </div>
 
@@ -105,11 +105,11 @@ const Home = () => {
 
                             <div className="mt-[30px]">
                                 <h2 className= "text-[26px] leading-9 text-headingColor font-[700] text-center">
-                                    Find a Doctor
+                                    🧠 Explora tu proceso terapéutico
                                 </h2>
                                 <p className="text-[16px] leading-7 text-textColor font-[400] mt-4 text-center">
-                                    World-class care for everyone. Our health System offers unmatched, expert health care. 
-                                    From the lab to the Clinic
+                                    Descubre un espacio profesional diseñado para acompañarte en el manejo de la ansiedad, la depresión y los pensamientos recurrentes.
+                                    Aquí comienzas a entender lo que sientes, sin juicios y con un enfoque claro hacia tu bienestar.
                                 </p>
                                 
                                 <Link 
@@ -131,11 +131,11 @@ const Home = () => {
 
                             <div className="mt-[30px]">
                                 <h2 className= "text-[26px] leading-9 text-headingColor font-[700] text-center">
-                                    Find a Location
+                                    💬 Conecta desde donde estés
                                 </h2>
                                 <p className="text-[16px] leading-7 text-textColor font-[400] mt-4 text-center">
-                                    World-class care for everyone. Our health System offers unmatched, expert health care. 
-                                    From the lab to the Clinic
+                                    Accede a sesiones en línea seguras, privadas y humanas.
+                                    La terapia digital te permite cuidar tu salud mental con la misma profundidad de un encuentro presencial, desde la comodidad de tu entorno.
                                 </p>
                                 
                                 <Link 
@@ -157,11 +157,11 @@ const Home = () => {
 
                             <div className="mt-[30px]">
                                 <h2 className= "text-[26px] leading-9 text-headingColor font-[700] text-center">
-                                    Book a Appointment
+                                    🗓️ Agenda y da continuidad a tu proceso
                                 </h2>
                                 <p className="text-[16px] leading-7 text-textColor font-[400] mt-4 text-center">
-                                    World-class care for everyone. Our health System offers unmatched, expert health care. 
-                                    From the lab to the Clinic
+                                    Organiza tus sesiones, revisa tus avances y recibe acompañamiento constante.
+                                    Tu espacio terapéutico digital te permite mantener el ritmo de tu crecimiento, paso a paso y con propósito.
                                 </p>
                                 
                                 <Link 
@@ -186,10 +186,9 @@ const Home = () => {
             <section>
                 <div className="container">
                     <div className="xl:w-[470px] mx-auto"> 
-                        <h2 className="heading text-center"> Our medical services </h2>
+                        <h2 className="heading text-center"> 🧠 Nuestros servicios psicológicos </h2>
                         <p className="text_para text-center"> 
-                        World-class care for everyone. Our health System offers unmatched, 
-                        expert health care.
+                        Desde un enfoque cognitivo-conductual, abordamos los desafíos emocionales y mentales con herramientas clínicas respaldadas por la ciencia. Cada proceso terapéutico se adapta a la historia, el ritmo y las necesidades únicas de cada persona, promoviendo cambios reales y sostenibles.
                         </p>
                     </div>
 
@@ -206,22 +205,19 @@ const Home = () => {
                             {/*---feature content---*/}
                         <div className="xl:w-[670px]">
                             <h2 className="heading">
-                                Get Virtual treatment <br/> anytime.
-                            </h2>
-                            <ul className="pl-4">
-                                <li className="text_para"> 
-                                    1. Schedule the appointment directly
-                                </li>
-                                <li className="text_para"> 
-                                    2. Search for your physician here, and contact their office.
-                                </li>
-                                <li className="text_para"> 
-                                    3. View our physician who are accepting new patients. use the online scheduling tool to book an appointment.
-                                </li>
-                            </ul>
-                            <Link to="/">
-                                <button className="btn">Learn More</button> 
-                            </Link>
+                                    Atención psicológica virtual, cuando la necesites.
+                                </h2>
+                                <p className="text_para mt-2">Recibe acompañamiento profesional sin importar dónde estés. Nuestra plataforma te conecta con psicólogos clínicos especializados en Terapia Cognitivo-Conductual (TCC) y enfoques de tercera generación, garantizando una atención basada en la ciencia y la confidencialidad.</p>
+
+                                <ul className="pl-4 mt-4 space-y-3">
+                                    <li className="text_para">Agenda tu cita fácilmente: selecciona el horario que mejor se ajuste a tu rutina.</li>
+                                    <li className="text_para">Elige a tu profesional: revisa los perfiles de nuestros psicólogos y selecciona el que más se adapte a tus necesidades.</li>
+                                    <li className="text_para">Comienza tu proceso terapéutico: accede a tu sesión en línea desde cualquier dispositivo, en un entorno seguro y privado.</li>
+                                </ul>
+
+                                <Link to="/">
+                                    <button className="btn">Conoce más</button> 
+                                </Link>
                         </div>
 
                                 {/*---feature image---*/}
