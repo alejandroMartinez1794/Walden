@@ -7,7 +7,7 @@ import patientAvatar from '../../assets/images/patient-avatar.png';
 import {HiStar} from "react-icons/hi";
 
 
-const Testimonial = () => {
+const Testimonial = ({ additionalTestimonials = [] }) => {
     return (
     <div className="mt-[40px] lg:mt-[80px]">
         <Swiper 
@@ -125,6 +125,33 @@ const Testimonial = () => {
                     </p>    
                 </div>
             </SwiperSlide>
+            {/* existing hard-coded slides above... */}
+
+            {/* render any additional testimonials passed from parent (e.g., user submissions) */}
+            {additionalTestimonials.map((t, idx) => (
+                <SwiperSlide key={`user-test-${idx}-${t.createdAt || idx}`}>
+                    <div className="py-[40px] px-5 rounded-3">
+                        <div className="flex items-center gap-[13px]">
+                            <img src={patientAvatar} alt=""/>
+                            <div>
+                                <h4 className="text-[18px] leading-[30px] font-semibold text-headingColor">
+                                    {t.name || 'Anónimo'}
+                                </h4>
+                                <div className="flex items-center gap-[2px]">
+                                    <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                    <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                    <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                    <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                    <HiStar className="text-yellowColor w-[18px] h-5"/>
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
+                            {t.text}
+                        </p>
+                    </div>
+                </SwiperSlide>
+            ))}
         </Swiper>
         </ div>
     );
