@@ -9,7 +9,7 @@ import {HiStar} from "react-icons/hi";
 
 const Testimonial = () => {
     return (
-        <div className="mt-[30px] lg:mt-[55px]">
+    <div className="mt-[40px] lg:mt-[80px]">
         <Swiper 
             modules ={[Pagination]} 
             spaceBetween={30} 
@@ -31,7 +31,7 @@ const Testimonial = () => {
             }}
         >
             <SwiperSlide>
-                <div className="py-[30px] px-5 rounded-3">
+                <div className="py-[40px] px-5 rounded-3">
                     <div className="flex items-center gap-[13px]">
                         <img src={patientAvatar} alt=""/> 
                         <div>
@@ -55,7 +55,7 @@ const Testimonial = () => {
                 </div>
             </SwiperSlide>
             <SwiperSlide>
-                <div className="py-[30px] px-5 rounded-3">
+                <div className="py-[40px] px-5 rounded-3">
                     <div className="flex items-center gap-[13px]">
                         <img src={patientAvatar} alt=""/> 
                         <div>
@@ -79,7 +79,7 @@ const Testimonial = () => {
                 </div>
             </SwiperSlide>
             <SwiperSlide>
-                <div className="py-[30px] px-5 rounded-3">
+                <div className="py-[40px] px-5 rounded-3">
                     <div className="flex items-center gap-[13px]">
                         <img src={patientAvatar} alt=""/> 
                         <div>
@@ -103,7 +103,7 @@ const Testimonial = () => {
                 </div>
             </SwiperSlide>
             <SwiperSlide>
-                <div className="py-[30px] px-5 rounded-3">
+                <div className="py-[40px] px-5 rounded-3">
                     <div className="flex items-center gap-[13px]">
                         <img src={patientAvatar} alt=""/> 
                         <div>

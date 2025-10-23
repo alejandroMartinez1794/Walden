@@ -182,21 +182,7 @@ const Home = () => {
             
             <About />
 
-            {/*---services section---*/}
-            <section>
-                <div className="container">
-                    <div className="xl:w-[470px] mx-auto"> 
-                        <h2 className="heading text-center"> 🧠 Nuestros servicios psicológicos </h2>
-                        <p className="text_para text-center"> 
-                        Desde un enfoque cognitivo-conductual, abordamos los desafíos emocionales y mentales con herramientas clínicas respaldadas por la ciencia. Cada proceso terapéutico se adapta a la historia, el ritmo y las necesidades únicas de cada persona, promoviendo cambios reales y sostenibles.
-                        </p>
-                    </div>
-
-                    <ServiceList /> 
-                </div>
-            </section>
-
-            {/*---services section end---*/}
+            {/*---services section removed (moved to /services)---*/}
 
             {/*---feature section---*/}
             <section>
@@ -283,22 +269,7 @@ const Home = () => {
             </section>
             {/*---faq section end---*/}
 
-            {/*---testimonial---*/}
-            <section>
-                <div className="container">
-                    <div className="xl:w-[470px] mx-auto">
-                        <h2 className="heading text-center"> 🩺 Lo que nuestros pacientes expresan </h2>
-                        <p className="text_para text-center">
-                            Cuidado psicológico con propósito y humanidad.
-                            Cada proceso terapéutico es una historia de cambio. A través de la escucha, la comprensión y el trabajo conjunto, nuestros pacientes descubren nuevas formas de pensar, sentir y vivir con bienestar.
-                        </p>
-                    </div>
-
-                    <Testimonial />
-                </div>    
-            </section>
-
-            {/*---testimonial end---*/}
+            {/*---testimonial removed; moved to /testimonios per request---*/}
                 
         </>
     );
