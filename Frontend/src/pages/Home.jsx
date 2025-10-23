@@ -273,7 +273,7 @@ const Home = () => {
 
                         <div className="w-full md:w-1/2">
                             <h2 className="heading">
-                                Most questions by our beloved patients
+                                🗣️ Preguntas frecuentes de nuestros pacientes
                             </h2>
 
                             <Faqlist /> 
@@ -287,9 +287,10 @@ const Home = () => {
             <section>
                 <div className="container">
                     <div className="xl:w-[470px] mx-auto">
-                        <h2 className="heading text-center"> What our patient say </h2>
+                        <h2 className="heading text-center"> 🩺 Lo que nuestros pacientes expresan </h2>
                         <p className="text_para text-center">
-                            world-class care for everyone. Our health System offers unmatched, expert health care.
+                            Cuidado psicológico con propósito y humanidad.
+                            Cada proceso terapéutico es una historia de cambio. A través de la escucha, la comprensión y el trabajo conjunto, nuestros pacientes descubren nuevas formas de pensar, sentir y vivir con bienestar.
                         </p>
                     </div>
 

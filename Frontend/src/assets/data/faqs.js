@@ -1,27 +1,27 @@
 export const faqs = [
   {
-    question: "What is your medical care?",
+    question: "¿Cómo funciona la atención psicológica?",
     content:
-      "One Medical was founded on a better model of care one designed around patients needs that provides a higher level of quality and service affordably. We do this through innovative design, excellent customer service, and the efficient use of technology.",
+      "Las sesiones se realizan de forma virtual a través de una plataforma segura. Utilizamos un enfoque basado en la Terapia Cognitivo-Conductual (TCC), adaptado a tus objetivos personales. Durante el proceso, aprenderás a identificar y modificar patrones de pensamiento y conducta que afectan tu bienestar emocional.",
   },
   {
-    question: "What happens if I need to go a hospital?",
+    question: "¿Qué pasa si atravieso una crisis emocional?",
     content:
-      "One Medical was founded on a better model of care one designed around patients needs that provides a higher level of quality and service affordably. We do this through innovative design, excellent customer service, and the efficient use of technology.",
+      "En caso de emergencia psicológica o riesgo vital, te orientaremos para que contactes los servicios de urgencia de tu localidad. Nuestro equipo ofrece acompañamiento clínico, pero no reemplaza la atención de crisis inmediata. Siempre priorizamos tu seguridad y contención emocional.",
   },
   {
-    question: "What happens if I need to go a hospital?",
+    question: "¿Puedo asistir de forma presencial si lo necesito?",
     content:
-      "One Medical was founded on a better model of care one designed around patients needs that provides a higher level of quality and service affordably. We do this through innovative design, excellent customer service, and the efficient use of technology.",
+      "Actualmente brindamos atención principalmente virtual. Sin embargo, algunos profesionales cuentan con espacio presencial bajo cita previa, dependiendo de la disponibilidad y la necesidad clínica.",
   },
   {
-    question: "Can I visit your medical office?",
+    question: "¿Ofrecen atención a nuevos pacientes?",
     content:
-      "One Medical was founded on a better model of care one designed around patients needs that provides a higher level of quality and service affordably. We do this through innovative design, excellent customer service, and the efficient use of technology.",
+      "Sí. Nuestro equipo está abierto a nuevos procesos terapéuticos. Puedes agendar tu primera cita directamente desde la plataforma, elegir el profesional que prefieras y comenzar tu acompañamiento desde cualquier lugar.",
   },
   {
-    question: "Does you provide urgent care?",
+    question: "¿Atienden casos urgentes o de alta complejidad?",
     content:
-      "One Medical was founded on a better model of care one designed around patients needs that provides a higher level of quality and service affordably. We do this through innovative design, excellent customer service, and the efficient use of technology.",
+      "Sí, ofrecemos apoyo clínico a personas que atraviesan crisis emocionales, duelos, o situaciones de alta carga psicológica. En estos casos, el tratamiento se ajusta con prioridad y seguimiento más cercano. En casos de riesgo vital, recomendamos acudir de inmediato a un servicio de urgencias.",
   },
 ];
