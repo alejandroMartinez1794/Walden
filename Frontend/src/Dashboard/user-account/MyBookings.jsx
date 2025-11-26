@@ -33,7 +33,7 @@ const MyBookings = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || result.message);
+        throw new Error(result.error || result.message || 'No se pudieron cargar las citas');
       }
 
       const bookingsData = result.data || [];
@@ -42,7 +42,7 @@ const MyBookings = () => {
       // Convertir bookings a eventos del calendario
       const events = bookingsData.map((booking) => ({
         id: booking._id,
-        title: `${booking.doctor?.name || "Doctor"} - ${booking.reason || "Cita médica"}`,
+        title: `${booking.doctor?.name || 'Médico'} - ${booking.reason || 'Cita médica'}`,
         start: booking.appointmentDate,
         end: new Date(new Date(booking.appointmentDate).getTime() + 30 * 60 * 1000).toISOString(),
         backgroundColor: booking.calendarEventId ? "#0b89da" : "#9ca3af",
@@ -75,7 +75,7 @@ const MyBookings = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || result.message);
+        throw new Error(result.error || result.message || 'No se pudo cancelar la cita');
       }
 
       toast.success("Cita cancelada exitosamente");

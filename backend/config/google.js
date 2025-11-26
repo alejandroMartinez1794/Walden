@@ -2,9 +2,13 @@
 
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
+import fs from 'fs';
 import GoogleToken from '../Models/GoogleTokenSchema.js'; // Usamos el modelo que ya tienes
 
-dotenv.config();
+// Asegura que las credenciales reales se carguen aun cuando este módulo se importe
+// antes que index.js configure dotenv.
+const envFile = fs.existsSync('.env.local') ? '.env.local' : '.env';
+dotenv.config({ path: envFile, override: false });
 
 // Crear cliente OAuth2 con las credenciales de Google
 const oAuth2Client = new google.auth.OAuth2(

@@ -33,7 +33,7 @@ const PatientDashboard = ({ userData, bookingsCount = 0 }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Tipo de Sangre</p>
-              <p className="text-2xl font-bold text-gray-800">{userData?.bloodType || 'N/A'}</p>
+              <p className="text-2xl font-bold text-gray-800">{userData?.bloodType || 'N/D'}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-full">
               <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +47,7 @@ const PatientDashboard = ({ userData, bookingsCount = 0 }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Edad</p>
-              <p className="text-2xl font-bold text-gray-800">{userData?.age || 'N/A'}</p>
+              <p className="text-2xl font-bold text-gray-800">{userData?.age || 'N/D'}</p>
             </div>
             <div className="bg-purple-100 p-3 rounded-full">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@ const PatientDashboard = ({ userData, bookingsCount = 0 }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Género</p>
-              <p className="text-2xl font-bold text-gray-800">{userData?.gender || 'N/A'}</p>
+              <p className="text-2xl font-bold text-gray-800">{userData?.gender || 'N/D'}</p>
             </div>
             <div className="bg-orange-100 p-3 rounded-full">
               <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

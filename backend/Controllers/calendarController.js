@@ -68,17 +68,20 @@ export const handleGoogleCallback = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    const frontendRedirect = `http://localhost:5173/google-auth-redirect?token=${token}&user=${encodeURIComponent(
-      JSON.stringify({
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture || null,
-      })
-    )}`;
+    const frontendBaseUrl = process.env.FRONTEND_BASE_URL || 'http://localhost:5173';
+    const serializedUser = JSON.stringify({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture || null,
+    });
+    const base = frontendBaseUrl.endsWith('/')
+      ? frontendBaseUrl.slice(0, -1)
+      : frontendBaseUrl;
+    const redirectUrl = `${base}/google-auth-redirect?token=${token}&user=${encodeURIComponent(serializedUser)}`;
 
-    return res.redirect(frontendRedirect);
+    return res.redirect(redirectUrl);
 
   } catch (error) {
     console.error('🔴 Error en handleGoogleCallback:', error);

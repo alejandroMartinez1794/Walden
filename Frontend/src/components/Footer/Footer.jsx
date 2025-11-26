@@ -28,15 +28,15 @@ const socialLinks = [
 const quickLinks01 = [
     {
         path: "/home",
-        display: "Home",
+        display: "Inicio",
     },
     {
         path: "/",
-        display: "About us",
+        display: "Sobre nosotros",
     },
     {
         path: "/services",
-        display: "Services",
+        display: "Servicios",
     },
     {
         path: "/",
@@ -46,31 +46,23 @@ const quickLinks01 = [
 
 const quickLinks02 = [
     {
-        path: "/find-a-doctor",
-        display: "Find a Doctor",
+        path: "/",
+        display: "Solicita una cita",
     },
     {
         path: "/",
-        display: "Request an Appointment",
-    },
-    {
-        path: "/",
-        display: "Find a Location",
-    },
-    {
-        path: "/",
-        display: "Get a Opinion",
+        display: "Obtener una opinion",
     },
 ]
 
 const quickLinks03 = [
     {
         path: "/",
-        display: "Donate",
+        display: "Donar",
     },
     {
         path: "/contact",
-        display: "Contact Us",
+        display: "Contactanos",
     },
 ]
 
@@ -84,7 +76,7 @@ const Footer = () => {
                     <div>
                         <img src={logo} alt=""/>
                         <p className="text-[16px] leading-7 font-[400] text-textColor">
-                            Copyright {year} developed by Bogobyte all tight reserved
+                            Copyright {year} desarrollado por Bogobyte. Todos los derechos reservados.
                         </p>
                         
                         <div className= "flex items-center gap-3 mt-4">
@@ -103,7 +95,7 @@ const Footer = () => {
 
                     <div>
                         <h2 className="text-[20px] leading-[30px] font-[700] mb-6 text-headingColor">
-                            Quick Links
+                            Enlaces rapidos
                         </h2>
 
                         <ul>
@@ -118,7 +110,7 @@ const Footer = () => {
                     </div>
                     <div>
                         <h2 className="text-[20px] leading-[30px] font-[700] mb-6 text-headingColor">
-                            I want to:
+                            Quiero:
                         </h2>
 
                         <ul>
@@ -133,7 +125,7 @@ const Footer = () => {
                     </div>
                     <div>
                         <h2 className="text-[20px] leading-[30px] font-[700] mb-6 text-headingColor">
-                            Support
+                            Soporte
                         </h2>
 
                         <ul>

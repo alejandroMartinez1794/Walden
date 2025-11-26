@@ -3,6 +3,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 import authRoute from './Routes/auth.js';
 import userRoute from './Routes/user.js';
 import doctorRoute from './Routes/doctor.js';
@@ -13,9 +15,16 @@ import psychologyRoute from './Routes/psychology.js';
 import healthRoute from './Routes/health.js';
 import clinicalRoutes from './Routes/clinical.js';
 
-
-
-dotenv.config()
+// Cargar .env.local primero (credenciales locales), luego .env (plantilla)
+// IMPORTANTE: No llamar a dotenv.config() dos veces, solo una
+const envPath = '.env.local'; // Intenta primero .env.local
+try {
+    dotenv.config({ path: envPath, override: true });
+    console.log('✅ Loaded .env.local');
+} catch (err) {
+    console.log('⚠️ .env.local not found, falling back to .env');
+    dotenv.config({ path: '.env', override: true });
+}
 
 const app = express();
 const PORT = process.env.PORT || 8000;

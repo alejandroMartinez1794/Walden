@@ -16,7 +16,7 @@ import MyCalendar from './MyCalendar';
 
 
 const MyAccount = () => {
-  const { dispatch } = useContext(authContext);
+  const { dispatch, token: authToken, role: authRole } = useContext(authContext);
   const [tab, setTab] = useState('dashboard');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ const MyAccount = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        console.log("Fetching user profile...");
+        console.log("Obteniendo perfil del usuario...");
         const res = await fetch(`${BASE_URL}/users/profile/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -37,13 +37,13 @@ const MyAccount = () => {
         const result = await res.json();
 
         if (!res.ok) {
-          throw new Error(result.message || 'Failed to fetch profile');
+          throw new Error(result.message || 'No se pudo obtener el perfil');
         }
 
         setUserData(result.data);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching profile:", err.message); 
+        console.error("Error al obtener el perfil:", err.message); 
         setError(err.message);
         setLoading(false);
       }
@@ -58,9 +58,40 @@ const MyAccount = () => {
     window.location.href = '/login';
   };
 
+  const handleProfileUpdated = updatedProfile => {
+    if (!updatedProfile) return;
+
+    setUserData(prev => {
+      const mergedProfile = { ...(prev || {}), ...updatedProfile };
+
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: {
+          user: mergedProfile,
+          token: authToken || localStorage.getItem('token'),
+          role: authRole || localStorage.getItem('role'),
+        },
+      });
+
+      return mergedProfile;
+    });
+  };
+
   return (
     <section>
       <div className='max-w-[1170px] px-5 mx-auto'>
+        {/* Botón Logout prominente en la parte superior (mobile y desktop) */}
+        {!loading && !error && userData && (
+          <div className='flex justify-end mb-5'>
+            <button
+              onClick={handleLogout}
+              className='bg-red-500 hover:bg-red-600 px-6 py-2 text-[14px] leading-6 rounded-md text-white font-semibold transition-all'
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        )}
+
         {loading && !error && <Loading />}
         {error && !loading && <Error errMessage={error} />}
 
@@ -86,9 +117,9 @@ const MyAccount = () => {
                   {userData.email}
                 </p>
                 <p className='text-textColor text-[15px] leading-6 font-medium'>
-                  Blood Type
+                  Tipo de sangre
                   <span className='ml-2 text-headingColor text-[22px] leading-8'>
-                    {userData.bloodType || 'N/A'}
+                    {userData.bloodType || 'N/D'}
                   </span>
                 </p>
               </div>
@@ -98,10 +129,10 @@ const MyAccount = () => {
                   onClick={handleLogout}
                   className='w-full bg-[#181A1E] p-3 text-[16px] leading-7 rounded-md text-white'
                 >
-                  Logout
+                  Cerrar sesión
                 </button>
                 <button className='w-full bg-red-600 mt-4 p-3 text-[16px] leading-7 rounded-md text-white'>
-                  Delete Account
+                  Eliminar cuenta
                 </button>
               </div>
             </div>
@@ -115,7 +146,7 @@ const MyAccount = () => {
                     tab === 'dashboard' && 'bg-primaryColor text-white'
                   } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                 >
-                  Dashboard
+                  Panel
                 </button>
                 <button
                   onClick={() => setTab('bookings')}
@@ -123,7 +154,7 @@ const MyAccount = () => {
                     tab === 'bookings' && 'bg-primaryColor text-white'
                   } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                 >
-                  My Bookings
+                  Mis citas
                 </button>
                 <button
                   onClick={() => setTab('settings')}
@@ -131,7 +162,7 @@ const MyAccount = () => {
                     tab === 'settings' && 'bg-primaryColor text-white'
                   } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                 >
-                  Profile Settings
+                  Configuración de perfil
                 </button>
                 <button
                   onClick={() => setTab('history')}
@@ -139,7 +170,7 @@ const MyAccount = () => {
                     tab === 'history' && 'bg-primaryColor text-white'
                   } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                 >
-                  Medical History
+                  Historial médico
                 </button>
                   <button
                     onClick={() => setTab('medications')}
@@ -147,7 +178,7 @@ const MyAccount = () => {
                       tab === 'medications' && 'bg-primaryColor text-white'
                     } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                   >
-                    Medications
+                    Medicamentos
                   </button>
                     <button
                       onClick={() => setTab('health')}
@@ -155,7 +186,7 @@ const MyAccount = () => {
                         tab === 'health' && 'bg-primaryColor text-white'
                       } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
                     >
-                      Health Tracker
+                      Seguimiento de salud
                     </button>
               </div>
 
@@ -173,7 +204,9 @@ const MyAccount = () => {
               )}
 
 
-              {tab === 'settings' && <Profile user={userData} />}
+              {tab === 'settings' && (
+                <Profile user={userData} onProfileUpdated={handleProfileUpdated} />
+              )}
 
               {tab === 'history' && <MedicalHistory userId={userData._id} />}
 

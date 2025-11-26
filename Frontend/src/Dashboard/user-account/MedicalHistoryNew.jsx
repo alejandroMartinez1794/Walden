@@ -53,25 +53,25 @@ const MedicalHistory = () => {
     const labels = {
       consultation: 'Consulta',
       lab: 'Laboratorio',
-      prescription: 'Receta'
+      prescription: 'Receta',
+      other: 'Otro'
     };
     return labels[type] || type;
   };
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
-    // Validate file size (max 5MB per file)
     const maxSize = 5 * 1024 * 1024;
     const invalidFiles = selectedFiles.filter(f => f.size > maxSize);
     if (invalidFiles.length > 0) {
-      toast.error(`Some files exceed 5MB limit`);
+      toast.error('Algunos archivos superan el límite de 5 MB');
       return;
     }
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     const invalidTypes = selectedFiles.filter(f => !allowedTypes.includes(f.type));
     if (invalidTypes.length > 0) {
-      toast.error('Only JPG, PNG, and PDF files are allowed');
+      toast.error('Solo se permiten archivos JPG, PNG o PDF');
       return;
     }
     setForm({ ...form, files: selectedFiles });
@@ -79,7 +79,7 @@ const MedicalHistory = () => {
 
   const handleSubmit = async () => {
     if (!form.title) {
-      toast.error('Title is required');
+      toast.error('El título es obligatorio');
       return;
     }
 
@@ -89,14 +89,14 @@ const MedicalHistory = () => {
       
       // Upload multiple files
       if (form.files.length > 0) {
-        toast.info(`Uploading ${form.files.length} file(s)...`);
+        toast.info(`Subiendo ${form.files.length} archivo(s)...`);
         for (let file of form.files) {
           const uploaded = await uploadImageToCloudinary(file);
           if (uploaded?.secure_url) {
             attachments.push({ url: uploaded.secure_url, name: file.name, type: uploaded.resource_type });
           }
         }
-        toast.success(`${attachments.length} file(s) uploaded`);
+        toast.success(`${attachments.length} archivo(s) cargado(s)`);
       }
 
       const token = localStorage.getItem('token');
@@ -118,12 +118,12 @@ const MedicalHistory = () => {
         if (list.ok) setRecords(listJson.data || []);
         setShowUpload(false);
         setForm({ type: 'consultation', title: '', description: '', date: new Date().toISOString().substring(0, 10), files: [] });
-        toast.success('Medical record created successfully');
+        toast.success('Registro médico creado con éxito');
       } else {
-        toast.error(json.message || 'Failed to create record');
+        toast.error(json.message || 'No se pudo crear el registro');
       }
     } catch (error) {
-      toast.error('Error uploading files');
+      toast.error('Error al subir los archivos');
     } finally {
       setUploading(false);
     }

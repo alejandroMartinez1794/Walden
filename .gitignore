@@ -1,0 +1,13 @@
+node_modules/
+# Backend environment
+backend/.env
+backend/node_modules/
+backend/.env.local
+
+# Frontend environment
+Frontend/.env
+Frontend/node_modules/
+
+# Root environment
+*.log
+*.env

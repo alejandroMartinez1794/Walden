@@ -1,15 +1,16 @@
 import {useEffect, useState} from 'react';
 
-import { useNavigate } from "react-router-dom";
 import uploadImageToCloudinary from '../../utils/uploadCloudinary';
 import { BASE_URL } from '../../config';
 import { toast } from 'react-toastify';
 import HashLoader from 'react-spinners/HashLoader';
 
-const Profile = ({user}) => {
+const Profile = ({user, onProfileUpdated}) => {
     
     const [selectFile, setSelectFile] = useState (null);
+    const [previewUrl, setPreviewUrl] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [photoUploading, setPhotoUploading] = useState(false);
 
 
     const [formData, setFormData] = useState({
@@ -20,8 +21,6 @@ const Profile = ({user}) => {
         gender:"",
         bloodType:"",
     });
-
-    const navigate = useNavigate();
 
     useEffect ( () => {
         setFormData({ 
@@ -37,18 +36,54 @@ const Profile = ({user}) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });  
     }
     
-    const handleFileInputChange = async (Event) => {
-        const file = Event.target.files[0]
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
-        const data = await uploadImageToCloudinary(file)
-    
+    const handleFileInputChange = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const previousPhoto = formData.photo;
+        const tempUrl = URL.createObjectURL(file);
+        setPreviewUrl(tempUrl);
         setSelectFile(file);
-        setFormData({ ...formData, photo: data.url });
+        setPhotoUploading(true);
+
+        try {
+            const data = await uploadImageToCloudinary(file);
+            const uploadedUrl = data?.secure_url || data?.url;
+
+            if (!uploadedUrl) {
+                throw new Error('La imagen se cargó pero no devolvió una URL válida.');
+            }
+
+            setFormData(prev => ({ ...prev, photo: uploadedUrl }));
+            setPreviewUrl(uploadedUrl);
+            toast.success('Foto actualizada');
+        } catch (error) {
+            console.error('Error subiendo imagen:', error);
+            setPreviewUrl(previousPhoto || null);
+            toast.error('No se pudo subir la imagen. Intenta nuevamente.');
+        } finally {
+            setPhotoUploading(false);
+            URL.revokeObjectURL(tempUrl);
+        }
     };
 
     const submitHandler = async event => {
 
         event.preventDefault();
+
+        if (photoUploading) {
+            toast.info('Espera a que la foto termine de subir.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -61,15 +96,21 @@ const Profile = ({user}) => {
                 body: JSON.stringify(formData)
             });
 
-            const {message}= await res.json();
+            const result = await res.json();
+            const { message, data: updatedUser } = result;
 
             if(!res.ok) {
-                throw new Error(message);
+                throw new Error(message || 'Error al actualizar el perfil');
+            }
+
+            if (updatedUser && typeof onProfileUpdated === 'function') {
+                onProfileUpdated(updatedUser);
+                setFormData(prev => ({ ...prev, photo: updatedUser.photo }));
             }
 
             setLoading(false)
             toast.success(message)
-            navigate('/users/profile/me');
+            // Evita recargar la página; el estado ya se actualizó.
 
         }   catch (err) {
             toast.error(err.message);
@@ -83,7 +124,7 @@ const Profile = ({user}) => {
                 <div className="mb-5">
                     <input
                         type="text"
-                        placeholder="Full Name"
+                        placeholder="Nombre completo"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
@@ -96,7 +137,7 @@ const Profile = ({user}) => {
                 <div className="mb-5">
                     <input
                         type="email"
-                        placeholder="Enter your Email"
+                        placeholder="Ingresa tu correo"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
@@ -110,7 +151,7 @@ const Profile = ({user}) => {
                 <div className="mb-5">
                     <input
                         type="password"
-                        placeholder="password"
+                        placeholder="Contraseña"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
@@ -124,7 +165,7 @@ const Profile = ({user}) => {
                 <div className="mb-5">
                     <input
                         type="text"
-                        placeholder="Blood Type"
+                        placeholder="Tipo de sangre"
                         name="bloodType"
                         value={formData.bloodType}
                         onChange={handleInputChange}
@@ -140,7 +181,7 @@ const Profile = ({user}) => {
                     <label
                         className="text-headingColor font-bold text-[16px] leading-7"
                     >
-                        Gender:
+                        Género:
                         <select
                             name="gender"
                             value={formData.gender}
@@ -148,10 +189,10 @@ const Profile = ({user}) => {
                             className="text-textColor font-semibold text-[15px] leading-7 px-4 py-3
                             focus:outline-none"
                         >
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
+                            <option value="">Selecciona</option>
+                            <option value="Male">Masculino</option>
+                            <option value="female">Femenino</option>
+                            <option value="other">Otro</option>
 
                         </select>
                     </label>
@@ -159,11 +200,11 @@ const Profile = ({user}) => {
 
                 <div className="mb-5 flex items-center gap-3">
 
-                    {formData.photo && (
+                    {(previewUrl || formData.photo) && (
                         <figure className="w-[60px] h-[60px] rounded-full border-2 border-solid border-primaryColor flex items-center
                         justify-center">
                             <img 
-                                src={formData.photo} 
+                                src={previewUrl || formData.photo} 
                                 alt="" 
                                 className="w-full rounded-full"
                             />
@@ -176,7 +217,7 @@ const Profile = ({user}) => {
                             name="photo"
                             id="customfile"
                             onChange={handleFileInputChange}
-                            accept=".jpg .png"
+                            accept=".jpg,.jpeg,.png,image/*"
                             className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                         />
                         <label
@@ -185,21 +226,25 @@ const Profile = ({user}) => {
                             text-[15px] leading-6 overflow-hidden bg-[#0066ff48] text-headingColor font-semibold rounded-lg
                             truncate cursor-pointer"
                         >
-                            {selectFile ? selectFile.name : 'Upload Photo'}
+                            {photoUploading
+                                ? 'Subiendo...'
+                                : selectFile
+                                    ? selectFile.name
+                                    : 'Subir foto'}
                         </label>    
                     </div>
                 </div>
 
                 <div className='mt-7'>
                     <button
-                        disabled={loading && true}
+                        disabled={loading}
                         type="submit"
                         className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
                     >
                         {loading ? (
                             <HashLoader size={25} color="#ffffff"/> 
                         )   : ( 
-                            'Update'
+                            'Guardar cambios'
                         )}
 
                     </button>

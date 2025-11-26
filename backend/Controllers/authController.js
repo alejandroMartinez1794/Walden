@@ -3,6 +3,19 @@ import Doctor from '../models/DoctorSchema.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
+const roleMap = {
+    patient: 'paciente',
+    paciente: 'paciente',
+    doctor: 'doctor',
+    medico: 'doctor',
+    admin: 'admin',
+};
+
+const normalizeRoleInput = (role = 'paciente') => {
+    const key = role?.toLowerCase?.();
+    return roleMap[key] || 'paciente';
+};
+
 const generateToken = user => {
     return jwt.sign(
         {id:user._id, role:user.role}, 
@@ -14,16 +27,17 @@ const generateToken = user => {
 
 export const register = async (req, res) => {
     
-    const { email, password, name, role, photo, gender} = req.body
+    const { email, password, name, role = 'paciente', photo, gender} = req.body
     
     try {   
 
+        const normalizedRole = normalizeRoleInput(role);
         let user = null;
 
-        if(role === 'patient') {
-            user = await User.findOne({ email })
-        } else if( role === 'doctor') {
+        if(normalizedRole === 'doctor') {
             user = await Doctor.findOne({ email })
+        } else {
+            user = await User.findOne({ email })
         }
 
         //chack if user already exists
@@ -36,25 +50,23 @@ export const register = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         const hashPassword = await bcrypt.hash(password, salt)
 
-        if(role === 'patient') {
-            user = new User({
-                name,
-                email,
-                password: hashPassword,
-                photo,
-                gender,
-                role
-            })
-        }
-        
-        if(role === 'doctor') {
+        if(normalizedRole === 'doctor') {
             user = new Doctor({
                 name,
                 email,
                 password: hashPassword,
                 photo,
                 gender,
-                role
+                role: normalizedRole
+            })
+        } else {
+            user = new User({
+                name,
+                email,
+                password: hashPassword,
+                photo,
+                gender,
+                role: normalizedRole
             })
         }
 

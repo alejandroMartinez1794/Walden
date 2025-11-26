@@ -55,13 +55,22 @@ const Medications = () => {
     }
   };
 
+  const getStatusLabel = (status) => {
+    const labels = {
+      active: 'Activo',
+      completed: 'Completado',
+      stopped: 'Suspendido',
+    };
+    return labels[status] || 'Activo';
+  };
+
   const needsRefill = (med) => {
     return med.remainingDoses <= med.totalDoses * 0.2 && med.status === 'active';
   };
 
   const handleAddMedication = async () => {
     if (!newMedication.name || !newMedication.dosage || !newMedication.frequency || !newMedication.startDate || !newMedication.totalDoses) {
-      toast.error('Please fill all required fields');
+      toast.error('Completa todos los campos obligatorios');
       return;
     }
     const med = {
@@ -80,9 +89,9 @@ const Medications = () => {
     const json = await res.json();
     if (res.ok) {
       setMedications([json.data, ...medications]);
-      toast.success('Medication added');
+      toast.success('Medicamento agregado');
     } else {
-      toast.error(json.message || 'Failed to add');
+      toast.error(json.message || 'No se pudo agregar');
     }
     setShowAddForm(false);
     setNewMedication({
@@ -98,7 +107,7 @@ const Medications = () => {
   };
 
   const handleDeleteMedication = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this medication?')) return;
+    if (!window.confirm('¿Seguro que deseas eliminar este medicamento?')) return;
     const token = localStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/medications/${id}`, {
       method: 'DELETE',
@@ -106,9 +115,9 @@ const Medications = () => {
     });
     if (res.ok) {
       setMedications(medications.filter(med => med._id !== id));
-      toast.success('Medication deleted');
+      toast.success('Medicamento eliminado');
     } else {
-      toast.error('Failed to delete');
+      toast.error('No se pudo eliminar');
     }
   };
 
@@ -130,7 +139,7 @@ const Medications = () => {
       setMedications(medications.map(med => med._id === editingMed ? json.data : med));
       setShowAddForm(false);
       setEditingMed(null);
-      toast.success('Medication updated');
+      toast.success('Medicamento actualizado');
     }
     setNewMedication({
       name: '',
@@ -153,9 +162,9 @@ const Medications = () => {
     const json = await res.json();
     if (res.ok) {
       setMedications(medications.map(m => m._id === id ? json.data : m));
-      toast.success('Dose marked as taken');
+      toast.success('Dosis marcada como tomada');
     } else {
-      toast.error(json.message || 'Failed to mark dose');
+      toast.error(json.message || 'No se pudo marcar la dosis');
     }
   };
 
@@ -166,7 +175,7 @@ const Medications = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-headingColor">Medications Management</h2>
+        <h2 className="text-2xl font-bold text-headingColor">Gestión de medicamentos</h2>
         <button
           onClick={() => {
             setShowAddForm(!showAddForm);
@@ -184,7 +193,7 @@ const Medications = () => {
           }}
           className="flex items-center gap-2 bg-primaryColor text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
         >
-          <FaPlus /> Add Medication
+          <FaPlus /> Agregar medicamento
         </button>
       </div>
 
@@ -193,7 +202,7 @@ const Medications = () => {
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm">Active Medications</p>
+              <p className="text-blue-100 text-sm">Medicamentos activos</p>
               <h3 className="text-3xl font-bold mt-2">{activeMedications.length}</h3>
             </div>
             <FaPills className="text-4xl text-blue-200" />
@@ -203,7 +212,7 @@ const Medications = () => {
         <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">Today's Doses Taken</p>
+              <p className="text-green-100 text-sm">Dosis tomadas hoy</p>
               <h3 className="text-3xl font-bold mt-2">
                 {todaysDoses.filter(d => d.taken).length}/{todaysDoses.length}
               </h3>
@@ -215,7 +224,7 @@ const Medications = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm">Need Refill</p>
+              <p className="text-orange-100 text-sm">Por resurtir</p>
               <h3 className="text-3xl font-bold mt-2">
                 {activeMedications.filter(needsRefill).length}
               </h3>
@@ -229,7 +238,7 @@ const Medications = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
           <FaClock className="text-primaryColor" />
-          Today's Schedule
+          Agenda de hoy
         </h3>
         <div className="space-y-3">
           {todaysDoses.map((dose, index) => (
@@ -257,8 +266,8 @@ const Medications = () => {
                 </div>
               </div>
               {!dose.taken && (
-                <button onClick={() => toast.info('Connect this to a dose schedule if needed')} className="bg-primaryColor text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
-                  Mark as Taken
+                <button onClick={() => toast.info('Conecta esto al recordatorio de dosis si es necesario')} className="bg-primaryColor text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                  Marcar como tomada
                 </button>
               )}
             </div>
@@ -270,60 +279,60 @@ const Medications = () => {
       {showAddForm && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-bold text-headingColor mb-4">
-            {editingMed ? 'Edit Medication' : 'Add New Medication'}
+            {editingMed ? 'Editar medicamento' : 'Agregar nuevo medicamento'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                Medication Name *
+                Nombre del medicamento *
               </label>
               <input
                 type="text"
                 value={newMedication.name}
                 onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primaryColor"
-                placeholder="e.g., Aspirin"
+                placeholder="ej. Aspirina"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                Dosage *
+                Dosis *
               </label>
               <input
                 type="text"
                 value={newMedication.dosage}
                 onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primaryColor"
-                placeholder="e.g., 500mg"
+                placeholder="ej. 500mg"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                Frequency *
+                Frecuencia *
               </label>
               <input
                 type="text"
                 value={newMedication.frequency}
                 onChange={(e) => setNewMedication({ ...newMedication, frequency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primaryColor"
-                placeholder="e.g., Twice daily"
+                placeholder="ej. Dos veces al día"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                Prescribed By *
+                Prescrito por *
               </label>
               <input
                 type="text"
                 value={newMedication.prescribedBy}
                 onChange={(e) => setNewMedication({ ...newMedication, prescribedBy: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primaryColor"
-                placeholder="e.g., Dr. Smith"
+                placeholder="ej. Dra. López"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                Start Date *
+                Fecha de inicio *
               </label>
               <input
                 type="date"
@@ -334,7 +343,7 @@ const Medications = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                End Date *
+                Fecha de fin *
               </label>
               <input
                 type="date"
@@ -345,26 +354,26 @@ const Medications = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-textColor mb-2">
-                Total Doses *
+                Total de dosis *
               </label>
               <input
                 type="number"
                 value={newMedication.totalDoses}
                 onChange={(e) => setNewMedication({ ...newMedication, totalDoses: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primaryColor"
-                placeholder="e.g., 30"
+                placeholder="ej. 30"
               />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-textColor mb-2">
-                Instructions
+                Instrucciones
               </label>
               <textarea
                 value={newMedication.instructions}
                 onChange={(e) => setNewMedication({ ...newMedication, instructions: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primaryColor"
                 rows="3"
-                placeholder="Special instructions..."
+                placeholder="Instrucciones especiales..."
               />
             </div>
           </div>
@@ -373,7 +382,7 @@ const Medications = () => {
               onClick={editingMed ? handleUpdateMedication : handleAddMedication}
               className="bg-primaryColor text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all"
             >
-              {editingMed ? 'Update Medication' : 'Add Medication'}
+              {editingMed ? 'Actualizar medicamento' : 'Agregar medicamento'}
             </button>
             <button
               onClick={() => {
@@ -382,7 +391,7 @@ const Medications = () => {
               }}
               className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-all"
             >
-              Cancel
+              Cancelar
             </button>
           </div>
         </div>
@@ -393,7 +402,7 @@ const Medications = () => {
         <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-6">
           <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2">
             <FaExclamationTriangle className="text-orange-600" />
-            Medications Need Refill
+            Medicamentos por agotarse
           </h3>
           <div className="space-y-3">
             {activeMedications.filter(needsRefill).map((med) => (
@@ -401,11 +410,11 @@ const Medications = () => {
                 <div>
                   <p className="font-semibold text-headingColor">{med.name} - {med.dosage}</p>
                   <p className="text-sm text-textColor">
-                    Only {med.remainingDoses} doses remaining
+                    Solo {med.remainingDoses} dosis restantes
                   </p>
                 </div>
                 <button className="bg-primaryColor text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
-                  Request Refill
+                  Solicitar resurtido
                 </button>
               </div>
             ))}
@@ -415,7 +424,7 @@ const Medications = () => {
 
       {/* Active Medications */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Active Medications</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4">Medicamentos activos</h3>
         <div className="space-y-4">
             {activeMedications.map((med) => (
             <div key={med._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all">
@@ -424,22 +433,22 @@ const Medications = () => {
                   <div className="flex items-center gap-3 mb-2">
                     <h4 className="text-lg font-bold text-headingColor">{med.name}</h4>
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(med.status)}`}>
-                      {med.status}
+                      {getStatusLabel(med.status)}
                     </span>
                     {needsRefill(med) && (
                       <span className="px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800 flex items-center gap-1">
-                        <FaExclamationTriangle /> Refill Needed
+                        <FaExclamationTriangle /> Requiere resurtido
                       </span>
                     )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-textColor">
-                    <p><strong>Dosage:</strong> {med.dosage}</p>
-                    <p><strong>Frequency:</strong> {med.frequency}</p>
-                    <p><strong>Prescribed by:</strong> {med.prescribedBy}</p>
-                    <p><strong>Duration:</strong> {med.startDate} to {med.endDate}</p>
-                    <p className="md:col-span-2"><strong>Instructions:</strong> {med.instructions}</p>
+                    <p><strong>Dosis:</strong> {med.dosage}</p>
+                    <p><strong>Frecuencia:</strong> {med.frequency}</p>
+                    <p><strong>Prescrito por:</strong> {med.prescribedBy}</p>
+                    <p><strong>Duración:</strong> {med.startDate} a {med.endDate}</p>
+                    <p className="md:col-span-2"><strong>Instrucciones:</strong> {med.instructions}</p>
                     <p>
-                      <strong>Progress:</strong> {med.remainingDoses}/{med.totalDoses} doses remaining
+                      <strong>Progreso:</strong> {med.remainingDoses}/{med.totalDoses} dosis restantes
                     </p>
                   </div>
                   <div className="mt-3">
@@ -453,7 +462,7 @@ const Medications = () => {
                     </div>
                     <div className="mt-2">
                       <button onClick={() => handleTakeDose(med._id)} className="text-sm bg-primaryColor text-white px-3 py-1 rounded hover:bg-blue-700">
-                        Take dose
+                        Tomar dosis
                       </button>
                     </div>
                   </div>
@@ -481,7 +490,7 @@ const Medications = () => {
       {/* Completed Medications */}
       {completedMedications.length > 0 && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-xl font-bold text-headingColor mb-4">Completed Medications</h3>
+          <h3 className="text-xl font-bold text-headingColor mb-4">Medicamentos completados</h3>
           <div className="space-y-3">
             {completedMedications.map((med) => (
               <div key={med.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -489,11 +498,11 @@ const Medications = () => {
                   <div>
                     <h4 className="font-semibold text-headingColor">{med.name} - {med.dosage}</h4>
                     <p className="text-sm text-textColor">
-                      Prescribed by {med.prescribedBy} | {med.startDate} to {med.endDate}
+                      Prescrito por {med.prescribedBy} | {med.startDate} a {med.endDate}
                     </p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(med.status)}`}>
-                    Completed
+                    Completado
                   </span>
                 </div>
               </div>

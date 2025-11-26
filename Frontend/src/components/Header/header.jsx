@@ -1,21 +1,22 @@
 import { useEffect, useRef, useContext } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
 import logo from '../../assets/images/logo.png';
 import { authContext } from '../../context/AuthContext';
 
 const navLinks = [
-  { path: '/home', display: 'Home' },
-  { path: '/services', display: 'Services' },
-  { path: '/contact', display: 'Contact' },
+  { path: '/home', display: 'Inicio' },
+  { path: '/services', display: 'Servicios' },
+  { path: '/contact', display: 'Contacto' },
   { path: '/testimonios', display: 'Testimonios' },
 ];
 
 const Header = () => {
   const headerRef = useRef(null);
   const menuRef = useRef(null);
-  const { user, role, token } = useContext(authContext);
+  const navigate = useNavigate();
+  const { user, role, token, dispatch } = useContext(authContext);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,6 +41,14 @@ const Header = () => {
     if (window.innerWidth < 768) {
       toggleMenu();
     }
+  };
+
+  const handleLogout = () => {
+    dispatch({ type: 'LOGOUT' });
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    navigate('/login');
   };
 
   const userDashboardLink =
@@ -105,27 +114,36 @@ const Header = () => {
           {/* Right Side - Login / User */}
           <div className="flex items-center gap-4">
             {token && user ? (
-              <Link
-                to={userDashboardLink}
-                className="flex items-center gap-2 px-3 py-1.5 bg-primaryColor text-white rounded-full hover:bg-blue-600 transition-all duration-200"
-              >
-                {user?.photo ? (
-                  <img
-                    src={user.photo}
-                    alt="User Avatar"
-                    className="w-7 h-7 rounded-full"
-                  />
-                ) : (
-                  <FaUserCircle className="w-6 h-6 text-white" />
-                )}
-                <span className="font-medium text-sm hidden sm:inline">
-                  {user?.name?.split(' ')[0] || 'User'}
-                </span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={userDashboardLink}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-primaryColor text-white rounded-full hover:bg-blue-600 transition-all duration-200"
+                >
+                  {user?.photo ? (
+                    <img
+                      src={user.photo}
+                      alt="User Avatar"
+                      className="w-7 h-7 rounded-full"
+                    />
+                  ) : (
+                    <FaUserCircle className="w-6 h-6 text-white" />
+                  )}
+                  <span className="font-medium text-sm hidden sm:inline">
+                    {user?.name?.split(' ')[0] || 'User'}
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="border border-primaryColor text-primaryColor px-3 py-1.5 rounded-full text-sm font-medium hover:bg-primaryColor/10 transition-all duration-200"
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
               <Link to="/login">
                 <button className="bg-primaryColor py-1.5 px-4 text-white font-medium text-sm rounded-full hover:bg-blue-600 transition-all duration-200">
-                  Login
+                  Iniciar sesión
                 </button>
               </Link>
             )}

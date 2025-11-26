@@ -83,7 +83,7 @@ const HealthTracker = () => {
       const bp = metrics
         .filter(m => m.bloodPressure?.systolic && m.bloodPressure?.diastolic)
         .map(m => ({
-          date: new Date(m.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
+          date: new Date(m.date).toLocaleDateString('es-ES', { month: '2-digit', day: '2-digit' }),
           systolic: m.bloodPressure.systolic,
           diastolic: m.bloodPressure.diastolic,
         }));
@@ -92,7 +92,7 @@ const HealthTracker = () => {
       const wt = metrics
         .filter(m => m.weight)
         .map(m => ({
-          date: new Date(m.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
+          date: new Date(m.date).toLocaleDateString('es-ES', { month: '2-digit', day: '2-digit' }),
           weight: m.weight,
         }));
       setWeightData(wt);
@@ -100,9 +100,9 @@ const HealthTracker = () => {
       const glu = metrics
         .filter(m => m.glucose)
         .map(m => ({
-          date: new Date(m.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
+          date: new Date(m.date).toLocaleDateString('es-ES', { month: '2-digit', day: '2-digit' }),
           level: m.glucose,
-          meal: 'Measurement',
+          meal: 'Medición',
         }));
       setGlucoseData(glu);
 
@@ -144,7 +144,7 @@ const HealthTracker = () => {
     if (metricForm.exercise) payload.exercise = parseInt(metricForm.exercise);
 
     if (Object.keys(payload).length === 1) {
-      toast.error('Please enter at least one metric');
+      toast.error('Ingresa al menos un indicador');
       return;
     }
 
@@ -156,7 +156,7 @@ const HealthTracker = () => {
     });
     const json = await res.json();
     if (res.ok) {
-      toast.success('Metric logged successfully');
+      toast.success('Indicadores registrados correctamente');
       setShowAddForm(false);
       setMetricForm({
         date: new Date().toISOString().substring(0, 10),
@@ -165,7 +165,7 @@ const HealthTracker = () => {
       });
       await refreshMetrics();
     } else {
-      toast.error(json.message || 'Failed to log metric');
+      toast.error(json.message || 'No se pudieron guardar los indicadores');
     }
   };
 
@@ -178,16 +178,16 @@ const HealthTracker = () => {
 
   const getBPStatus = (systolic, diastolic) => {
     if (systolic < 120 && diastolic < 80) return { text: 'Normal', color: 'text-green-600' };
-    if (systolic < 130 && diastolic < 80) return { text: 'Elevated', color: 'text-yellow-600' };
-    if (systolic < 140 || diastolic < 90) return { text: 'Stage 1 Hypertension', color: 'text-orange-600' };
-    return { text: 'Stage 2 Hypertension', color: 'text-red-600' };
+    if (systolic < 130 && diastolic < 80) return { text: 'Elevado', color: 'text-yellow-600' };
+    if (systolic < 140 || diastolic < 90) return { text: 'Hipertensión etapa 1', color: 'text-orange-600' };
+    return { text: 'Hipertensión etapa 2', color: 'text-red-600' };
   };
 
   const getBMICategory = (bmi) => {
-    if (bmi < 18.5) return { text: 'Underweight', color: 'text-blue-600' };
+    if (bmi < 18.5) return { text: 'Bajo peso', color: 'text-blue-600' };
     if (bmi < 25) return { text: 'Normal', color: 'text-green-600' };
-    if (bmi < 30) return { text: 'Overweight', color: 'text-yellow-600' };
-    return { text: 'Obese', color: 'text-red-600' };
+    if (bmi < 30) return { text: 'Sobrepeso', color: 'text-yellow-600' };
+    return { text: 'Obesidad', color: 'text-red-600' };
   };
 
   const bpStatus = getBPStatus(vitals.bloodPressure.systolic, vitals.bloodPressure.diastolic);
@@ -197,12 +197,12 @@ const HealthTracker = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-headingColor">Health Tracker</h2>
+        <h2 className="text-2xl font-bold text-headingColor">Panel de salud</h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-2 bg-primaryColor text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
         >
-          <FaPlus /> Log Health Data
+          <FaPlus /> Registrar indicadores
         </button>
       </div>
 
@@ -211,7 +211,7 @@ const HealthTracker = () => {
         <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white text-sm opacity-90">Blood Pressure</p>
+              <p className="text-white text-sm opacity-90">Presión arterial</p>
               <h3 className="text-2xl font-bold mt-2">
                 {vitals.bloodPressure.systolic}/{vitals.bloodPressure.diastolic}
               </h3>
@@ -224,7 +224,7 @@ const HealthTracker = () => {
         <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white text-sm opacity-90">Heart Rate</p>
+              <p className="text-white text-sm opacity-90">Frecuencia cardiaca</p>
               <h3 className="text-2xl font-bold mt-2">{vitals.heartRate}</h3>
               <p className="text-xs mt-1">bpm</p>
             </div>
@@ -235,7 +235,7 @@ const HealthTracker = () => {
         <div className="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white text-sm opacity-90">Weight</p>
+              <p className="text-white text-sm opacity-90">Peso</p>
               <h3 className="text-2xl font-bold mt-2">{vitals.weight}</h3>
               <p className="text-xs mt-1">kg - BMI: {vitals.bmi}</p>
             </div>
@@ -246,7 +246,7 @@ const HealthTracker = () => {
         <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white text-sm opacity-90">Blood Glucose</p>
+              <p className="text-white text-sm opacity-90">Glucosa en sangre</p>
               <h3 className="text-2xl font-bold mt-2">{vitals.glucose}</h3>
               <p className="text-xs mt-1">mg/dL</p>
             </div>
@@ -259,7 +259,7 @@ const HealthTracker = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-bold text-headingColor mb-6 flex items-center gap-2">
           <FaChartLine className="text-primaryColor" />
-          Today's Activity
+          Actividad de hoy
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Steps */}
@@ -267,7 +267,7 @@ const HealthTracker = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FaRunning className="text-blue-500 text-xl" />
-                <span className="font-semibold text-headingColor">Steps</span>
+                <span className="font-semibold text-headingColor">Pasos</span>
               </div>
               <span className="text-sm text-textColor">
                 {dailyMetrics.steps} / {dailyMetrics.stepsGoal}
@@ -280,7 +280,7 @@ const HealthTracker = () => {
               />
             </div>
             <p className="text-xs text-textColor mt-1">
-              {((dailyMetrics.steps / dailyMetrics.stepsGoal) * 100).toFixed(0)}% of daily goal
+              {((dailyMetrics.steps / dailyMetrics.stepsGoal) * 100).toFixed(0)}% de la meta diaria
             </p>
           </div>
 
@@ -289,10 +289,10 @@ const HealthTracker = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FaTint className="text-cyan-500 text-xl" />
-                <span className="font-semibold text-headingColor">Water</span>
+                <span className="font-semibold text-headingColor">Agua</span>
               </div>
               <span className="text-sm text-textColor">
-                {dailyMetrics.water} / {dailyMetrics.waterGoal} glasses
+                {dailyMetrics.water} / {dailyMetrics.waterGoal} vasos
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
@@ -302,7 +302,7 @@ const HealthTracker = () => {
               />
             </div>
             <p className="text-xs text-textColor mt-1">
-              {((dailyMetrics.water / dailyMetrics.waterGoal) * 100).toFixed(0)}% of daily goal
+              {((dailyMetrics.water / dailyMetrics.waterGoal) * 100).toFixed(0)}% de la meta diaria
             </p>
           </div>
 
@@ -311,10 +311,10 @@ const HealthTracker = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FaBed className="text-purple-500 text-xl" />
-                <span className="font-semibold text-headingColor">Sleep</span>
+                <span className="font-semibold text-headingColor">Sueño</span>
               </div>
               <span className="text-sm text-textColor">
-                {dailyMetrics.sleep} / {dailyMetrics.sleepGoal} hours
+                {dailyMetrics.sleep} / {dailyMetrics.sleepGoal} horas
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
@@ -324,7 +324,7 @@ const HealthTracker = () => {
               />
             </div>
             <p className="text-xs text-textColor mt-1">
-              {((dailyMetrics.sleep / dailyMetrics.sleepGoal) * 100).toFixed(0)}% of daily goal
+              {((dailyMetrics.sleep / dailyMetrics.sleepGoal) * 100).toFixed(0)}% de la meta diaria
             </p>
           </div>
 
@@ -333,10 +333,10 @@ const HealthTracker = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FaRunning className="text-orange-500 text-xl" />
-                <span className="font-semibold text-headingColor">Exercise</span>
+                <span className="font-semibold text-headingColor">Ejercicio</span>
               </div>
               <span className="text-sm text-textColor">
-                {dailyMetrics.exercise} / {dailyMetrics.exerciseGoal} mins
+                {dailyMetrics.exercise} / {dailyMetrics.exerciseGoal} min
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
@@ -346,7 +346,7 @@ const HealthTracker = () => {
               />
             </div>
             <p className="text-xs text-textColor mt-1">
-              {((dailyMetrics.exercise / dailyMetrics.exerciseGoal) * 100).toFixed(0)}% of daily goal
+              {((dailyMetrics.exercise / dailyMetrics.exerciseGoal) * 100).toFixed(0)}% de la meta diaria
             </p>
           </div>
 
@@ -355,7 +355,7 @@ const HealthTracker = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FaAppleAlt className="text-green-500 text-xl" />
-                <span className="font-semibold text-headingColor">Calories</span>
+                <span className="font-semibold text-headingColor">Calorías</span>
               </div>
               <span className="text-sm text-textColor">
                 {dailyMetrics.calories} / {dailyMetrics.caloriesGoal} kcal
@@ -368,7 +368,7 @@ const HealthTracker = () => {
               />
             </div>
             <p className="text-xs text-textColor mt-1">
-              {((dailyMetrics.calories / dailyMetrics.caloriesGoal) * 100).toFixed(0)}% of daily goal
+              {((dailyMetrics.calories / dailyMetrics.caloriesGoal) * 100).toFixed(0)}% de la meta diaria
             </p>
           </div>
         </div>
@@ -376,7 +376,7 @@ const HealthTracker = () => {
 
       {/* Blood Pressure Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Blood Pressure Trend (Last 7 Days)</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4">Tendencia de presión arterial (últimos 7 días)</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={bloodPressureData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -389,30 +389,30 @@ const HealthTracker = () => {
               dataKey="systolic" 
               stroke="#ef4444" 
               strokeWidth={2}
-              name="Systolic"
+              name="Sistólica"
             />
             <Line 
               type="monotone" 
               dataKey="diastolic" 
               stroke="#3b82f6" 
               strokeWidth={2}
-              name="Diastolic"
+              name="Diastólica"
             />
           </LineChart>
         </ResponsiveContainer>
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-textColor">
-            <strong>Current Status:</strong> <span className={bpStatus.color}>{bpStatus.text}</span>
+            <strong>Estado actual:</strong> <span className={bpStatus.color}>{bpStatus.text}</span>
           </p>
           <p className="text-xs text-textColor mt-1">
-            Normal blood pressure is below 120/80 mmHg
+            Una presión normal es menor a 120/80 mmHg
           </p>
         </div>
       </div>
 
       {/* Weight Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Weight Trend</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4">Tendencia de peso</h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={weightData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -425,7 +425,7 @@ const HealthTracker = () => {
               dataKey="weight" 
               stroke="#8b5cf6" 
               fill="#a78bfa"
-              name="Weight (kg)"
+              name="Peso (kg)"
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -433,17 +433,17 @@ const HealthTracker = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-textColor">
-                <strong>Current BMI:</strong> {vitals.bmi} - <span className={bmiCategory.color}>{bmiCategory.text}</span>
+                    <strong>IMC actual:</strong> {vitals.bmi} - <span className={bmiCategory.color}>{bmiCategory.text}</span>
               </p>
               <p className="text-xs text-textColor mt-1">
-                Normal BMI range: 18.5 - 24.9
+                    Rango normal de IMC: 18.5 - 24.9
               </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-textColor">
-                <strong>Change:</strong> <span className="text-green-600">-1.5 kg</span>
+                <strong>Cambio:</strong> <span className="text-green-600">-1.5 kg</span>
               </p>
-              <p className="text-xs text-textColor mt-1">Last 30 days</p>
+              <p className="text-xs text-textColor mt-1">Últimos 30 días</p>
             </div>
           </div>
         </div>
@@ -451,7 +451,7 @@ const HealthTracker = () => {
 
       {/* Blood Glucose Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Blood Glucose Today</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4">Glucosa del día</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={glucoseData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -464,18 +464,18 @@ const HealthTracker = () => {
               dataKey="level" 
               stroke="#10b981" 
               strokeWidth={2}
-              name="Glucose (mg/dL)"
+              name="Glucosa (mg/dL)"
             />
           </LineChart>
         </ResponsiveContainer>
         <div className="mt-4 p-4 bg-green-50 rounded-lg">
           <p className="text-sm text-textColor">
-            <strong>Target Ranges:</strong>
+            <strong>Rangos objetivo:</strong>
           </p>
           <ul className="text-xs text-textColor mt-2 space-y-1">
-            <li>• Fasting: 70-100 mg/dL</li>
-            <li>• Before meals: 70-130 mg/dL</li>
-            <li>• 1-2 hours after meals: Less than 180 mg/dL</li>
+            <li>• En ayunas: 70-100 mg/dL</li>
+            <li>• Antes de comer: 70-130 mg/dL</li>
+            <li>• 1-2 h después de comer: menos de 180 mg/dL</li>
           </ul>
         </div>
       </div>
@@ -485,20 +485,20 @@ const HealthTracker = () => {
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6">
           <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
             <FaHeartbeat className="text-green-600" />
-            Positive Insights
+            Insights positivos
           </h4>
           <ul className="space-y-2 text-sm text-textColor">
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
-              <span>Your blood pressure is within normal range</span>
+              <span>Tu presión arterial está en rango normal</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
-              <span>You're maintaining a healthy BMI</span>
+              <span>Mantienes un IMC saludable</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
-              <span>Blood glucose levels are well controlled</span>
+              <span>Los niveles de glucosa están controlados</span>
             </li>
           </ul>
         </div>
@@ -506,20 +506,20 @@ const HealthTracker = () => {
         <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-lg p-6">
           <h4 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
             <FaChartLine className="text-orange-600" />
-            Areas for Improvement
+            Áreas por mejorar
           </h4>
           <ul className="space-y-2 text-sm text-textColor">
             <li className="flex items-start gap-2">
               <span className="text-orange-600 font-bold">!</span>
-              <span>Try to reach your daily step goal of 10,000 steps</span>
+              <span>Intenta llegar a la meta diaria de 10,000 pasos</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-orange-600 font-bold">!</span>
-              <span>Increase water intake to 8 glasses per day</span>
+              <span>Sube tu consumo de agua a 8 vasos al día</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-orange-600 font-bold">!</span>
-              <span>Aim for 60 minutes of exercise daily</span>
+              <span>Apunta a 60 minutos de ejercicio diario</span>
             </li>
           </ul>
         </div>
@@ -529,13 +529,13 @@ const HealthTracker = () => {
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-6 my-8">
-            <h3 className="text-xl font-bold mb-4 text-headingColor">Log Health Metrics</h3>
-            <p className="text-sm text-textColor mb-6">Fill in the metrics you want to track. At least one field is required.</p>
+            <h3 className="text-xl font-bold mb-4 text-headingColor">Registrar indicadores</h3>
+            <p className="text-sm text-textColor mb-6">Completa los campos que quieras registrar. Se requiere al menos un dato.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-2">
               {/* Date */}
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-headingColor mb-1">Date</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Fecha</label>
                 <input
                   type="date"
                   value={metricForm.date}
@@ -546,30 +546,30 @@ const HealthTracker = () => {
 
               {/* Blood Pressure */}
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Systolic (mmHg)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Sistólica (mmHg)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 120"
+                  placeholder="p. ej., 120"
                   value={metricForm.systolic}
                   onChange={(e) => setMetricForm({ ...metricForm, systolic: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Diastolic (mmHg)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Diastólica (mmHg)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 80"
+                  placeholder="p. ej., 80"
                   value={metricForm.diastolic}
                   onChange={(e) => setMetricForm({ ...metricForm, diastolic: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Heart Rate (bpm)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Frecuencia cardiaca (lpm)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 72"
+                  placeholder="p. ej., 72"
                   value={metricForm.heartRate}
                   onChange={(e) => setMetricForm({ ...metricForm, heartRate: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -578,33 +578,33 @@ const HealthTracker = () => {
 
               {/* Vitals */}
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Temperature (°C)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Temperatura (°C)</label>
                 <input
                   type="number"
                   step="0.1"
-                  placeholder="e.g., 36.8"
+                  placeholder="p. ej., 36.8"
                   value={metricForm.temperature}
                   onChange={(e) => setMetricForm({ ...metricForm, temperature: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Weight (kg)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Peso (kg)</label>
                 <input
                   type="number"
                   step="0.1"
-                  placeholder="e.g., 74.5"
+                  placeholder="p. ej., 74.5"
                   value={metricForm.weight}
                   onChange={(e) => setMetricForm({ ...metricForm, weight: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">BMI</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">IMC</label>
                 <input
                   type="number"
                   step="0.1"
-                  placeholder="e.g., 24.2"
+                  placeholder="p. ej., 24.2"
                   value={metricForm.bmi}
                   onChange={(e) => setMetricForm({ ...metricForm, bmi: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -613,20 +613,20 @@ const HealthTracker = () => {
 
               {/* Blood Glucose & Oxygen */}
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Glucose (mg/dL)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Glucosa (mg/dL)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 95"
+                  placeholder="p. ej., 95"
                   value={metricForm.glucose}
                   onChange={(e) => setMetricForm({ ...metricForm, glucose: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Oxygen (%)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Oxígeno (%)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 98"
+                  placeholder="p. ej., 98"
                   value={metricForm.oxygen}
                   onChange={(e) => setMetricForm({ ...metricForm, oxygen: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -635,51 +635,51 @@ const HealthTracker = () => {
 
               {/* Daily Activity */}
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Steps</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Pasos</label>
                 <input
                   type="number"
-                  placeholder="e.g., 8500"
+                  placeholder="p. ej., 8500"
                   value={metricForm.steps}
                   onChange={(e) => setMetricForm({ ...metricForm, steps: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Water (glasses)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Agua (vasos)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 6"
+                  placeholder="p. ej., 6"
                   value={metricForm.water}
                   onChange={(e) => setMetricForm({ ...metricForm, water: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Sleep (hours)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Sueño (horas)</label>
                 <input
                   type="number"
                   step="0.1"
-                  placeholder="e.g., 7.5"
+                  placeholder="p. ej., 7.5"
                   value={metricForm.sleep}
                   onChange={(e) => setMetricForm({ ...metricForm, sleep: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Calories (kcal)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Calorías (kcal)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 1850"
+                  placeholder="p. ej., 1850"
                   value={metricForm.calories}
                   onChange={(e) => setMetricForm({ ...metricForm, calories: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-headingColor mb-1">Exercise (mins)</label>
+                <label className="block text-sm font-medium text-headingColor mb-1">Ejercicio (min)</label>
                 <input
                   type="number"
-                  placeholder="e.g., 45"
+                  placeholder="p. ej., 45"
                   value={metricForm.exercise}
                   onChange={(e) => setMetricForm({ ...metricForm, exercise: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -692,13 +692,13 @@ const HealthTracker = () => {
                 onClick={() => setShowAddForm(false)} 
                 className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 onClick={handleSubmitMetric}
                 className="px-6 py-2 rounded-lg bg-primaryColor text-white hover:bg-blue-700"
               >
-                Save Metrics
+                Guardar indicadores
               </button>
             </div>
           </div>
