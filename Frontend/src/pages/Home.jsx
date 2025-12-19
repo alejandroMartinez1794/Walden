@@ -1,5 +1,4 @@
 import React from "react";
-
 import heroImg01 from "../assets/images/hero-img01.png";
 import heroImg02 from "../assets/images/hero-img02.png";
 import heroImg03 from "../assets/images/hero-img03.png";
@@ -11,14 +10,10 @@ import faqimg from "../assets/images/faq-img.png";
 import videoIcon from "../assets/images/video-icon.png";
 import avatarIcon from "../assets/images/avatar-icon.png"
 import { Link } from "react-router-dom";
-import { BsArrowRight } from "react-icons/bs";
 import About from "../components/About/About";
 import ServiceList from "../components/Services/ServiceList";
-import Doctorslist from "../components/Doctors/Doctorslist";
 import Faqlist from "../components/faq/Faqlist";
 import Testimonial from "../components/Testimonial/testimonial";
-
-
 
 
 const Home = () => {
@@ -123,14 +118,7 @@ const Home = () => {
                                     Aquí comienzas a entender lo que sientes, sin juicios y con un enfoque claro hacia tu bienestar.
                                 </p>
                                 
-                                <Link 
-                                    to="/doctors" 
-                                    className="w-[44px] h-[44px] rounded-full border border-solid border-[#181A1E] 
-                                    mt-[30px] mx-auto flex items-center justify-center group hover:bg-primaryColor 
-                                    hover:border-none"
-                                >
-                                    <BsArrowRight className="group-hover:text-white w-6 h-5"/>
-                                </Link>                                        
+                                
                             </div>  
 
                         </div>
@@ -149,14 +137,7 @@ const Home = () => {
                                     La terapia digital te permite cuidar tu salud mental con la misma profundidad de un encuentro presencial, desde la comodidad de tu entorno.
                                 </p>
                                 
-                                <Link 
-                                    to="/doctors" 
-                                    className="w-[44px] h-[44px] rounded-full border border-solid border-[#181A1E] 
-                                    mt-[30px] mx-auto flex items-center justify-center group hover:bg-primaryColor 
-                                    hover:border-none"
-                                >
-                                    <BsArrowRight className="group-hover:text-white w-6 h-5"/>
-                                </Link>                                        
+                                
                             </div>  
 
                         </div>
@@ -175,14 +156,7 @@ const Home = () => {
                                     Tu espacio terapéutico digital te permite mantener el ritmo de tu crecimiento, paso a paso y con propósito.
                                 </p>
                                 
-                                <Link 
-                                    to="/doctors" 
-                                    className="w-[44px] h-[44px] rounded-full border border-solid border-[#181A1E] 
-                                    mt-[30px] mx-auto flex items-center justify-center group hover:bg-primaryColor 
-                                    hover:border-none"
-                                >
-                                    <BsArrowRight className="group-hover:text-white w-6 h-5"/>
-                                </Link>                                        
+                                
                             </div>  
 
                         </div>

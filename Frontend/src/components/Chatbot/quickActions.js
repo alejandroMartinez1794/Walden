@@ -1,21 +1,7 @@
 // Frontend/src/components/Chatbot/quickActions.js
-import { useNavigate } from 'react-router-dom';
-
 // Acciones especiales del chatbot
 export const handleQuickAction = (action, navigate, user) => {
   const actions = {
-    'Agendar cita': () => {
-      navigate('/doctors');
-      return true;
-    },
-    'Agendar una cita': () => {
-      navigate('/doctors');
-      return true;
-    },
-    'Ver doctores': () => {
-      navigate('/doctors');
-      return true;
-    },
     'Ir a mis citas': () => {
       if (user) {
         navigate(user.role === 'doctor' ? '/doctors/profile/me' : '/users/profile/me');

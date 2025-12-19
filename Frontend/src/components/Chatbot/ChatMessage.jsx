@@ -75,14 +75,6 @@ const ChatMessage = ({ message, onQuickReply }) => {
                 </div>
               </Link>
             ))}
-            {message.data.items.length > 3 && (
-              <Link
-                to="/doctors"
-                className="block text-center text-sm text-primaryColor hover:text-blue-700 font-medium"
-              >
-                Ver todos los doctores ({message.data.items.length})
-              </Link>
-            )}
           </div>
         )}
 

@@ -80,22 +80,7 @@ const PatientDashboard = ({ userData, bookingsCount = 0 }) => {
           </svg>
           Acciones Rápidas
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            to="/doctors"
-            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-primaryColor hover:bg-blue-50 transition-all group"
-          >
-            <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-primaryColor transition-all">
-              <svg className="w-6 h-6 text-blue-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 group-hover:text-primaryColor">Buscar Doctor</h3>
-              <p className="text-sm text-gray-500">Encuentra especialistas</p>
-            </div>
-          </Link>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
             to="/services"
             className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group"
