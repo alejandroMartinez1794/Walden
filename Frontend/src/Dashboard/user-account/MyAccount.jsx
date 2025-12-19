@@ -15,6 +15,8 @@ import Error from "../../components/Error/Error";
 import MyCalendar from './MyCalendar';
 
 
+const DEFAULT_AVATAR_URL = 'https://placehold.co/100x100/EEF2FF/1E40AF?text=Paciente';
+
 const MyAccount = () => {
   const { dispatch, token: authToken, role: authRole } = useContext(authContext);
   const [tab, setTab] = useState('dashboard');
@@ -80,18 +82,6 @@ const MyAccount = () => {
   return (
     <section>
       <div className='max-w-[1170px] px-5 mx-auto'>
-        {/* Botón Logout prominente en la parte superior (mobile y desktop) */}
-        {!loading && !error && userData && (
-          <div className='flex justify-end mb-5'>
-            <button
-              onClick={handleLogout}
-              className='bg-red-500 hover:bg-red-600 px-6 py-2 text-[14px] leading-6 rounded-md text-white font-semibold transition-all'
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        )}
-
         {loading && !error && <Loading />}
         {error && !loading && <Error errMessage={error} />}
 
@@ -102,7 +92,7 @@ const MyAccount = () => {
               <div className='flex items-center justify-center'>
                 <figure className='w-[100px] h-[100px] rounded-full border-2 border-solid border-primaryColor'>
                   <img
-                    src={userData.photo || '/default-avatar.png'}
+                    src={userData.photo || DEFAULT_AVATAR_URL}
                     alt=''
                     className='w-full h-full rounded-full object-cover'
                   />
@@ -125,13 +115,7 @@ const MyAccount = () => {
               </div>
 
               <div className='mt-[50px] md:mt-[100px]'>
-                <button
-                  onClick={handleLogout}
-                  className='w-full bg-[#181A1E] p-3 text-[16px] leading-7 rounded-md text-white'
-                >
-                  Cerrar sesión
-                </button>
-                <button className='w-full bg-red-600 mt-4 p-3 text-[16px] leading-7 rounded-md text-white'>
+                <button className='w-full bg-red-600 p-3 text-[16px] leading-7 rounded-md text-white'>
                   Eliminar cuenta
                 </button>
               </div>

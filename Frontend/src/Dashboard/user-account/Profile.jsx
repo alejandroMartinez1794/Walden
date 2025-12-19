@@ -23,13 +23,15 @@ const Profile = ({user, onProfileUpdated}) => {
     });
 
     useEffect ( () => {
-        setFormData({ 
+        setFormData(prev => ({ 
+            ...prev,
             name: user?.name || "", 
             email: user?.email || "", 
             photo: user?.photo || null, 
             gender: user?.gender || "", 
-            bloodType: user?.bloodType || "" 
-        });
+            bloodType: user?.bloodType || "",
+            password: "",
+        }));
     }, [user]);
 
     const handleInputChange = e => {
@@ -43,6 +45,36 @@ const Profile = ({user, onProfileUpdated}) => {
             }
         };
     }, [previewUrl]);
+
+    const persistPhoto = async (photoUrl) => {
+        if (!user?._id) {
+            throw new Error('No se encontró el usuario para actualizar.');
+        }
+
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${BASE_URL}/users/${user._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ photo: photoUrl }),
+        });
+
+        const result = await res.json();
+        if (!res.ok) {
+            throw new Error(result.message || 'No se pudo guardar la foto.');
+        }
+
+        const updatedUser = result.data;
+        if (updatedUser?.photo) {
+            setFormData(prev => ({ ...prev, photo: updatedUser.photo }));
+        }
+
+        if (typeof onProfileUpdated === 'function') {
+            onProfileUpdated(updatedUser);
+        }
+    };
 
     const handleFileInputChange = async (event) => {
         const file = event.target.files && event.target.files[0];
@@ -64,14 +96,19 @@ const Profile = ({user, onProfileUpdated}) => {
 
             setFormData(prev => ({ ...prev, photo: uploadedUrl }));
             setPreviewUrl(uploadedUrl);
-            toast.success('Foto actualizada');
+            await persistPhoto(uploadedUrl);
+            toast.success('Foto actualizada correctamente');
         } catch (error) {
             console.error('Error subiendo imagen:', error);
             setPreviewUrl(previousPhoto || null);
-            toast.error('No se pudo subir la imagen. Intenta nuevamente.');
+            setFormData(prev => ({ ...prev, photo: previousPhoto || null }));
+            toast.error(error.message || 'No se pudo subir la imagen. Intenta nuevamente.');
         } finally {
             setPhotoUploading(false);
-            URL.revokeObjectURL(tempUrl);
+            setSelectFile(null);
+            if (tempUrl && tempUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(tempUrl);
+            }
         }
     };
 
@@ -217,20 +254,17 @@ const Profile = ({user, onProfileUpdated}) => {
                             name="photo"
                             id="customfile"
                             onChange={handleFileInputChange}
+                            disabled={photoUploading}
                             accept=".jpg,.jpeg,.png,image/*"
                             className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                         />
                         <label
                             htmlFor="customfile"
-                            className="absolute top-0 left-0 w-full h-full flex items-center px-[0.75rem] py-[0.375rem]
+                            className={`absolute top-0 left-0 w-full h-full flex items-center px-[0.75rem] py-[0.375rem]
                             text-[15px] leading-6 overflow-hidden bg-[#0066ff48] text-headingColor font-semibold rounded-lg
-                            truncate cursor-pointer"
+                            truncate ${photoUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
-                            {photoUploading
-                                ? 'Subiendo...'
-                                : selectFile
-                                    ? selectFile.name
-                                    : 'Subir foto'}
+                            {photoUploading ? 'Subiendo...' : 'Subir foto'}
                         </label>    
                     </div>
                 </div>
