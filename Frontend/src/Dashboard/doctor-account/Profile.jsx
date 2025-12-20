@@ -3,6 +3,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 import uploadImageToCloudinary from "../../utils/uploadCloudinary";
 import { BASE_URL } from "../../config";
 import { toast } from "react-toastify";
+import HashLoader from "react-spinners/HashLoader";
 
 
 const Profile = ({doctorData}) => {
@@ -22,6 +23,9 @@ const Profile = ({doctorData}) => {
         about: " ",
         photo: null
     });
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [photoUploading, setPhotoUploading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         setFormData({
@@ -38,21 +42,87 @@ const Profile = ({doctorData}) => {
             about: doctorData?.about || "",
             photo: doctorData?.photo || null,
         });
+        setPreviewUrl(null);
     }, [doctorData]);
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
     
-    const handleFileInputChange = async event => { 
-        const file = event.target.files[0];
-        const data = await uploadImageToCloudinary(file);
-        setFormData({ ...formData, photo: data?.url });
+    const persistPhoto = async (photoUrl) => {
+        if (!doctorData?._id) return;
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${BASE_URL}/doctors/${doctorData._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ photo: photoUrl }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || 'No se pudo guardar la foto del perfil.');
+        }
+        const updatedDoctor = result.data;
+        if (updatedDoctor?.photo) {
+            setFormData(prev => ({ ...prev, photo: updatedDoctor.photo }));
+        }
+    };
+
+    const handleFileInputChange = async event => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const previousPhoto = formData.photo;
+        const tempUrl = URL.createObjectURL(file);
+        setPreviewUrl(tempUrl);
+        setPhotoUploading(true);
+
+        try {
+            const data = await uploadImageToCloudinary(file);
+            const uploadedUrl = data?.secure_url || data?.url;
+            if (!uploadedUrl) {
+                throw new Error('La imagen se cargó pero no devolvió una URL válida.');
+            }
+            setFormData(prev => ({ ...prev, photo: uploadedUrl }));
+            setPreviewUrl(uploadedUrl);
+            await persistPhoto(uploadedUrl);
+            toast.success('Foto de perfil actualizada');
+        } catch (error) {
+            console.error('Error subiendo imagen:', error);
+            setPreviewUrl(previousPhoto || null);
+            setFormData(prev => ({ ...prev, photo: previousPhoto || null }));
+            toast.error(error.message || 'No se pudo subir la imagen. Inténtalo nuevamente.');
+        } finally {
+            setPhotoUploading(false);
+            if (tempUrl && tempUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(tempUrl);
+            }
+            if (event.target) {
+                event.target.value = '';
+            }
+        }
     };
 
     const updateProfileHandler = async e => {
         e.preventDefault();
+
+        if (photoUploading) {
+            toast.info('Espera a que se termine de subir la foto.');
+            return;
+        }
+
+        setSubmitting(true);
 
         try {
             const response = await fetch(`${BASE_URL}/doctors/${doctorData._id}`, {
@@ -71,9 +141,14 @@ const Profile = ({doctorData}) => {
             }
 
             toast.success(result.message);
+            if (result.data) {
+                setFormData(prev => ({ ...prev, ...result.data }));
+            }
     
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -170,6 +245,11 @@ const Profile = ({doctorData}) => {
         e.preventDefault();
         deleteItem("timeSlots", index)
     }
+
+    const resolvedPhoto =
+        previewUrl ||
+        formData.photo ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Doctor')}&background=0F172A&color=fff&size=256`;
 
     return (
         <div>
@@ -464,40 +544,47 @@ const Profile = ({doctorData}) => {
                     ></textarea>
                 </div>
                 <div className="mb-5">
-                    {formData.photo && (
-                        <figure className="w-[60px] h-[60px] rounded-full border-2 border-solid border-primaryColor flex items-center
-                        justify-center">
-                            <img 
-                                src={formData.photo} 
-                                alt="" 
-                                className="w-full rounded-full"
+                    <div className="flex items-center gap-5">
+                        <figure className="w-[70px] h-[70px] rounded-full border border-dashed border-primaryColor/60 flex items-center justify-center overflow-hidden bg-slate-50 p-1">
+                            <img
+                                src={resolvedPhoto}
+                                alt={`Foto de ${formData.name || 'doctor'}`}
+                                className="h-full w-full object-contain"
                             />
                         </figure>
-                    )}
+                        <div className="space-y-1 text-sm text-slate-500">
+                            <p className="font-semibold text-slate-700">Elige un retrato profesional en formato JPG o PNG.</p>
+                            {photoUploading && <p className="text-primaryColor">Procesando la imagen...</p>}
+                        </div>
+                    </div>
 
-                    <div className="relative w-[130px] h-[50px]">
+                    <div className="relative mt-4 w-[160px] h-[48px]">
                         <input
                             type="file"
                             name="photo"
                             id="customfile"
                             onChange={handleFileInputChange}
-                            accept=".jpg .png"
+                            disabled={photoUploading}
+                            accept=".jpg,.jpeg,.png,image/*"
                             className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                         />
                         <label
                             htmlFor="customfile"
-                            className="absolute top-0 left-0 w-full h-full flex items-center px-[0.75rem] py-[0.375rem]
-                            text-[15px] leading-6 overflow-hidden bg-[#0066ff48] text-headingColor font-semibold rounded-lg
-                            truncate cursor-pointer"
+                            className={`absolute top-0 left-0 w-full h-full flex items-center justify-center px-4 py-2 text-[15px] leading-6 overflow-hidden rounded-lg font-semibold ${photoUploading ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#0066ff] text-white cursor-pointer hover:bg-[#004fbe]'}`}
                         >
-                            Uploading Photo
+                            {photoUploading ? 'Subiendo...' : 'Actualizar foto'}
                         </label>    
                     </div>
                 </div>
                 <div className="mt-7">
-                    <button type="submit" onClick={updateProfileHandler} className="bg-primaryColor text-white text-[18px]
-                    leading-[30px] w-full py-3 px-4 rounded-lg ">
-                        Update Profile
+                    <button
+                        type="submit"
+                        onClick={updateProfileHandler}
+                        disabled={photoUploading || submitting}
+                        className="bg-primaryColor text-white text-[18px]
+                    leading-[30px] w-full py-3 px-4 rounded-lg disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center gap-2"
+                    >
+                        {submitting ? <HashLoader size={22} color="#ffffff" /> : 'Update Profile'}
                     </button>
                 </div>
             </form>

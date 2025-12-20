@@ -10,12 +10,9 @@ import HealthTracker from './HealthTrackerNew';
 
 import { BASE_URL } from '../../config';
 
-import Loading from "../../components/Loader/Loading";
-import Error from "../../components/Error/Error";
+import Loading from '../../components/Loader/Loading';
+import Error from '../../components/Error/Error';
 import MyCalendar from './MyCalendar';
-
-
-const DEFAULT_AVATAR_URL = 'https://placehold.co/100x100/EEF2FF/1E40AF?text=Paciente';
 
 const MyAccount = () => {
   const { dispatch, token: authToken, role: authRole } = useContext(authContext);
@@ -23,13 +20,13 @@ const MyAccount = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [bookingsCount, setBookingsCount] = useState(0);
 
   const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        console.log("Obteniendo perfil del usuario...");
         const res = await fetch(`${BASE_URL}/users/profile/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,7 +42,7 @@ const MyAccount = () => {
         setUserData(result.data);
         setLoading(false);
       } catch (err) {
-        console.error("Error al obtener el perfil:", err.message); 
+        console.error('Error al obtener el perfil:', err.message);
         setError(err.message);
         setLoading(false);
       }
@@ -54,16 +51,35 @@ const MyAccount = () => {
     fetchUserProfile();
   }, [token]);
 
-  const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  };
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/bookings`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  const handleProfileUpdated = updatedProfile => {
+        const result = await res.json();
+        if (!res.ok) {
+          throw new Error(result.message || 'No se pudo obtener las citas');
+        }
+
+        setBookingsCount(result.data?.length || 0);
+      } catch (err) {
+        console.error('Error al obtener las citas del usuario:', err.message);
+      }
+    };
+
+    if (token) {
+      fetchBookings();
+    }
+  }, [token]);
+
+  const handleProfileUpdated = (updatedProfile) => {
     if (!updatedProfile) return;
 
-    setUserData(prev => {
+    setUserData((prev) => {
       const mergedProfile = { ...(prev || {}), ...updatedProfile };
 
       dispatch({
@@ -80,124 +96,91 @@ const MyAccount = () => {
   };
 
   return (
-    <section>
-      <div className='max-w-[1170px] px-5 mx-auto'>
+    <section className="bg-gradient-to-br from-[#f5f7fb] to-white py-10">
+      <div className="max-w-[1600px] w-full px-6 lg:px-8 xl:px-12 mx-auto">
         {loading && !error && <Loading />}
         {error && !loading && <Error errMessage={error} />}
 
         {!loading && !error && userData && (
-          <div className='grid md:grid-cols-3 gap-10'>
-            {/* Sidebar */}
-            <div className='pb-[50px] px-[30px] rounded-md'>
-              <div className='flex items-center justify-center'>
-                <figure className='w-[100px] h-[100px] rounded-full border-2 border-solid border-primaryColor'>
-                  <img
-                    src={userData.photo || DEFAULT_AVATAR_URL}
-                    alt=''
-                    className='w-full h-full rounded-full object-cover'
-                  />
-                </figure>
-              </div>
-
-              <div className='text-center mt-4'>
-                <h3 className='text-[18px] leading-[30px] text-headingColor font-bold'>
-                  {userData.name}
-                </h3>
-                <p className='text-textColor text-[15px] leading-6 font-medium'>
-                  {userData.email}
-                </p>
-                <p className='text-textColor text-[15px] leading-6 font-medium'>
-                  Tipo de sangre
-                  <span className='ml-2 text-headingColor text-[22px] leading-8'>
-                    {userData.bloodType || 'N/D'}
-                  </span>
-                </p>
-              </div>
-
-              <div className='mt-[50px] md:mt-[100px]'>
-                <button className='w-full bg-red-600 p-3 text-[16px] leading-7 rounded-md text-white'>
-                  Eliminar cuenta
-                </button>
-              </div>
+          <div className="w-full space-y-6">
+            <div className="flex flex-wrap gap-3 rounded-2xl bg-white/80 p-3 shadow-sm border border-slate-100">
+              <button
+                onClick={() => setTab('dashboard')}
+                className={`${
+                  tab === 'dashboard' && 'bg-primaryColor text-white'
+                } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+              >
+                Panel
+              </button>
+              <button
+                onClick={() => setTab('bookings')}
+                className={`${
+                  tab === 'bookings' && 'bg-primaryColor text-white'
+                } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+              >
+                Mis citas
+              </button>
+              <button
+                onClick={() => setTab('settings')}
+                className={`${
+                  tab === 'settings' && 'bg-primaryColor text-white'
+                } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+              >
+                Configuración de perfil
+              </button>
+              <button
+                onClick={() => setTab('history')}
+                className={`${
+                  tab === 'history' && 'bg-primaryColor text-white'
+                } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+              >
+                Historial médico
+              </button>
+              <button
+                onClick={() => setTab('medications')}
+                className={`${
+                  tab === 'medications' && 'bg-primaryColor text-white'
+                } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+              >
+                Medicamentos
+              </button>
+              <button
+                onClick={() => setTab('health')}
+                className={`${
+                  tab === 'health' && 'bg-primaryColor text-white'
+                } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
+              >
+                Seguimiento de salud
+              </button>
             </div>
 
-            {/* Main content */}
-            <div className='md:col-span-2 md:px-[30px]'>
-              <div className='mb-5 flex gap-2 flex-wrap'>
-                <button
-                  onClick={() => setTab('dashboard')}
-                  className={`${
-                    tab === 'dashboard' && 'bg-primaryColor text-white'
-                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
-                >
-                  Panel
-                </button>
-                <button
-                  onClick={() => setTab('bookings')}
-                  className={`${
-                    tab === 'bookings' && 'bg-primaryColor text-white'
-                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
-                >
-                  Mis citas
-                </button>
-                <button
-                  onClick={() => setTab('settings')}
-                  className={`${
-                    tab === 'settings' && 'bg-primaryColor text-white'
-                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
-                >
-                  Configuración de perfil
-                </button>
-                <button
-                  onClick={() => setTab('history')}
-                  className={`${
-                    tab === 'history' && 'bg-primaryColor text-white'
-                  } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
-                >
-                  Historial médico
-                </button>
-                  <button
-                    onClick={() => setTab('medications')}
-                    className={`${
-                      tab === 'medications' && 'bg-primaryColor text-white'
-                    } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
-                  >
-                    Medicamentos
-                  </button>
-                    <button
-                      onClick={() => setTab('health')}
-                      className={`${
-                        tab === 'health' && 'bg-primaryColor text-white'
-                      } py-2 px-5 rounded-md text-headingColor font-semibold text-[16px] leading-7 border border-solid border-primaryColor hover:bg-primaryColor hover:text-white transition-all`}
-                    >
-                      Seguimiento de salud
-                    </button>
-              </div>
+            {tab === 'dashboard' && (
+              <PatientDashboard
+                userData={userData}
+                bookingsCount={bookingsCount}
+                onUserDataUpdate={handleProfileUpdated}
+              />
+            )}
 
-              {tab === 'dashboard' && <PatientDashboard userData={userData} />}
+            {tab === 'bookings' && (
+              <>
+                <MyBookings />
+                <div className="mt-10">
+                  <h2 className="text-2xl font-bold mb-4 text-headingColor">Tu Calendario</h2>
+                  <MyCalendar />
+                </div>
+              </>
+            )}
 
-              {tab === 'bookings' && (
-                <>
-                  <MyBookings />
+            {tab === 'settings' && (
+              <Profile user={userData} onProfileUpdated={handleProfileUpdated} />
+            )}
 
-                  <div className="mt-10">
-                    <h2 className="text-2xl font-bold mb-4 text-headingColor">Tu Calendario</h2>
-                    <MyCalendar />
-                  </div>
-                </>
-              )}
+            {tab === 'history' && <MedicalHistory userId={userData._id} />}
 
+            {tab === 'medications' && <Medications />}
 
-              {tab === 'settings' && (
-                <Profile user={userData} onProfileUpdated={handleProfileUpdated} />
-              )}
-
-              {tab === 'history' && <MedicalHistory userId={userData._id} />}
-
-              {tab === 'medications' && <Medications />}
-
-              {tab === 'health' && <HealthTracker />}
-            </div>
+            {tab === 'health' && <HealthTracker />}
           </div>
         )}
       </div>

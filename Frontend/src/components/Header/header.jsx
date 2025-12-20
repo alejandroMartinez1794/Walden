@@ -1,9 +1,10 @@
-import { useEffect, useRef, useContext } from 'react';
+import { useEffect, useRef, useContext, useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
 import logo from '../../assets/images/logo.png';
 import { authContext } from '../../context/AuthContext';
+import { BASE_URL } from '../../config';
 
 const navLinks = [
   { path: '/home', display: 'Inicio' },
@@ -17,6 +18,7 @@ const Header = () => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const { user, role, token, dispatch } = useContext(authContext);
+  const [doctorAvatar, setDoctorAvatar] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,6 +53,36 @@ const Header = () => {
     navigate('/login');
   };
 
+  useEffect(() => {
+    if (user?.photo) {
+      setDoctorAvatar(user.photo);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchDoctorAvatar = async () => {
+      if (!token || role?.toLowerCase() !== 'doctor') return;
+      try {
+        const response = await fetch(`${BASE_URL}/doctors/profile/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'No se pudo obtener el perfil del terapeuta');
+        }
+        if (result.data?.photo) {
+          setDoctorAvatar(result.data.photo);
+        }
+      } catch (error) {
+        console.error('Error cargando foto del terapeuta:', error.message);
+      }
+    };
+
+    fetchDoctorAvatar();
+  }, [role, token]);
+
   const userDashboardLink =
     role?.toLowerCase() === 'doctor'
       ? '/doctors/profile/me'
@@ -58,10 +90,12 @@ const Header = () => {
       ? '/users/profile/me'
       : '/login';
 
-      console.log("user:", user);
-      console.log("role:", role);
-      console.log("userDashboardLink:", userDashboardLink);
-          
+  const resolvedAvatar =
+    doctorAvatar ||
+    (user?.name
+      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0B1226&color=fff&size=512`
+      : null);
+  const therapistShortName = user?.name?.split(' ')[0] || 'Profesional';
 
   return (
     <header className="header flex items-center" ref={headerRef}>
@@ -114,22 +148,24 @@ const Header = () => {
           {/* Right Side - Login / User */}
           <div className="flex items-center gap-4">
             {token && user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Link
                   to={userDashboardLink}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-primaryColor text-white rounded-full hover:bg-blue-600 transition-all duration-200"
+                  className="flex items-center gap-3 rounded-full border border-primaryColor/30 bg-primaryColor/95 pl-1 pr-4 py-1.5 text-white shadow-md hover:bg-primaryColor transition-all duration-200"
                 >
-                  {user?.photo ? (
-                    <img
-                      src={user.photo}
-                      alt="User Avatar"
-                      className="w-7 h-7 rounded-full"
-                    />
-                  ) : (
-                    <FaUserCircle className="w-6 h-6 text-white" />
-                  )}
-                  <span className="font-medium text-sm hidden sm:inline">
-                    {user?.name?.split(' ')[0] || 'User'}
+                  <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/40 bg-slate-900/40 p-0.5">
+                    {resolvedAvatar ? (
+                      <img
+                        src={resolvedAvatar}
+                        alt={`Foto de ${therapistShortName}`}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <FaUserCircle className="h-8 w-8 text-white" />
+                    )}
+                  </span>
+                  <span className="font-medium text-sm whitespace-nowrap">
+                    {therapistShortName}
                   </span>
                 </Link>
                 <button
