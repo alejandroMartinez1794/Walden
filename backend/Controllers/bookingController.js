@@ -1,78 +1,141 @@
 // backend/Controllers/bookingController.js
 import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
-import { createCalendarEvent, deleteCalendarEvent } from './calendarController.js';
+import Doctor from '../models/DoctorSchema.js';
+import { deleteCalendarEvent } from './calendarController.js';
+import { google } from 'googleapis';
+import { getOAuthClientWithUserTokens } from '../utils/getOAuthClientWithUserTokens.js';
+
+const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, description, start, end, attendees = [] }) => {
+  try {
+    if (!ownerId) return null;
+    const authClient = await getOAuthClientWithUserTokens(ownerId);
+    if (!authClient) return null;
+    const calendar = google.calendar({ version: 'v3', auth: authClient });
+    const event = {
+      summary: summary || `Sesión con ${doctorName || 'terapeuta'}`,
+      description,
+      start: { dateTime: start, timeZone: 'America/Bogota' },
+      end: { dateTime: end, timeZone: 'America/Bogota' },
+      attendees,
+    };
+    const response = await calendar.events.insert({ calendarId: 'primary', resource: event });
+    return response.data.id || null;
+  } catch (err) {
+    console.error('⚠️ No se pudo sincronizar con Google Calendar:', err.message);
+    return null;
+  }
+};
 
 /**
  * 📅 Crear nueva cita médica
  */
 export const createBooking = async (req, res) => {
   try {
-    const { doctorId: doctorIdBody, date, time, motivoConsulta, patientId, patientEmail, durationMinutes = 30 } = req.body;
+    const {
+      doctorId: doctorIdBody,
+      date,
+      time,
+      motivoConsulta,
+      patientId,
+      patientEmail,
+      patientName,
+      durationMinutes = 30,
+    } = req.body;
     const requesterId = req.user.id;
     const requesterRole = (req.user.role || '').toLowerCase();
+    const normalizedPatientEmail = patientEmail?.trim().toLowerCase() || '';
+    const normalizedPatientName = patientName?.trim() || '';
 
     if (!date || !time) {
       return res.status(400).json({ success: false, message: 'Fecha y hora son requeridas' });
     }
 
-    // Si el que agenda es paciente, mantiene el flujo existente
     let userId = requesterId;
     let doctorId = doctorIdBody;
+    let patientProfile = null;
+    let autoCreatedPatient = false;
 
-    // Si el que agenda es doctor, debe definir al paciente; el doctor se toma del token
     if (requesterRole === 'doctor') {
       doctorId = requesterId;
 
-      if (!patientId && !patientEmail) {
+      if (!patientId && !normalizedPatientEmail) {
         return res.status(400).json({ success: false, message: 'Debes indicar el paciente (patientId o patientEmail).' });
       }
 
-      const patient = patientId
-        ? await User.findById(patientId)
-        : await User.findOne({ email: patientEmail });
+      let patient = null;
+
+      if (patientId) {
+        patient = await User.findById(patientId);
+      }
+
+      if (!patient && normalizedPatientEmail) {
+        patient = await User.findOne({ email: normalizedPatientEmail });
+      }
+
+      if (!patient && normalizedPatientEmail) {
+        if (!normalizedPatientName) {
+          return res.status(404).json({
+            success: false,
+            message: 'Paciente no encontrado. Proporciona el nombre para registrarlo automáticamente.',
+          });
+        }
+        try {
+          patient = await User.create({
+            email: normalizedPatientEmail,
+            name: normalizedPatientName,
+            role: 'paciente',
+            authProvider: 'local',
+          });
+          autoCreatedPatient = true;
+        } catch (creationError) {
+          if (creationError.code === 11000) {
+            patient = await User.findOne({ email: normalizedPatientEmail });
+          } else {
+            throw creationError;
+          }
+        }
+      }
 
       if (!patient) {
         return res.status(404).json({ success: false, message: 'Paciente no encontrado' });
       }
       userId = patient._id;
+      patientProfile = patient;
+    } else {
+      patientProfile = await User.findById(userId).select('name email');
     }
 
-    // Validación básica de doctorId (para pacientes que agendan)
     if (!doctorId) {
       return res.status(400).json({ success: false, message: 'Debes indicar el doctorId.' });
     }
 
-    // 1. 🕒 Construir rangos de hora para el evento
+    const doctorProfile = await Doctor.findById(doctorId).select('name email');
+    if (!doctorProfile) {
+      return res.status(404).json({ success: false, message: 'Doctor no encontrado' });
+    }
+
     const startDateTime = new Date(`${date}T${time}:00`);
+    if (Number.isNaN(startDateTime.getTime())) {
+      return res.status(400).json({ success: false, message: 'La fecha u hora no es válida.' });
+    }
     const endDateTime = new Date(startDateTime.getTime() + durationMinutes * 60 * 1000);
 
-    // 2. 🗓️ Crear evento en Google Calendar
-    const calendarReq = {
-      body: {
-        userId,
-        summary: 'Cita médica',
-        description: `Consulta médica con el doctor ID: ${doctorId}. Motivo: ${motivoConsulta || 'Consulta'}`,
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
-      },
-    };
+    const attendees = [];
+    if (patientProfile?.email) {
+      attendees.push({ email: patientProfile.email, displayName: patientProfile.name });
+    }
 
-    let calendarEventId = null;
-    const calendarRes = {
-      status: (code) => ({
-        json: (data) => {
-          if (data.eventId) {
-            calendarEventId = data.eventId;
-          }
-          return { status: code, ...data };
-        },
-      }),
-    };
+    const calendarEventId = await tryCreateCalendarEvent({
+      ownerId: doctorProfile._id,
+      doctorName: doctorProfile.name,
+      summary: 'Sesión terapéutica',
+      description: motivoConsulta || 'Consulta clínica',
+      start: startDateTime.toISOString(),
+      end: endDateTime.toISOString(),
+      attendees,
+    });
 
-    await createCalendarEvent(calendarReq, calendarRes);
-
-    // 3. 📝 Crear la cita en MongoDB incluyendo el ID del evento
     const nuevaCita = await Booking.create({
       user: userId,
       doctor: doctorId,
@@ -87,6 +150,8 @@ export const createBooking = async (req, res) => {
       message: '✅ Cita creada exitosamente',
       data: nuevaCita,
       googleCalendarEventId: calendarEventId,
+      calendarSync: Boolean(calendarEventId),
+      patientAutoCreated: autoCreatedPatient,
     });
 
   } catch (error) {

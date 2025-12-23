@@ -16,7 +16,7 @@ const PsychologyDashboard = () => {
   const [appointmentsFilter, setAppointmentsFilter] = useState('all');
   const [appointmentsSearch, setAppointmentsSearch] = useState('');
   const [appointmentAction, setAppointmentAction] = useState(null);
-  const [bookingForm, setBookingForm] = useState({ patientEmail: '', patientId: '', date: '', time: '', motivo: '' });
+  const [bookingForm, setBookingForm] = useState({ patientEmail: '', patientId: '', patientName: '', date: '', time: '', motivo: '' });
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -317,14 +317,22 @@ const PsychologyDashboard = () => {
 
   const handleBookingInput = (e) => {
     const { name, value } = e.target;
-    setBookingForm((prev) => ({ ...prev, [name]: value }));
+    const preserveValue = name === 'date' || name === 'time';
+    const sanitizedValue = typeof value === 'string' && !preserveValue ? value.trim() : value;
+    const normalizedValue = preserveValue && value === ' ' ? '' : sanitizedValue;
+    setBookingForm((prev) => ({ ...prev, [name]: normalizedValue }));
   };
 
   const handleCreateBooking = async (e) => {
     e.preventDefault();
     if (bookingSubmitting) return;
-    if (!bookingForm.date || !bookingForm.time || (!bookingForm.patientEmail && !bookingForm.patientId)) {
+    const missingPatientReference = !bookingForm.patientEmail && !bookingForm.patientId;
+    if (!bookingForm.date || !bookingForm.time || missingPatientReference) {
       toast.info('Completa paciente, fecha y hora.');
+      return;
+    }
+    if (bookingForm.patientEmail && !bookingForm.patientId && !bookingForm.patientName) {
+      toast.info('Escribe el nombre del paciente para registrarlo automáticamente.');
       return;
     }
     try {
@@ -339,6 +347,7 @@ const PsychologyDashboard = () => {
         body: JSON.stringify({
           patientEmail: bookingForm.patientEmail || undefined,
           patientId: bookingForm.patientId || undefined,
+          patientName: bookingForm.patientName || undefined,
           date: bookingForm.date,
           time: bookingForm.time,
           motivoConsulta: bookingForm.motivo,
@@ -349,7 +358,7 @@ const PsychologyDashboard = () => {
         throw new Error(result.message || result.error || 'No se pudo agendar la cita');
       }
       toast.success(result.message || 'Cita creada');
-      setBookingForm({ patientEmail: '', patientId: '', date: '', time: '', motivo: '' });
+      setBookingForm({ patientEmail: '', patientId: '', patientName: '', date: '', time: '', motivo: '' });
       await refetchDoctorProfile();
     } catch (err) {
       toast.error(err.message || 'Error al crear la cita');
@@ -818,6 +827,18 @@ const PsychologyDashboard = () => {
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
                 />
               </div>
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600 lg:col-span-2">
+              Nombre del paciente
+              <input
+                type="text"
+                name="patientName"
+                value={bookingForm.patientName}
+                onChange={handleBookingInput}
+                placeholder="Nombre completo"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
+              />
+              <span className="text-xs font-normal text-slate-400">Completa este campo si el paciente aún no está registrado.</span>
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600">
               Fecha

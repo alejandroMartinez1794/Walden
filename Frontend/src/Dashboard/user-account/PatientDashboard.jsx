@@ -6,7 +6,6 @@ import {
   HiOutlineHeart,
   HiOutlineClipboardList,
   HiOutlineLightningBolt,
-  HiOutlineChatAlt2,
   HiOutlineBookOpen,
   HiOutlineAdjustments,
   HiOutlinePhone,
@@ -291,11 +290,9 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
   };
 
   const [microGoalDraft, setMicroGoalDraft] = useState('');
-  const [sessionPromptDraft, setSessionPromptDraft] = useState('');
   const [newExperiment, setNewExperiment] = useState({ name: '', status: EXPERIMENT_STATUSES[0], reflection: '' });
   const [newSchema, setNewSchema] = useState({ name: '', trigger: '', need: '', action: '' });
   const [newTechnique, setNewTechnique] = useState({ technique: '', cue: '' });
-  const [newInsight, setNewInsight] = useState('');
 
   const toggleMicroGoal = (index) => {
     setCbtProfile((prev) => {
@@ -324,26 +321,6 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
       const updatedGoals = prev.microGoals.filter((_, idx) => idx !== index);
       const nextProfile = { ...prev, microGoals: updatedGoals };
       persistProfile(nextProfile, 'Micrometas');
-      return nextProfile;
-    });
-  };
-
-  const addSessionPrompt = () => {
-    if (!sessionPromptDraft.trim()) return;
-    setCbtProfile((prev) => {
-      const updatedPrompts = [...prev.sessionPrompts, sessionPromptDraft.trim()];
-      const nextProfile = { ...prev, sessionPrompts: updatedPrompts };
-      persistProfile(nextProfile, 'Agenda terapéutica');
-      return nextProfile;
-    });
-    setSessionPromptDraft('');
-  };
-
-  const removeSessionPrompt = (index) => {
-    setCbtProfile((prev) => {
-      const updatedPrompts = prev.sessionPrompts.filter((_, idx) => idx !== index);
-      const nextProfile = { ...prev, sessionPrompts: updatedPrompts };
-      persistProfile(nextProfile, 'Agenda terapéutica');
       return nextProfile;
     });
   };
@@ -473,30 +450,10 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
     persistProfile(cbtProfile, 'Plan de seguridad');
   };
 
-  const addInsight = () => {
-    if (!newInsight.trim()) return;
-    setCbtProfile((prev) => {
-      const updatedInsights = [...prev.insights, newInsight.trim()];
-      const nextProfile = { ...prev, insights: updatedInsights };
-      persistProfile(nextProfile, 'Notas terapéuticas');
-      return nextProfile;
-    });
-    setNewInsight('');
-  };
-
-  const removeInsight = (index) => {
-    setCbtProfile((prev) => {
-      const updated = prev.insights.filter((_, idx) => idx !== index);
-      const nextProfile = { ...prev, insights: updated };
-      persistProfile(nextProfile, 'Notas terapéuticas');
-      return nextProfile;
-    });
-  };
-
   const isSaving = (label) => savingSection === label;
 
   return (
-    <section className="relative w-full overflow-hidden rounded-[40px] border border-[#101430]/80 bg-gradient-to-br from-[#080b16] via-[#101732] to-[#1b2647] p-1 shadow-[0_45px_120px_rgba(7,10,25,0.7)]">
+    <section className="relative w-full overflow-hidden xl:overflow-visible rounded-[40px] border border-[#101430]/80 bg-gradient-to-br from-[#080b16] via-[#101732] to-[#1b2647] p-1 shadow-[0_45px_120px_rgba(7,10,25,0.7)]">
       <div
         className="pointer-events-none absolute inset-0 opacity-35"
         style={{
@@ -582,7 +539,7 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
             </div>
           </div>
           <div
-            className="glass-panel w-full text-white backdrop-blur"
+            className="glass-panel w-full text-white backdrop-blur xl:sticky xl:top-24 xl:self-start xl:z-20"
             style={{
               '--glass-panel-bg': 'rgba(11, 17, 33, 0.85)',
               '--glass-panel-border': 'rgba(255, 255, 255, 0.15)',
@@ -747,36 +704,6 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
               >
                 Añadir
               </button>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-              <p className="font-semibold text-slate-900">Agenda terapéutica sugerida</p>
-              <ul className="mt-3 space-y-2">
-                {cbtProfile.sessionPrompts.map((prompt, index) => (
-                  <li key={`${prompt}-${index}`} className="flex items-start justify-between gap-3">
-                    <span className="flex-1">{prompt}</span>
-                    <button
-                      onClick={() => removeSessionPrompt(index)}
-                      className="text-xs font-semibold uppercase tracking-wide text-slate-400 hover:text-slate-600"
-                    >
-                      Quitar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={sessionPromptDraft}
-                  onChange={(e) => setSessionPromptDraft(e.target.value)}
-                  placeholder="Idea para próxima sesión"
-                  className="flex-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
-                />
-                <button
-                  onClick={addSessionPrompt}
-                  className="rounded-2xl bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white"
-                >
-                  Añadir
-                </button>
-              </div>
             </div>
           </div>
 
@@ -1096,45 +1023,6 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
         </div>
       </div>
 
-      <div className="glass-panel">
-        <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
-            <HiOutlineChatAlt2 className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Notas terapéuticas</p>
-            <h3 className="text-xl font-semibold text-slate-900">Lo que deseas compartir en la próxima sesión</h3>
-          </div>
-        </div>
-        <div className="mt-6 space-y-3 text-sm text-slate-600">
-          {cbtProfile.insights.map((tip, index) => (
-            <div key={`${tip}-${index}`} className="flex items-start justify-between gap-3 rounded-3xl border border-slate-100 bg-white/70 p-4">
-              <p className="flex-1">{tip}</p>
-              <button
-                onClick={() => removeInsight(index)}
-                className="text-xs font-semibold uppercase tracking-wide text-slate-400 hover:text-slate-600"
-              >
-                Quitar
-              </button>
-            </div>
-          ))}
-          <div className="rounded-3xl border border-dashed border-slate-200 p-4 space-y-3">
-            <textarea
-              value={newInsight}
-              onChange={(e) => setNewInsight(e.target.value)}
-              rows={3}
-              placeholder="Anota una idea, pregunta o victoria para la próxima sesión"
-              className="w-full rounded-2xl border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
-            />
-            <button
-              onClick={addInsight}
-              className="w-full rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-            >
-              Añadir nota
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
     </section>
   );

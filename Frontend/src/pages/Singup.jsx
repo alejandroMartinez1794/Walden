@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 
 import SignupImg from "../assets/images/signup.gif";
 import avatar from "../assets/images/doctor-img01.png";
@@ -7,11 +7,13 @@ import uploadImageToCloudinary from '../utils/uploadCloudinary';
 import { BASE_URL } from '../config';
 import { toast } from 'react-toastify';
 import HashLoader from 'react-spinners/HashLoader';
+import { authContext } from '../context/AuthContext.jsx';
+import { getDashboardPath } from '../utils/getDashboardPath';
 
 const Signup   = () => {
 
-    const [selectFile, setSelectFile] = useState (null);
-    const [previewURL, setpreviewURL] = useState ("");
+    const [photoPreview, setPhotoPreview] = useState(null);
+    const [photoUploading, setPhotoUploading] = useState(false);
     const [loading, setLoading] = useState(false);
 
 
@@ -19,30 +21,90 @@ const Signup   = () => {
         name: "",
         email: "",
         password: "",
-        photo: selectFile,
+        photo: null,
         gender:"",
         role:"paciente"
     });
 
     const navigate = useNavigate();
+    const { dispatch } = useContext(authContext);
 
     const handleInputChange = e => {
         setFormData({ ...formData, [e.target.name]: e.target.value });  
     }
     
-    const handleFileInputChange = async (Event) => {
-        const file = Event.target.files[0]
+    const handleFileInputChange = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
 
-        const data = await uploadImageToCloudinary(file)
-    
-        setpreviewURL(data.url);
-        setSelectFile(data.url);
-        setFormData({ ...formData, photo: data.url });
+        const previousPhoto = formData.photo;
+        const tempUrl = URL.createObjectURL(file);
+        setPhotoPreview(tempUrl);
+        setPhotoUploading(true);
+
+        try {
+            const data = await uploadImageToCloudinary(file);
+            const uploadedUrl = data?.secure_url || data?.url;
+            if (!uploadedUrl) {
+                throw new Error('La imagen se cargó pero no devolvió una URL válida.');
+            }
+            setFormData(prev => ({ ...prev, photo: uploadedUrl }));
+            setPhotoPreview(uploadedUrl);
+            toast.success('Foto subida correctamente');
+        } catch (error) {
+            console.error('Error subiendo imagen:', error);
+            setPhotoPreview(previousPhoto || null);
+            setFormData(prev => ({ ...prev, photo: previousPhoto || null }));
+            toast.error(error.message || 'No se pudo subir la imagen. Intenta nuevamente.');
+        } finally {
+            setPhotoUploading(false);
+            if (tempUrl && tempUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(tempUrl);
+            }
+            if (event.target) {
+                event.target.value = '';
+            }
+        }
+    };
+
+    const autoLoginAfterSignup = async () => {
+        const loginRes = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: formData.email,
+                password: formData.password,
+            }),
+        });
+
+        const loginPayload = await loginRes.json();
+        if (!loginRes.ok) {
+            throw new Error(loginPayload.message || 'No se pudo iniciar sesión automáticamente.');
+        }
+
+        dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: {
+                user: loginPayload.data,
+                token: loginPayload.token,
+                role: loginPayload.role,
+                authProvider: loginPayload.data?.authProvider || 'local',
+            },
+        });
+
+        return loginPayload;
     };
 
     const submitHandler = async event => {
 
         event.preventDefault();
+
+        if (photoUploading) {
+            toast.info('Espera a que la imagen termine de subir.');
+            return;
+        }
         setLoading(true);
 
         try {
@@ -54,20 +116,23 @@ const Signup   = () => {
                 body: JSON.stringify(formData)
             });
 
-            const {message}= await res.json();
+            const payload = await res.json();
+            const successMessage = payload?.message || 'Usuario creado correctamente.';
 
             if(!res.ok) {
-                throw new Error(message);
+                throw new Error(successMessage);
             }
 
-            setLoading(false)
-            toast.success(message)
-            navigate('/login');
+            toast.success(successMessage);
+            const loginResult = await autoLoginAfterSignup();
+            const redirectPath = getDashboardPath(loginResult.role);
+            navigate(redirectPath, { replace: true });
 
         }   catch (err) {
             toast.error(err.message);
+        } finally {
             setLoading(false);
-        } 
+        }
     };
 
     return (
@@ -170,11 +235,11 @@ const Signup   = () => {
 
                             <div className="mb-5 flex items-center gap-3">
                                     <figure className="w-[60px] h-[60px] rounded-full border-2 border-solid border-primaryColor flex items-center
-                                    justify-center">
+                                    justify-center overflow-hidden">
                                         <img 
-                                            src={avatar} 
-                                            alt="" 
-                                            className="w-full rounded-full"
+                                            src={photoPreview || formData.photo || avatar} 
+                                            alt="Foto de perfil" 
+                                            className="h-full w-full object-cover"
                                         />
                                     </figure>
                             <div className="relative w-[130px] h-[50px]">
@@ -183,22 +248,24 @@ const Signup   = () => {
                                         name="photo"
                                         id="customfile"
                                         onChange={handleFileInputChange}
-                                        accept=".jpg .png"
+                                        accept=".jpg,.jpeg,.png,image/*"
+                                        disabled={photoUploading}
                                         className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                                     />
                                     <label
                                         htmlFor="customfile"
                                         className="absolute top-0 left-0 w-full h-full flex items-center px-[0.75rem] py-[0.375rem]
                                         text-[15px] leading-6 overflow-hidden bg-[#0066ff48] text-headingColor font-semibold rounded-lg
-                                        truncate cursor-pointer">
-                                        Uploading Photo
+                                        truncate cursor-pointer"
+                                    >
+                                        {photoUploading ? 'Subiendo...' : 'Subir foto'}
                                     </label>    
                                 </div>
                             </div>
 
                             <div className='mt-7'>
                                 <button
-                                    disabled={loading && true}
+                                    disabled={loading || photoUploading}
                                     type="submit"
                                     className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
                                 >

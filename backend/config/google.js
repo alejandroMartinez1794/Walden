@@ -3,7 +3,7 @@
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import GoogleToken from '../Models/GoogleTokenSchema.js'; // Usamos el modelo que ya tienes
+import GoogleToken from '../models/GoogleTokenSchema.js'; // Usamos el modelo que ya tienes
 
 // Asegura que las credenciales reales se carguen aun cuando este módulo se importe
 // antes que index.js configure dotenv.

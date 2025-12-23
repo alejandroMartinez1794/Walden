@@ -1,6 +1,6 @@
 // backend/utils/getOAuthClientWithUserTokens.js
 import { google } from 'googleapis';
-import GoogleToken from '../Models/GoogleTokenSchema.js';
+import GoogleToken from '../models/GoogleTokenSchema.js';
 import oAuth2Client from '../config/google.js';
 
 /**

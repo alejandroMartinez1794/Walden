@@ -4,6 +4,7 @@ import { BASE_URL } from '../config';
 import { toast } from 'react-toastify';
 import { authContext } from '../context/AuthContext.jsx';
 import Hashloader from 'react-spinners/HashLoader';
+import { getDashboardPath } from '../utils/getDashboardPath';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -44,14 +45,14 @@ const Login = () => {
           user: result.data,
           token: result.token,
           role: result.role,
+          authProvider: result.data?.authProvider || 'local',
         },
       });
 
-      console.log(result, "login data");
-
       setLoading(false);
       toast.success(result.message);
-      navigate('/home');
+      const redirectPath = getDashboardPath(result.role);
+      navigate(redirectPath, { replace: true });
 
     } catch (err) {
       toast.error(err.message);
