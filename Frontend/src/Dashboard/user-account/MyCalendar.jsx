@@ -6,6 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import { BASE_URL } from '../../config';
 import { authContext } from '../../context/AuthContext';
+import { HiOutlineCalendar, HiOutlineSun, HiOutlineLightBulb } from 'react-icons/hi';
 
 const LOCAL_EVENT_COLOR = '#1d4ed8';
 const GOOGLE_EVENT_COLOR = '#0b89da';
@@ -541,61 +542,77 @@ const MyCalendar = () => {
 	const showUpcomingTimeline = upcomingEvents.length > 0;
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-[#0b1224] via-[#101a33] to-[#1b2d55] p-4 sm:p-6 lg:p-10">
-			<div className="mx-auto max-w-6xl space-y-8">
-				<header className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-800 px-6 py-8 text-white shadow-2xl">
-					<div className="absolute inset-0 opacity-30">
-						<div className="absolute -left-16 top-0 h-32 w-32 rounded-full bg-cyan-400 blur-3xl" />
-						<div className="absolute bottom-0 right-0 h-44 w-44 rounded-full bg-emerald-300 blur-3xl" />
-					</div>
-						<div className="relative z-10 flex flex-wrap items-center justify-between gap-6">
-							<div className="max-w-2xl space-y-2">
-							<p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/70">Mis citas</p>
-								<h1 className="text-3xl font-semibold leading-tight text-pretty">Tablero operativo con calendario curado</h1>
-								<p className="text-sm leading-relaxed text-white/80 text-pretty">
+		<>
+			<div className="space-y-6">
+			<div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl backdrop-blur">
+				<div className="flex flex-wrap items-start justify-between gap-6">
+					<div className="flex items-start gap-4">
+						<div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
+							<HiOutlineCalendar className="h-7 w-7" />
+						</div>
+						<div className="max-w-2xl space-y-1">
+							<p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Mis citas</p>
+							<h1 className="text-3xl font-semibold leading-tight text-slate-900 text-pretty">
+								Tablero operativo con calendario curado
+							</h1>
+							<p className="text-sm leading-relaxed text-slate-600 text-pretty">
 								{insights.spanLabel} · {experience.balanceLabel}
 							</p>
 						</div>
-						<div className="flex flex-wrap items-center gap-3">
+					</div>
+					<div className="flex flex-wrap items-center gap-3">
+						<button
+							onClick={jumpToToday}
+							className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
+						>
+							Volver a hoy
+						</button>
+						{showGoogleCTA && (
 							<button
-								onClick={jumpToToday}
-								className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+								onClick={handleConnectGoogle}
+								className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
 							>
-								Volver a hoy
+								{isGoogleAccount ? 'Renovar Google' : 'Conectar Google'}
 							</button>
-							{showGoogleCTA && (
-								<button
-									onClick={handleConnectGoogle}
-									className="rounded-full border border-white/40 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
-								>
-									{isGoogleAccount ? 'Renovar Google' : 'Conectar Google'}
-								</button>
-							)}
-						</div>
+						)}
 					</div>
-					<div className="relative z-10 mt-6 flex flex-wrap gap-3 text-xs text-white/80">
-						<span className="rounded-full border border-white/20 px-3 py-1 font-semibold uppercase tracking-[0.3em]">
-							{insights.streakDays} días seguidos
-						</span>
-						<span className="rounded-full border border-white/20 px-3 py-1 font-semibold uppercase tracking-[0.3em]">
-							{experience.peakDay}
-						</span>
-						<span className="rounded-full border border-white/20 px-3 py-1 font-semibold uppercase tracking-[0.3em]">
-							Cobertura {insights.coveragePercent}%
-						</span>
-					</div>
-				</header>
+				</div>
+				<div className="mt-6 flex flex-wrap gap-3 text-xs text-slate-600">
+					<span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold uppercase tracking-[0.3em]">
+						{insights.streakDays} días seguidos
+					</span>
+					<span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold uppercase tracking-[0.3em]">
+						{experience.peakDay}
+					</span>
+					<span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold uppercase tracking-[0.3em]">
+						Cobertura {insights.coveragePercent}%
+					</span>
+				</div>
+			</div>
 
 				{error && (
 					<div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">{error}</div>
 				)}
 
 				<div className="space-y-6">
-					<section className="rounded-3xl bg-white/95 p-5 shadow-2xl shadow-slate-900/10 ring-1 ring-white/40">
+					<section
+						className="glass-panel"
+						style={{
+							'--glass-panel-bg': 'linear-gradient(140deg, rgba(255, 255, 255, 0.92), rgba(235, 241, 255, 0.9))',
+							'--glass-panel-border': 'rgba(15, 23, 42, 0.10)',
+							'--glass-panel-shadow': '0 25px 60px rgba(15, 23, 42, 0.10)',
+							'--glass-panel-overlay': '0.65',
+						}}
+					>
 						<div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
-							<div className="space-y-1">
-								<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Calendario principal</p>
-								<p className="text-sm leading-relaxed text-slate-500">{stats.local + stats.google} eventos sincronizados</p>
+							<div className="flex items-center gap-3">
+								<div className="rounded-2xl bg-slate-900/10 p-2 text-slate-900">
+									<HiOutlineCalendar className="h-5 w-5" />
+								</div>
+								<div>
+									<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Calendario principal</p>
+									<p className="text-sm leading-relaxed text-slate-500">{stats.local + stats.google} eventos sincronizados</p>
+								</div>
 							</div>
 							<div className="flex flex-wrap items-center gap-2">
 								{displayedFilterOptions.map((option) => (
@@ -705,9 +722,17 @@ const MyCalendar = () => {
 						</div>
 					</section>
 
-					<div className="rounded-3xl bg-white/90 p-5 shadow-xl shadow-slate-900/10 ring-1 ring-white/30">
+					<div
+						className="glass-panel"
+						style={{
+							'--glass-panel-bg': 'linear-gradient(140deg, rgba(16, 185, 129, 0.18), rgba(8, 145, 178, 0.18))',
+							'--glass-panel-border': 'rgba(13, 148, 136, 0.28)',
+							'--glass-panel-shadow': '0 25px 60px rgba(5, 92, 104, 0.18)',
+							'--glass-panel-overlay': '0.4',
+						}}
+					>
 						<div className="flex items-center justify-between border-b border-slate-100 pb-3">
-							<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Agenda del día</p>
+							<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Agenda del día ☀️</p>
 							<span className="text-xs text-slate-500">{formatSelectedDay(selectedDate)}</span>
 						</div>
 						<div className="mt-4 space-y-3">
@@ -732,9 +757,17 @@ const MyCalendar = () => {
 						</div>
 					</div>
 
-					<div className="rounded-3xl bg-white/95 p-5 shadow-2xl shadow-slate-900/10 ring-1 ring-white/40">
+					<div
+						className="glass-panel"
+						style={{
+							'--glass-panel-bg': 'linear-gradient(140deg, rgba(79, 70, 229, 0.16), rgba(15, 118, 177, 0.14))',
+							'--glass-panel-border': 'rgba(79, 70, 229, 0.25)',
+							'--glass-panel-shadow': '0 25px 60px rgba(30, 41, 59, 0.18)',
+							'--glass-panel-overlay': '0.3',
+						}}
+					>
 						<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-							<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Herramientas TCC</p>
+							<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Herramientas TCC 🧠</p>
 							<button
 								onClick={clearCbtForDay}
 								className="text-xs font-semibold text-slate-500 hover:text-slate-700"
@@ -1002,7 +1035,7 @@ const MyCalendar = () => {
 					<div className="rounded-3xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">{googleError}</div>
 				)}
 			</div>
-		</div>
+		</>
 	);
 };
 

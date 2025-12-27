@@ -175,7 +175,10 @@ const Medications = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-headingColor">Gestión de medicamentos</h2>
+        <h2 className="text-2xl font-bold text-headingColor flex items-center gap-2">
+          <FaPills className="text-primaryColor" />
+          Gestión de medicamentos
+        </h2>
         <button
           onClick={() => {
             setShowAddForm(!showAddForm);
@@ -278,7 +281,8 @@ const Medications = () => {
       {/* Add/Edit Medication Form */}
       {showAddForm && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-xl font-bold text-headingColor mb-4">
+          <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
+            <FaPlus className="text-primaryColor" />
             {editingMed ? 'Editar medicamento' : 'Agregar nuevo medicamento'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -424,7 +428,10 @@ const Medications = () => {
 
       {/* Active Medications */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Medicamentos activos</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
+          <FaPills className="text-primaryColor" />
+          Medicamentos activos
+        </h3>
         <div className="space-y-4">
             {activeMedications.map((med) => (
             <div key={med._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all">
@@ -490,7 +497,10 @@ const Medications = () => {
       {/* Completed Medications */}
       {completedMedications.length > 0 && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-xl font-bold text-headingColor mb-4">Medicamentos completados</h3>
+          <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
+            <FaCheck className="text-primaryColor" />
+            Medicamentos completados
+          </h3>
           <div className="space-y-3">
             {completedMedications.map((med) => (
               <div key={med.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">

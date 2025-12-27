@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import { HiOutlineUserCircle, HiOutlineLockClosed, HiOutlinePhotograph } from 'react-icons/hi';
 
 import uploadImageToCloudinary from '../../utils/uploadCloudinary';
 import { BASE_URL } from '../../config';
@@ -228,9 +229,16 @@ const Profile = ({user, onProfileUpdated}) => {
             <form onSubmit={submitHandler} className="space-y-8">
                 <section className="rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
                     <header className="mb-6 space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
+                                <HiOutlineUserCircle className="h-6 w-6" />
+                            </div>
+                            <div>
                         <p className="text-sm font-semibold text-slate-500">Datos personales</p>
                         <h3 className="text-2xl font-semibold text-slate-900">Identidad terapéutica</h3>
                         <p className="text-sm text-slate-500">Estos datos se muestran en cada interacción clínica y en los reportes enviados por correo.</p>
+                            </div>
+                        </div>
                     </header>
                     <div className="grid gap-6 lg:grid-cols-2">
                         <label className="space-y-2 text-sm font-medium text-slate-600">
@@ -289,9 +297,16 @@ const Profile = ({user, onProfileUpdated}) => {
 
                 <section className="rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
                     <header className="mb-6 space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
+                                <HiOutlineLockClosed className="h-6 w-6" />
+                            </div>
+                            <div>
                         <p className="text-sm font-semibold text-slate-500">Seguridad y acceso</p>
                         <h3 className="text-2xl font-semibold text-slate-900">Credenciales del portal</h3>
                         <p className="text-sm text-slate-500">Solo cambia la contraseña si necesitas ajustar tu acceso. Déjala vacía para mantener la actual.</p>
+                            </div>
+                        </div>
                     </header>
                     <label className="space-y-2 text-sm font-medium text-slate-600">
                         Contraseña
@@ -309,9 +324,16 @@ const Profile = ({user, onProfileUpdated}) => {
 
                 <section className="rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
                     <header className="mb-6 space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
+                                <HiOutlinePhotograph className="h-6 w-6" />
+                            </div>
+                            <div>
                         <p className="text-sm font-semibold text-slate-500">Foto terapéutica</p>
                         <h3 className="text-2xl font-semibold text-slate-900">Imagen de referencia clínica</h3>
                         <p className="text-sm text-slate-500">Se muestra en tu tablero, mensajes recordatorios y planillas para tu terapeuta.</p>
+                            </div>
+                        </div>
                     </header>
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
                         <figure className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">

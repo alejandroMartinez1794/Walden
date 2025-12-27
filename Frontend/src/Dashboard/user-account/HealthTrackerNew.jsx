@@ -197,7 +197,10 @@ const HealthTracker = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-headingColor">Panel de salud</h2>
+        <h2 className="text-2xl font-bold text-headingColor flex items-center gap-2">
+          <FaHeartbeat className="text-primaryColor" />
+          Panel de salud
+        </h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-2 bg-primaryColor text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
@@ -376,7 +379,10 @@ const HealthTracker = () => {
 
       {/* Blood Pressure Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Tendencia de presión arterial (últimos 7 días)</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
+          <FaHeartbeat className="text-primaryColor" />
+          Tendencia de presión arterial (últimos 7 días)
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={bloodPressureData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -412,7 +418,10 @@ const HealthTracker = () => {
 
       {/* Weight Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Tendencia de peso</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
+          <FaWeight className="text-primaryColor" />
+          Tendencia de peso
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={weightData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -451,7 +460,10 @@ const HealthTracker = () => {
 
       {/* Blood Glucose Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-bold text-headingColor mb-4">Glucosa del día</h3>
+        <h3 className="text-xl font-bold text-headingColor mb-4 flex items-center gap-2">
+          <FaTint className="text-primaryColor" />
+          Glucosa del día
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={glucoseData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -529,7 +541,10 @@ const HealthTracker = () => {
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-6 my-8">
-            <h3 className="text-xl font-bold mb-4 text-headingColor">Registrar indicadores</h3>
+            <h3 className="text-xl font-bold mb-4 text-headingColor flex items-center gap-2">
+              <FaPlus className="text-primaryColor" />
+              Registrar indicadores
+            </h3>
             <p className="text-sm text-textColor mb-6">Completa los campos que quieras registrar. Se requiere al menos un dato.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-2">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HiOutlineChatAlt2 } from 'react-icons/hi';
+import { HiOutlineChatAlt2, HiOutlineCalendar } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../config';
 
@@ -171,9 +171,16 @@ const SessionPrepPanel = ({ userData, onUserDataUpdate }) => {
   return (
     <div className="space-y-6">
       <div className="glass-panel space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-700">Agenda terapéutica sugerida</p>
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Citas</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
+              <HiOutlineCalendar className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700">Agenda terapéutica sugerida</p>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Citas</span>
+            </div>
+          </div>
         </div>
         <ul className="space-y-2 text-sm text-slate-600">
           {cbtProfile.sessionPrompts.map((prompt, index) => (

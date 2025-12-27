@@ -13,6 +13,7 @@ import { BASE_URL } from '../../config';
 import Loading from '../../components/Loader/Loading';
 import ErrorState from '../../components/Error/Error';
 import MyCalendar from './MyCalendar';
+import { HiOutlineCalendar } from 'react-icons/hi';
 
 const MyAccount = () => {
   const { dispatch, token: authToken, role: authRole, authProvider } = useContext(authContext);
@@ -179,7 +180,10 @@ const MyAccount = () => {
               <>
                 <MyBookings />
                 <div className="mt-10">
-                  <h2 className="text-2xl font-bold mb-4 text-headingColor">Tu Calendario</h2>
+                  <h2 className="text-2xl font-bold mb-4 text-headingColor flex items-center gap-2">
+                    <HiOutlineCalendar className="text-primaryColor" />
+                    Tu Calendario
+                  </h2>
                   <MyCalendar />
                 </div>
                 <div className="mt-10">

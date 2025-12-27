@@ -5,16 +5,22 @@ const parseStoredJSON = (value) => {
     try {
         return JSON.parse(value);
     } catch (err) {
-        console.warn('❗ No se pudo parsear auth user en localStorage:', err);
+        console.warn('❗ No se pudo parsear auth user en storage:', err);
         return null;
     }
 };
 
+const getFromSessionFirst = (key) => {
+    const fromSession = sessionStorage.getItem(key);
+    if (fromSession !== null) return fromSession;
+    return localStorage.getItem(key);
+};
+
 const initialState = {
-    user: parseStoredJSON(localStorage.getItem('user')),
-    role: localStorage.getItem('role') || null,
-    token: localStorage.getItem('token') || null,
-    authProvider: localStorage.getItem('authProvider') || null,
+    user: parseStoredJSON(getFromSessionFirst('user')),
+    role: getFromSessionFirst('role') || null,
+    token: getFromSessionFirst('token') || null,
+    authProvider: getFromSessionFirst('authProvider') || null,
 };
 
 export const authContext = createContext(initialState);
@@ -52,23 +58,28 @@ export const AuthContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(authReducer, initialState);
 
     useEffect(() => {
-        localStorage.setItem("user", JSON.stringify(state.user));
+        sessionStorage.setItem("user", JSON.stringify(state.user));
         if (state.token) {
-            localStorage.setItem("token", state.token);
+            sessionStorage.setItem("token", state.token);
         } else {
-            localStorage.removeItem("token");
+            sessionStorage.removeItem("token");
         }
         if (state.role) {
-            localStorage.setItem("role", state.role);
+            sessionStorage.setItem("role", state.role);
         } else {
-            localStorage.removeItem("role");
+            sessionStorage.removeItem("role");
         }
         if (state.authProvider) {
-            localStorage.setItem('authProvider', state.authProvider);
+            sessionStorage.setItem('authProvider', state.authProvider);
         } else {
-            localStorage.removeItem('authProvider');
+            sessionStorage.removeItem('authProvider');
         }
 
+        // Limpieza de restos previos en localStorage (evita sesiones persistentes antiguas)
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('authProvider');
     }, [state]);
 
     return (

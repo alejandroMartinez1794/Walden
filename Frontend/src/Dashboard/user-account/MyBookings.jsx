@@ -7,6 +7,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { toast } from "react-toastify";
+import { HiOutlineCalendar, HiOutlineClipboardList } from "react-icons/hi";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -90,49 +91,77 @@ const MyBookings = () => {
   if (error) return <Error errMessage={error} />;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-primaryColor">Mis Citas Médicas</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setView("calendar")}
-            className={`px-4 py-2 rounded-lg ${
-              view === "calendar"
-                ? "bg-primaryColor text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            📅 Calendario
-          </button>
-          <button
-            onClick={() => setView("list")}
-            className={`px-4 py-2 rounded-lg ${
-              view === "list"
-                ? "bg-primaryColor text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            📋 Lista
-          </button>
+    <div className="space-y-6">
+      <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl backdrop-blur">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl bg-primaryColor/10 p-3 text-primaryColor">
+              <HiOutlineCalendar className="h-7 w-7" />
+            </div>
+            <div className="max-w-2xl space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">Citas</p>
+              <h2 className="text-2xl font-semibold leading-tight text-slate-900 text-pretty">Mis Citas Médicas</h2>
+              <p className="text-sm leading-relaxed text-slate-600 text-pretty">
+                Cambia entre calendario y lista para ubicar tu próxima sesión.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setView("calendar")}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                view === "calendar"
+                  ? "border-slate-900 bg-slate-900 text-white"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+              }`}
+              type="button"
+            >
+              <HiOutlineCalendar className="text-lg" />
+              Calendario
+            </button>
+            <button
+              onClick={() => setView("list")}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                view === "list"
+                  ? "border-slate-900 bg-slate-900 text-white"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+              }`}
+              type="button"
+            >
+              <HiOutlineClipboardList className="text-lg" />
+              Lista
+            </button>
+          </div>
         </div>
       </div>
 
       {bookings.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No tienes citas médicas agendadas</p>
+        <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 text-center shadow-xl backdrop-blur">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-900/10 text-slate-900">
+            <HiOutlineCalendar className="h-7 w-7" />
+          </div>
+          <p className="text-sm font-semibold text-slate-900">Aún no tienes citas agendadas</p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600 text-pretty">
+            Cuando reserves una sesión, aparecerá aquí para que la tengas siempre a mano.
+          </p>
         </div>
       )}
 
       {/* Vista de Calendario */}
       {view === "calendar" && bookings.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="mb-4 flex items-center gap-4 text-sm">
+        <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl backdrop-blur">
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+              <HiOutlineCalendar className="text-base" />
+              Vista calendario
+            </span>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-[#0b89da]"></div>
+              <div className="h-3 w-3 rounded bg-[#0b89da]"></div>
               <span>Sincronizado con Google Calendar</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gray-400"></div>
+              <div className="h-3 w-3 rounded bg-gray-400"></div>
               <span>Solo en Medicare</span>
             </div>
           </div>
@@ -158,7 +187,7 @@ const MyBookings = () => {
           {bookings.map((booking) => (
             <div
               key={booking._id}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl transition-shadow hover:shadow-2xl backdrop-blur"
             >
               <div className="flex items-start justify-between">
                 <div className="flex gap-4 flex-1">
