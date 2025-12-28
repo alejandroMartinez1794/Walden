@@ -32,7 +32,7 @@ const DoctorInsightsElite = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
       // Fetch doctor profile with appointments
       const profileRes = await fetch(`${BASE_URL}/doctors/profile/me`, {
@@ -193,7 +193,7 @@ const DoctorInsightsElite = () => {
               onClick={async () => {
                 try {
                   setSeeding(true);
-                  const token = localStorage.getItem('token');
+                  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                   const res = await fetch(`${BASE_URL}/psychology/dashboard/seed-demo`, {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` },

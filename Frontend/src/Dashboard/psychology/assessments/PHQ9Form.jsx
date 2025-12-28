@@ -5,8 +5,10 @@ import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
 import Error from '../../../components/Error/Error';
 import { toast } from 'react-toastify';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const PHQ9Form = () => {
+  const token = useAuthToken();
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [search] = useSearchParams();
@@ -49,7 +51,7 @@ const PHQ9Form = () => {
 
   const fetchPatients = async () => {
     try {
-      const authToken = localStorage.getItem('token');
+      const authToken = token;
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
@@ -127,7 +129,7 @@ const PHQ9Form = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -141,7 +143,7 @@ const PHQ9Form = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ name: 'PHQ-9', responses: formData.responses }),
         });

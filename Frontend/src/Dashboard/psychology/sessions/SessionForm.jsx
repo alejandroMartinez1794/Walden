@@ -1,5 +1,6 @@
 // Frontend/src/Dashboard/psychology/sessions/SessionForm.jsx
 import { useState, useEffect } from 'react';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -7,6 +8,7 @@ import Error from '../../../components/Error/Error';
 import { toast } from 'react-toastify';
 
 const SessionForm = () => {
+  const token = useAuthToken();
   const navigate = useNavigate();
   const { patientId } = useParams();
   const [patients, setPatients] = useState([]);
@@ -57,7 +59,7 @@ const SessionForm = () => {
   const fetchPatients = async () => {
     try {
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
@@ -144,10 +146,10 @@ const SessionForm = () => {
     try {
       setSubmitting(true);
       const response = await fetch(`${BASE_URL}/psychology/sessions`, {
-        method: 'POST',
+            Authorization: `Bearer ${token}`,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
         },
         body: JSON.stringify(formData),
       });

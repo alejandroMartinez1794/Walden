@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/PsychologyDashboard.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { BASE_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -7,12 +7,15 @@ import Loading from '../../components/Loader/Loading';
 import Error from '../../components/Error/Error';
 import DoctorAbout from '../../pages/Doctors/DoctorAbout';
 import DoctorProfileForm from '../doctor-account/Profile';
+import { authContext } from '../../context/AuthContext';
 
 const PsychologyDashboard = () => {
+  const { token } = useContext(authContext);
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [cbtOverview, setCbtOverview] = useState(null);
   const [doctorProfile, setDoctorProfile] = useState(null);
+  const [activePanel, setActivePanel] = useState('resumen');
   const [appointmentsFilter, setAppointmentsFilter] = useState('all');
   const [appointmentsSearch, setAppointmentsSearch] = useState('');
   const [appointmentAction, setAppointmentAction] = useState(null);
@@ -21,15 +24,30 @@ const PsychologyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const bookingMotivoTemplates = [
+    'Sesión de seguimiento',
+    'Revisión de tareas y plan semanal',
+    'Activación conductual',
+    'Reestructuración cognitiva',
+    'Exposición (planificación)',
+    'Prevención de recaídas',
+  ];
+
+  const panelTabs = [
+    { id: 'resumen', label: 'Resumen' },
+    { id: 'agenda', label: 'Agenda' },
+    { id: 'analitica', label: 'Analítica' },
+    { id: 'citas', label: 'Citas' },
+    { id: 'perfil', label: 'Perfil' },
+    { id: 'atajos', label: 'Atajos' },
+  ];
+
   useEffect(() => {
+    if (!token) return;
+
     const fetchDashboard = async () => {
       try {
-        const authToken = localStorage.getItem('token');
-        if (!authToken) {
-          setError('No autenticado');
-          setLoading(false);
-          return;
-        }
+        const authToken = token;
         const [dashboardRes, overviewRes, doctorRes] = await Promise.all([
           fetch(`${BASE_URL}/psychology/dashboard`, {
             headers: {
@@ -72,14 +90,13 @@ const PsychologyDashboard = () => {
     };
 
     fetchDashboard();
-  }, [navigate]);
+  }, [navigate, token]);
 
   const refetchDoctorProfile = async () => {
     try {
-      const authToken = localStorage.getItem('token');
-      if (!authToken) return;
+      if (!token) return;
       const doctorRes = await fetch(`${BASE_URL}/doctors/profile/me`, {
-        headers: { Authorization: `Bearer ${authToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const doctorJson = await doctorRes.json();
       if (doctorRes.ok) {
@@ -135,6 +152,34 @@ const PsychologyDashboard = () => {
   const homework = cbtOverview?.homeworkAdherence || { completed: 0, total: 0, percent: 0 };
   const interventions = (cbtOverview?.interventions || []).slice(0, 6);
   const analyticRiskCount = cbtOverview?.riskAlerts?.count ?? riskAlerts?.length ?? 0;
+
+  const getMeasureBand = (measure, score) => {
+    if (score === null || score === undefined) return { label: 'Sin dato', tone: 'bg-slate-100 text-slate-600 border-slate-200' };
+
+    if (measure === 'PHQ-9') {
+      if (score <= 4) return { label: 'Mínima', tone: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      if (score <= 9) return { label: 'Leve', tone: 'bg-amber-50 text-amber-700 border-amber-200' };
+      if (score <= 14) return { label: 'Moderada', tone: 'bg-orange-50 text-orange-700 border-orange-200' };
+      if (score <= 19) return { label: 'Mod. severa', tone: 'bg-rose-50 text-rose-700 border-rose-200' };
+      return { label: 'Severa', tone: 'bg-rose-50 text-rose-700 border-rose-200' };
+    }
+
+    if (measure === 'GAD-7') {
+      if (score <= 4) return { label: 'Mínima', tone: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      if (score <= 9) return { label: 'Leve', tone: 'bg-amber-50 text-amber-700 border-amber-200' };
+      if (score <= 14) return { label: 'Moderada', tone: 'bg-orange-50 text-orange-700 border-orange-200' };
+      return { label: 'Severa', tone: 'bg-rose-50 text-rose-700 border-rose-200' };
+    }
+
+    if (measure === 'BDI-II') {
+      if (score <= 13) return { label: 'Mínima', tone: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      if (score <= 19) return { label: 'Leve', tone: 'bg-amber-50 text-amber-700 border-amber-200' };
+      if (score <= 28) return { label: 'Moderada', tone: 'bg-orange-50 text-orange-700 border-orange-200' };
+      return { label: 'Severa', tone: 'bg-rose-50 text-rose-700 border-rose-200' };
+    }
+
+    return { label: '—', tone: 'bg-slate-100 text-slate-600 border-slate-200' };
+  };
 
   const statCards = [
     {
@@ -246,6 +291,15 @@ const PsychologyDashboard = () => {
     },
   ];
 
+  const assessmentShortcuts = [
+    { title: 'PHQ-9', subtitle: 'Depresión', to: '/psychology/assessments/phq9' },
+    { title: 'BDI-II', subtitle: 'Depresión', to: '/psychology/assessments/bdi-ii' },
+    { title: 'GAD-7', subtitle: 'Ansiedad', to: '/psychology/assessments/gad7' },
+    { title: 'BAI', subtitle: 'Ansiedad', to: '/psychology/assessments/bai' },
+    { title: 'PCL-5', subtitle: 'Trauma', to: '/psychology/assessments/pcl5' },
+    { title: 'OCI-R', subtitle: 'TOC', to: '/psychology/assessments/ocir' },
+  ];
+
   const doctorAppointments = doctorProfile?.appointments || [];
   const appointmentStats = {
     total: doctorAppointments.length,
@@ -285,7 +339,7 @@ const PsychologyDashboard = () => {
   const handleAppointmentStatusUpdate = async (appointmentId, newStatus) => {
     try {
       setAppointmentAction(`${appointmentId}-${newStatus}`);
-      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Sesión no disponible');
       const response = await fetch(`${BASE_URL}/bookings/${appointmentId}`, {
         method: 'PUT',
         headers: {
@@ -337,7 +391,7 @@ const PsychologyDashboard = () => {
     }
     try {
       setBookingSubmitting(true);
-      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Sesión no disponible');
       const response = await fetch(`${BASE_URL}/bookings`, {
         method: 'POST',
         headers: {
@@ -454,6 +508,28 @@ const PsychologyDashboard = () => {
                   <p className="text-sm text-white/70">
                     Enfoque sugerido: {highlightedSession.focus || 'Revisar progreso y ajustar tareas'}
                   </p>
+                  {highlightedSession.patient?._id && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link
+                        to={`/psychology/patients/${highlightedSession.patient._id}`}
+                        className="rounded-2xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25"
+                      >
+                        Abrir expediente
+                      </Link>
+                      <Link
+                        to={`/psychology/patients/${highlightedSession.patient._id}/session`}
+                        className="rounded-2xl border border-white/30 px-4 py-2 text-sm font-semibold text-white/90 hover:text-white"
+                      >
+                        Iniciar nota de sesión
+                      </Link>
+                      <Link
+                        to={`/psychology/patients/${highlightedSession.patient._id}/clinical-history`}
+                        className="rounded-2xl border border-white/30 px-4 py-2 text-sm font-semibold text-white/90 hover:text-white"
+                      >
+                        Historia clínica
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="mt-4 text-lg text-white/70">Aún no tienes sesiones programadas para hoy.</p>
@@ -462,22 +538,157 @@ const PsychologyDashboard = () => {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {statCards.map((card) => (
-            <div
-              key={card.label}
-              className={`relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.gradient} p-6 text-white shadow-[0_30px_80px_rgba(5,8,20,0.45)]`}
+        <nav className="flex flex-wrap gap-2 rounded-[28px] border border-white/10 bg-white/10 p-2 backdrop-blur">
+          {panelTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActivePanel(tab.id)}
+              className={`rounded-2xl px-4 py-2 text-sm font-semibold tracking-wide transition ${
+                activePanel === tab.id ? 'bg-white/20 text-white shadow' : 'text-white/75 hover:bg-white/10 hover:text-white'
+              }`}
             >
-              <div className="absolute right-4 top-4 rounded-2xl border border-white/20 bg-white/10 p-3">{card.icon}</div>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/70">{card.label}</p>
-              <p className="mt-4 text-4xl font-semibold">{card.value}</p>
-              <p className="mt-2 text-sm text-white/70">{card.detail}</p>
-            </div>
+              <span className="inline-flex items-center gap-2">
+                <span>{tab.label}</span>
+                {tab.id === 'agenda' && (
+                  <span className="rounded-2xl bg-white/15 px-2 py-0.5 text-xs font-semibold text-white/90">
+                    {sessionsCount}
+                  </span>
+                )}
+                {tab.id === 'citas' && (
+                  <span className="rounded-2xl bg-white/15 px-2 py-0.5 text-xs font-semibold text-white/90">
+                    {appointmentStats.total}
+                  </span>
+                )}
+                {tab.id === 'analitica' && (
+                  <span className="rounded-2xl bg-white/15 px-2 py-0.5 text-xs font-semibold text-white/90">
+                    {analyticRiskCount}
+                  </span>
+                )}
+              </span>
+            </button>
           ))}
-        </div>
+        </nav>
 
-        <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr]">
-          <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+        {activePanel === 'resumen' && (
+          <div className="space-y-8">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+              {statCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.gradient} p-6 text-white shadow-[0_30px_80px_rgba(5,8,20,0.45)]`}
+                >
+                  <div className="absolute right-4 top-4 rounded-2xl border border-white/20 bg-white/10 p-3">{card.icon}</div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-white/70">{card.label}</p>
+                  <p className="mt-4 text-4xl font-semibold">{card.value}</p>
+                  <p className="mt-2 text-sm text-white/70">{card.detail}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+                <header className="mb-4">
+                  <p className="text-sm font-semibold text-slate-500">Flujo TCC</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">Checklist para la sesión</h2>
+                  <p className="text-sm text-slate-500">Estructura breve para sostener foco, evidencia y seguimiento.</p>
+                </header>
+                <ol className="space-y-3 text-sm text-slate-700">
+                  <li className="flex gap-3 rounded-2xl bg-slate-50 p-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-2xl bg-slate-900 text-xs font-semibold text-white">1</span>
+                    <div>
+                      <p className="font-semibold text-slate-900">Agenda y puente</p>
+                      <p className="text-slate-500">Problema actual, objetivo de hoy y enlace con semana anterior.</p>
+                    </div>
+                  </li>
+                  <li className="flex gap-3 rounded-2xl bg-slate-50 p-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-2xl bg-slate-900 text-xs font-semibold text-white">2</span>
+                    <div>
+                      <p className="font-semibold text-slate-900">Revisión de tareas</p>
+                      <p className="text-slate-500">Qué funcionó, barreras, ajuste de dificultad y refuerzo.</p>
+                    </div>
+                  </li>
+                  <li className="flex gap-3 rounded-2xl bg-slate-50 p-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-2xl bg-slate-900 text-xs font-semibold text-white">3</span>
+                    <div>
+                      <p className="font-semibold text-slate-900">Intervención</p>
+                      <p className="text-slate-500">Pensamientos automáticos, exposición, activación o habilidades.</p>
+                    </div>
+                  </li>
+                  <li className="flex gap-3 rounded-2xl bg-slate-50 p-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-2xl bg-slate-900 text-xs font-semibold text-white">4</span>
+                    <div>
+                      <p className="font-semibold text-slate-900">Plan semanal</p>
+                      <p className="text-slate-500">Tarea concreta, frecuencia, disparadores y plan de riesgo si aplica.</p>
+                    </div>
+                  </li>
+                </ol>
+              </section>
+
+              <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+                <header className="mb-4">
+                  <p className="text-sm font-semibold text-slate-500">Señales rápidas</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">Lo que conviene mirar</h2>
+                  <p className="text-sm text-slate-500">Adherencia, patrones cognitivos y técnica dominante.</p>
+                </header>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-sm font-semibold text-slate-500">Adherencia a tareas</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-2xl font-semibold text-slate-900">{homework.percent || 0}%</p>
+                      <span className="text-sm text-slate-500">{homework.completed} / {homework.total}</span>
+                    </div>
+                    <div className="mt-3 h-2 w-full rounded-full bg-slate-200">
+                      <div className="h-full rounded-full bg-slate-900" style={{ width: `${homework.percent || 0}%` }} />
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-sm font-semibold text-slate-500">Distorsión más frecuente</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-900">{distortions?.[0]?.name || 'Sin registros'}</p>
+                    <p className="text-sm text-slate-500">Útil para psicoeducación y experimentos.</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-sm font-semibold text-slate-500">Técnica dominante</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-900">
+                      {interventions?.[0]?.technique ? interventions[0].technique.replace(/-/g, ' ') : 'Sin registros'}
+                    </p>
+                    <p className="text-sm text-slate-500">Balancea intervención cognitiva vs conductual.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+                <header className="mb-4">
+                  <p className="text-sm font-semibold text-slate-500">Acciones clínicas</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">Siguiente paso</h2>
+                  <p className="text-sm text-slate-500">Entradas directas a lo que más mueve el tratamiento.</p>
+                </header>
+                <div className="grid gap-3">
+                  <Link to="/psychology/assessments/new" className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Aplicar evaluación (PHQ-9 / BDI-II / GAD-7)
+                  </Link>
+                  <Link to="/psychology/clinical-history" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Documentar evolución clínica
+                  </Link>
+                  <Link to="/psychology/patients" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Revisar cartera de pacientes
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setActivePanel('agenda')}
+                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Ver agenda de hoy
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
+
+        {activePanel === 'agenda' && (
+          <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr]">
+            <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
             <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-slate-500">Sesiones del día</p>
@@ -507,14 +718,30 @@ const PsychologyDashboard = () => {
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-slate-100 text-slate-800';
                   return (
-                    <article key={session._id} className="flex flex-col gap-3 rounded-2xl border border-slate-100 p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+                    <article key={session._id} className="flex flex-col gap-4 rounded-2xl border border-slate-100 p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
                       <div>
                         <p className="text-lg font-semibold text-slate-900">{session.patient?.personalInfo?.fullName}</p>
-                        <p className="text-sm text-slate-500">Sesión #{session.sessionNumber}</p>
+                        <p className="text-sm text-slate-500">Sesión #{session.sessionNumber} · Objetivo: {session.focus || 'Revisar tareas y actualizar plan'}</p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-2xl bg-slate-900 px-3 py-1 text-sm font-medium text-white">{time}</span>
                         <span className={`rounded-2xl px-3 py-1 text-xs font-semibold ${modalityColors}`}>{modalityCopy}</span>
+                        {session.patient?._id && (
+                          <Link
+                            to={`/psychology/patients/${session.patient._id}`}
+                            className="rounded-2xl border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            Expediente
+                          </Link>
+                        )}
+                        {session.patient?._id && (
+                          <Link
+                            to={`/psychology/patients/${session.patient._id}/session`}
+                            className="rounded-2xl bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800"
+                          >
+                            Nota
+                          </Link>
+                        )}
                       </div>
                     </article>
                   );
@@ -543,8 +770,23 @@ const PsychologyDashboard = () => {
               <ul className="space-y-4">
                 {riskAlerts.map((alert) => (
                   <li key={alert._id} className="rounded-2xl border border-red-100 bg-red-50/60 p-4">
-                    <p className="text-base font-semibold text-red-700">{alert.patient?.personalInfo?.fullName}</p>
-                    <p className="text-sm text-red-600">{alert.riskAlert.reason}</p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-base font-semibold text-red-700">{alert.patient?.personalInfo?.fullName}</p>
+                        <p className="text-sm text-red-600">{alert.riskAlert?.reason || 'Alerta registrada'}</p>
+                        {alert.riskAlert?.type && (
+                          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-red-500">{String(alert.riskAlert.type).replace(/_/g, ' ')}</p>
+                        )}
+                      </div>
+                      {alert.patient?._id && (
+                        <Link
+                          to={`/psychology/patients/${alert.patient._id}`}
+                          className="rounded-2xl border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                        >
+                          Abrir expediente
+                        </Link>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -554,15 +796,44 @@ const PsychologyDashboard = () => {
               </p>
             )}
           </section>
-        </div>
+          </div>
+        )}
 
-        <div className="grid gap-8 xl:grid-cols-[1.2fr,0.8fr]">
-          <section className="rounded-[32px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+        {activePanel === 'analitica' && (
+          <div className="grid gap-8 xl:grid-cols-[1.2fr,0.8fr]">
+            <section className="rounded-[32px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
             <header className="mb-6">
               <p className="text-sm font-semibold text-slate-500">Panel analítico TCC</p>
               <h2 className="text-2xl font-semibold text-slate-900">Tendencias de severidad y ritmo clínico</h2>
               <p className="text-sm text-slate-500">Lectura rápida de severidad promedio, adherencia semanal y modalidad para ajustar intervenciones.</p>
             </header>
+
+            <div className="mb-8 grid gap-4 lg:grid-cols-3">
+              {severitySeries.map((series) => {
+                const band = getMeasureBand(series.name, series.last);
+                return (
+                  <article key={`band-${series.name}`} className="rounded-[28px] border border-slate-100 bg-slate-50 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{series.name}</p>
+                        <p className="mt-2 text-3xl font-semibold text-slate-900">{series.last !== null ? series.last : '—'}</p>
+                        <p className="text-sm text-slate-500">Promedio actual</p>
+                      </div>
+                      <span className={`h-fit rounded-2xl border px-3 py-1 text-xs font-semibold ${band.tone}`}>{band.label}</span>
+                    </div>
+                    <div className="mt-4 text-sm text-slate-600">
+                      {series.delta !== null ? (
+                        <span>
+                          Cambio: <span className="font-semibold text-slate-900">{series.delta > 0 ? '+' : ''}{series.delta}</span> vs periodo anterior
+                        </span>
+                      ) : (
+                        <span>Sin comparación disponible</span>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {severitySeries.map((series) => {
                 const progress = series.last !== null ? Math.min(100, Math.max(0, Math.round((series.last / series.max) * 100))) : 0;
@@ -734,77 +1005,90 @@ const PsychologyDashboard = () => {
               </article>
             </div>
           </section>
-        </div>
+          </div>
+        )}
 
-        {doctorProfile && (
-          <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
-            <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Identidad profesional</p>
-                <h2 className="text-3xl font-semibold text-slate-900">Resumen del terapeuta</h2>
-                <p className="text-sm text-slate-500">Información que antes vivía en Overview ahora convive con tus métricas clínicas.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-4">
-                <span className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
-                  {doctorProfile.specialization || 'Especialidad sin definir'}
-                </span>
-                <span className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
-                  {doctorProfile.gender === 'female'
-                    ? 'Doctora'
-                    : doctorProfile.gender === 'male'
-                      ? 'Doctor'
-                      : 'Profesional de la salud'}
-                </span>
-              </div>
-            </header>
-            <div className="grid gap-8 xl:grid-cols-[0.45fr,0.55fr]">
-              <div className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4 h-28 w-28 overflow-hidden rounded-[32px] border border-slate-200 bg-slate-900/5 p-1 shadow-lg">
-                    {doctorProfile.photo ? (
-                      <img
-                        src={doctorProfile.photo}
-                        alt={`Foto de ${doctorProfile.name}`}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-slate-900 text-2xl font-semibold text-white">
-                        {doctorProfile.name?.charAt(0) || 'D'}
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-2xl font-semibold text-slate-900">{doctorProfile.name}</h3>
-                  <p className="text-sm text-slate-500">{doctorProfile.email}</p>
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-sm text-slate-600">
-                    <span className="flex items-center gap-1 rounded-2xl bg-white px-3 py-1 shadow">
-                      ⭐ {doctorProfile.averageRating || '0'} ({doctorProfile.totalRating || 0})
-                    </span>
-                    {doctorProfile.ticketPrice && (
+        {activePanel === 'perfil' && doctorProfile && (
+          <section className="space-y-6">
+            <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+              <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-500">Identidad profesional</p>
+                  <h2 className="text-3xl font-semibold text-slate-900">Resumen del terapeuta</h2>
+                  <p className="text-sm text-slate-500">Presentación clínica breve: enfoque, credenciales y claridad para el paciente.</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <span className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
+                    {doctorProfile.specialization || 'Especialidad sin definir'}
+                  </span>
+                  <span className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
+                    {doctorProfile.gender === 'female'
+                      ? 'Doctora'
+                      : doctorProfile.gender === 'male'
+                        ? 'Doctor'
+                        : 'Profesional de la salud'}
+                  </span>
+                </div>
+              </header>
+              <div className="grid gap-8 xl:grid-cols-[0.45fr,0.55fr]">
+                <div className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-4 h-28 w-28 overflow-hidden rounded-[32px] border border-slate-200 bg-slate-900/5 p-1 shadow-lg">
+                      {doctorProfile.photo ? (
+                        <img
+                          src={doctorProfile.photo}
+                          alt={`Foto de ${doctorProfile.name}`}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-slate-900 text-2xl font-semibold text-white">
+                          {doctorProfile.name?.charAt(0) || 'D'}
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-2xl font-semibold text-slate-900">{doctorProfile.name}</h3>
+                    <p className="text-sm text-slate-500">{doctorProfile.email}</p>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-sm text-slate-600">
                       <span className="flex items-center gap-1 rounded-2xl bg-white px-3 py-1 shadow">
-                        Honorarios ${doctorProfile.ticketPrice}
+                        ⭐ {doctorProfile.averageRating || '0'} ({doctorProfile.totalRating || 0})
                       </span>
-                    )}
+                      {doctorProfile.ticketPrice && (
+                        <span className="flex items-center gap-1 rounded-2xl bg-white px-3 py-1 shadow">
+                          Honorarios ${doctorProfile.ticketPrice}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-4 text-sm text-slate-600">{doctorProfile.bio || 'Comparte tu enfoque terapéutico y experiencia clínica para generar confianza con tus pacientes.'}</p>
                   </div>
-                  <p className="mt-4 text-sm text-slate-600">{doctorProfile.bio || 'Comparte tu enfoque terapéutico y experiencia clínica para generar confianza con tus pacientes.'}</p>
+                </div>
+                <div className="rounded-[28px] border border-slate-100 bg-white p-6">
+                  <DoctorAbout
+                    name={doctorProfile.name}
+                    about={doctorProfile.about || 'Describe tu marco cognitivo conductual, protocolos preferidos y resultados clínicos destacados.'}
+                    qualifications={doctorProfile.qualifications || []}
+                    experiences={doctorProfile.experiences || []}
+                  />
                 </div>
               </div>
-              <div className="rounded-[28px] border border-slate-100 bg-white p-6">
-                <DoctorAbout
-                  name={doctorProfile.name}
-                  about={doctorProfile.about || 'Describe tu marco cognitivo conductual, protocolos preferidos y resultados clínicos destacados.'}
-                  qualifications={doctorProfile.qualifications || []}
-                  experiences={doctorProfile.experiences || []}
-                />
-              </div>
-            </div>
+            </section>
+
+            <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+              <header className="mb-6">
+                <p className="text-sm font-semibold text-slate-500">Configuración del terapeuta</p>
+                <h2 className="text-3xl font-semibold text-slate-900">Actualiza tu perfil clínico</h2>
+                <p className="text-sm text-slate-500">Ajusta datos (bio, experiencia y disponibilidad) sin salir del dashboard.</p>
+              </header>
+              <DoctorProfileForm doctorData={doctorProfile} />
+            </section>
           </section>
         )}
 
-        <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+        {activePanel === 'citas' && (
+          <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
           <header className="mb-6 flex flex-col gap-2">
             <p className="text-sm font-semibold text-slate-500">Agendar cita directa</p>
             <h2 className="text-2xl font-semibold text-slate-900">Programa una nueva cita</h2>
-            <p className="text-sm text-slate-500">Ingresa paciente, fecha y hora; el evento se sincroniza con tu calendario y se agrega a la lista.</p>
+            <p className="text-sm text-slate-500">Agenda una sesión y deja el motivo en términos clínicos (objetivo / tarea / seguimiento).</p>
           </header>
           <form onSubmit={handleCreateBooking} className="grid gap-4 lg:grid-cols-5">
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600 lg:col-span-2">
@@ -872,6 +1156,18 @@ const PsychologyDashboard = () => {
                 placeholder="Ej. Sesión de seguimiento"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
               />
+              <div className="flex flex-wrap gap-2">
+                {bookingMotivoTemplates.map((template) => (
+                  <button
+                    key={template}
+                    type="button"
+                    onClick={() => setBookingForm((prev) => ({ ...prev, motivo: template }))}
+                    className="rounded-2xl border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
             </label>
             <div className="flex items-end">
               <button
@@ -883,9 +1179,11 @@ const PsychologyDashboard = () => {
               </button>
             </div>
           </form>
-        </section>
+          </section>
+        )}
 
-        <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+        {activePanel === 'citas' && (
+          <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
           <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500">Agenda integral</p>
@@ -1005,43 +1303,295 @@ const PsychologyDashboard = () => {
               );
             })}
           </div>
-        </section>
-
-        {doctorProfile && (
-          <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
-            <header className="mb-6">
-              <p className="text-sm font-semibold text-slate-500">Configuración del terapeuta</p>
-              <h2 className="text-3xl font-semibold text-slate-900">Actualiza tu perfil clínico</h2>
-              <p className="text-sm text-slate-500">
-                Todo el formulario de Profile está integrado aquí para que ajustes datos sin abandonar el panel.
-              </p>
-            </header>
-            <DoctorProfileForm doctorData={doctorProfile} />
           </section>
         )}
 
-        <section className="rounded-[32px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
-          <header className="mb-6">
-            <p className="text-sm font-semibold text-slate-500">Atajos clínicos</p>
-            <h2 className="text-2xl font-semibold text-slate-900">Acciones rápidas</h2>
-            <p className="text-sm text-slate-500">Todo lo necesario para sostener tu flujo terapéutico en un clic.</p>
-          </header>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {quickActions.map((action) => (
-              <Link
-                key={action.title}
-                to={action.to}
-                className={`group relative overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-br ${action.gradient} p-5 text-white shadow-lg transition hover:translate-y-[-4px]`}
-              >
-                <div className="mb-4 w-fit rounded-2xl border border-white/20 bg-white/20 p-3 text-white">
-                  {action.icon}
+        {activePanel === 'atajos' && (
+          <section className="space-y-6">
+            <section className="rounded-[32px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
+              <header className="mb-6">
+                <p className="text-sm font-semibold text-slate-500">Módulo TCC</p>
+                <h2 className="text-2xl font-semibold text-slate-900">Herramientas clínicas</h2>
+                <p className="text-sm text-slate-500">Todo lo necesario para sostener tu práctica: historia clínica, sesiones y evaluaciones.</p>
+              </header>
+
+              <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
+                <div className="space-y-6">
+                  <section className="rounded-[28px] border border-slate-100 bg-white p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-500">Prioridades</p>
+                        <h3 className="text-xl font-semibold text-slate-900">Jornada clínica</h3>
+                        <p className="text-sm text-slate-500">Lo mínimo que un terapeuta TCC revisa antes de entrar a sesión.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActivePanel('agenda')}
+                        className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                      >
+                        Ir a agenda
+                      </button>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                      <article className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Próxima sesión</p>
+                        {highlightedSession ? (
+                          <div className="mt-3 space-y-2">
+                            <p className="text-lg font-semibold text-slate-900">{highlightedSession.patient?.personalInfo?.fullName}</p>
+                            <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                              <span className="rounded-2xl bg-white px-3 py-1 shadow">
+                                {new Date(highlightedSession.sessionDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <span className="rounded-2xl bg-white px-3 py-1 shadow">Sesión #{highlightedSession.sessionNumber}</span>
+                              <span className="rounded-2xl bg-white px-3 py-1 capitalize shadow">{highlightedSession.modality}</span>
+                            </div>
+                            <p className="text-sm text-slate-500">Objetivo: {highlightedSession.focus || 'Revisar tareas y ajustar plan'}</p>
+                            {highlightedSession.patient?._id && (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <Link
+                                  to={`/psychology/patients/${highlightedSession.patient._id}`}
+                                  className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                >
+                                  Expediente
+                                </Link>
+                                <Link
+                                  to={`/psychology/patients/${highlightedSession.patient._id}/session`}
+                                  className="rounded-2xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                                >
+                                  Nota
+                                </Link>
+                                <Link
+                                  to={`/psychology/patients/${highlightedSession.patient._id}/clinical-history`}
+                                  className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                >
+                                  Historia
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-sm text-slate-500">No hay sesiones programadas hoy.</p>
+                        )}
+                      </article>
+
+                      <article className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Riesgo activo</p>
+                        <div className="mt-3">
+                          {riskAlerts && riskAlerts.length > 0 ? (
+                            <div className="space-y-3">
+                              {riskAlerts.slice(0, 3).map((alert) => (
+                                <div key={alert._id} className="rounded-2xl border border-rose-100 bg-rose-50 p-3">
+                                  <div className="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                      <p className="text-sm font-semibold text-rose-800">{alert.patient?.personalInfo?.fullName}</p>
+                                      <p className="text-sm text-rose-700">{alert.riskAlert?.reason || 'Alerta registrada'}</p>
+                                    </div>
+                                    {alert.patient?._id && (
+                                      <Link
+                                        to={`/psychology/patients/${alert.patient._id}`}
+                                        className="rounded-2xl border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50"
+                                      >
+                                        Abrir
+                                      </Link>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                              <p className="text-xs text-slate-500">
+                                Sugerencia TCC: documenta evaluación de riesgo, plan de seguridad y seguimiento.
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-slate-500">Sin alertas críticas detectadas en este momento.</p>
+                          )}
+                        </div>
+                      </article>
+                    </div>
+                  </section>
+
+                  <section className="rounded-[28px] border border-slate-100 bg-white p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-500">Medición</p>
+                        <h3 className="text-xl font-semibold text-slate-900">Seguimiento basado en resultados</h3>
+                        <p className="text-sm text-slate-500">Severidad actual + tendencia para ajustar hipótesis e intervención.</p>
+                      </div>
+                      <Link
+                        to="/psychology/assessments/new"
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Aplicar escala
+                      </Link>
+                    </div>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {severitySeries.map((series) => {
+                        const band = getMeasureBand(series.name, series.last);
+                        return (
+                          <article key={`atajos-measure-${series.name}`} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">{series.name}</p>
+                                <p className="mt-2 text-2xl font-semibold text-slate-900">{series.last !== null ? series.last : '—'}</p>
+                              </div>
+                              <span className={`h-fit rounded-2xl border px-3 py-1 text-xs font-semibold ${band.tone}`}>{band.label}</span>
+                            </div>
+                            <p className="mt-3 text-sm text-slate-600">
+                              {series.delta !== null ? (
+                                <span>
+                                  Cambio: <span className="font-semibold text-slate-900">{series.delta > 0 ? '+' : ''}{series.delta}</span>
+                                </span>
+                              ) : (
+                                <span>Sin comparación</span>
+                              )}
+                            </p>
+                          </article>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      <p className="text-sm font-semibold text-slate-900">Adherencia a tareas</p>
+                      <p className="text-sm text-slate-500">Una señal fuerte de respuesta al tratamiento en TCC.</p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-2xl font-semibold text-slate-900">{homework.percent || 0}%</span>
+                        <span className="text-sm text-slate-500">{homework.completed} / {homework.total}</span>
+                      </div>
+                      <div className="mt-3 h-2 w-full rounded-full bg-slate-200">
+                        <div className="h-full rounded-full bg-slate-900" style={{ width: `${homework.percent || 0}%` }} />
+                      </div>
+                      <p className="mt-3 text-xs text-slate-500">
+                        Tip clínico: define tareas específicas, graduadas, con barreras anticipadas y revisión explícita en sesión.
+                      </p>
+                    </div>
+                  </section>
+
+                  <section className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-500">Evaluaciones y tests</p>
+                        <h3 className="text-xl font-semibold text-slate-900">Aplicación rápida</h3>
+                        <p className="text-sm text-slate-500">Escalas rápidas para formular, monitorear y ajustar el plan.</p>
+                      </div>
+                      <Link
+                        to="/psychology/assessments/new"
+                        className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                      >
+                        Abrir selector
+                      </Link>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {assessmentShortcuts.map((item) => (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm transition hover:bg-slate-50"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">{item.subtitle}</p>
+                          </div>
+                          <span className="text-slate-400">→</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
+                    <p className="text-sm font-semibold text-slate-500">Historia clínica</p>
+                    <h3 className="text-xl font-semibold text-slate-900">Formulación, hipótesis y evolución</h3>
+                    <p className="text-sm text-slate-500">Deja trazabilidad clínica: hipótesis de mantenimiento, objetivos y plan por etapas.</p>
+
+                    <div className="mt-4 grid gap-3">
+                      <Link
+                        to="/psychology/clinical-history"
+                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                      >
+                        Ver historias clínicas
+                      </Link>
+                      <Link
+                        to="/psychology/patients"
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Abrir un paciente y documentar
+                      </Link>
+                    </div>
+                  </section>
+
+                  <section className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
+                    <p className="text-sm font-semibold text-slate-500">Sesión TCC</p>
+                    <h3 className="text-xl font-semibold text-slate-900">Planificar, ejecutar, seguir</h3>
+                    <p className="text-sm text-slate-500">Estructura, tarea, seguimiento y cierre (sin perder consistencia).</p>
+
+                    <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-4">
+                      <p className="text-sm font-semibold text-slate-900">Estructura sugerida (TCC)</p>
+                      <ol className="mt-3 space-y-2 text-sm text-slate-600">
+                        <li className="flex gap-2"><span className="font-semibold text-slate-900">1.</span> Agenda y puente con sesión previa</li>
+                        <li className="flex gap-2"><span className="font-semibold text-slate-900">2.</span> Revisión de tareas (barreras y refuerzo)</li>
+                        <li className="flex gap-2"><span className="font-semibold text-slate-900">3.</span> Intervención (cognitiva / conductual / exposición)</li>
+                        <li className="flex gap-2"><span className="font-semibold text-slate-900">4.</span> Plan semanal + tarea graduada + prevención de recaídas</li>
+                      </ol>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Link
+                        to="/psychology/sessions/new"
+                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                      >
+                        Crear nota de sesión
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setActivePanel('agenda')}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Ver agenda de hoy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActivePanel('citas')}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Gestionar citas
+                      </button>
+                      <Link
+                        to="/psychology/patients/new"
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Registrar intake
+                      </Link>
+                    </div>
+                  </section>
                 </div>
-                <p className="text-lg font-semibold">{action.title}</p>
-                <p className="text-sm text-white/80">{action.description}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
+
+                <section className="rounded-[28px] border border-slate-100 bg-white p-6">
+                  <header className="mb-4">
+                    <p className="text-sm font-semibold text-slate-500">Atajos</p>
+                    <h3 className="text-xl font-semibold text-slate-900">Acciones rápidas</h3>
+                    <p className="text-sm text-slate-500">Entradas directas para mantener ritmo y documentación clínica.</p>
+                  </header>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                    {quickActions.map((action) => (
+                      <Link
+                        key={action.title}
+                        to={action.to}
+                        className={`group relative overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-br ${action.gradient} p-5 text-white shadow-lg transition hover:translate-y-[-4px]`}
+                      >
+                        <div className="mb-4 w-fit rounded-2xl border border-white/20 bg-white/20 p-3 text-white">
+                          {action.icon}
+                        </div>
+                        <p className="text-lg font-semibold">{action.title}</p>
+                        <p className="text-sm text-white/80">{action.description}</p>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </section>
+          </section>
+        )}
       </div>
     </section>
   );

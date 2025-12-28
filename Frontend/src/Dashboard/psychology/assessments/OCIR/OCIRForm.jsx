@@ -58,7 +58,7 @@ const OCIRForm = () => {
 
   const fetchPatients = async () => {
     try {
-      const authToken = localStorage.getItem('token');
+      const authToken = sessionStorage.getItem('token') || localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/psychology/patients`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
@@ -104,7 +104,7 @@ const OCIRForm = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
         },
         body: JSON.stringify(payload),
       });

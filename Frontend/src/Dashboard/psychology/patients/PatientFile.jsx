@@ -10,8 +10,10 @@ import RiskBanner from '../../../components/RiskBanner';
 import PatientQuickBar from '../../../components/PatientQuickBar';
 import SessionToolkit from '../../../components/SessionToolkit';
 import RiskMitigationChecklist from '../../../components/RiskMitigationChecklist';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const PatientFile = () => {
+  const token = useAuthToken();
   const { id } = useParams();
   const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
@@ -34,7 +36,7 @@ const PatientFile = () => {
   const fetchPatientData = async () => {
     try {
       setLoading(true);
-      const authToken = localStorage.getItem('token');
+      const authToken = token;
       if (!authToken) {
         setError('No autenticado');
         setLoading(false);

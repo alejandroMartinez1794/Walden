@@ -5,8 +5,10 @@ import { BASE_URL } from '../../../config';
 import { toast } from 'react-toastify';
 import Loading from '../../../components/Loader/Loading';
 import Error from '../../../components/Error/Error';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ClinicalHistoryForm = () => {
+  const token = useAuthToken();
   const { patientId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -30,13 +32,12 @@ const ClinicalHistoryForm = () => {
 
   useEffect(() => { (async () => {
     try {
-      const authToken = localStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/clinical-history`, { headers: { Authorization: `Bearer ${authToken}` } });
+      const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/clinical-history`, { headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
       if (json.data) setData(json.data);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  })(); }, [patientId]);
+  })(); }, [patientId, token]);
 
   const onChange = (path, value) => {
     setData((prev) => {
@@ -52,10 +53,9 @@ const ClinicalHistoryForm = () => {
   const save = async () => {
     try {
       setSaving(true);
-      const authToken = localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/clinical-history`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
       });
       const json = await res.json();

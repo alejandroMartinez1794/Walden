@@ -223,7 +223,7 @@ const BDIIIForm = () => {
   const fetchPatients = async () => {
     try {
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
@@ -299,7 +299,7 @@ const BDIIIForm = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
         },
         body: JSON.stringify(payload),
       });

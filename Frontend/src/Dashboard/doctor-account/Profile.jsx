@@ -60,7 +60,7 @@ const Profile = ({doctorData}) => {
     
     const persistPhoto = async (photoUrl) => {
         if (!doctorData?._id) return;
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token');
         const response = await fetch(`${BASE_URL}/doctors/${doctorData._id}`, {
             method: 'PUT',
             headers: {
@@ -129,7 +129,7 @@ const Profile = ({doctorData}) => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify(formData),
             });

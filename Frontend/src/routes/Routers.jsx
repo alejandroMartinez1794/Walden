@@ -15,11 +15,22 @@ import ClinicalHistoryForm from '../Dashboard/psychology/patients/ClinicalHistor
 import ClinicalHistoryList from '../Dashboard/psychology/clinical-history/ClinicalHistoryList';
 import AssessmentSelector from '../Dashboard/psychology/assessments/AssessmentSelector';
 import PHQ9Form from '../Dashboard/psychology/assessments/PHQ9Form';
-import BDIIIForm from '../Dashboard/psychology/assessments/BDIIIForm';
 import GAD7Form from '../Dashboard/psychology/assessments/GAD7Form';
-import BAIForm from '../Dashboard/psychology/assessments/BAI/BAIForm';
 import PCL5Form from '../Dashboard/psychology/assessments/PCL5/PCL5Form';
 import OCIRForm from '../Dashboard/psychology/assessments/OCIR/OCIRForm';
+import SUDSForm from '../Dashboard/psychology/assessments/CBT/SUDSForm';
+import ThoughtRecordForm from '../Dashboard/psychology/assessments/CBT/ThoughtRecordForm';
+import CognitiveDistortionsForm from '../Dashboard/psychology/assessments/CBT/CognitiveDistortionsForm';
+import CoreBeliefsForm from '../Dashboard/psychology/assessments/CBT/CoreBeliefsForm';
+import AvoidanceBehaviorsForm from '../Dashboard/psychology/assessments/CBT/AvoidanceBehaviorsForm';
+import BehavioralActivationForm from '../Dashboard/psychology/assessments/CBT/BehavioralActivationForm';
+import WHO5Form from '../Dashboard/psychology/assessments/WHO5Form';
+import AUDITForm from '../Dashboard/psychology/assessments/AUDITForm';
+import PHQ15Form from '../Dashboard/psychology/assessments/PHQ15Form';
+import PCPTSD5Form from '../Dashboard/psychology/assessments/PCPTSD5Form';
+import K10Form from '../Dashboard/psychology/assessments/K10Form';
+import K6Form from '../Dashboard/psychology/assessments/K6Form';
+import LicenseLocked from '../Dashboard/psychology/assessments/LicenseLocked';
 import SessionForm from '../Dashboard/psychology/sessions/SessionForm';
 
 import GoogleAuthRedirect from '../pages/GoogleAuthRedirect'; // ✅ IMPORTACIÓN
@@ -165,7 +176,7 @@ const Routers = () => {
                 path="/psychology/assessments/bdi-ii"
                 element={
                     <ProtectedRoute allowedRoles={['doctor']}>
-                        <BDIIIForm />
+                        <LicenseLocked instrument="BDI-II (Beck Depression Inventory-II)" />
                     </ProtectedRoute>
                 }
             />
@@ -185,7 +196,67 @@ const Routers = () => {
                 path="/psychology/assessments/bai"
                 element={
                     <ProtectedRoute allowedRoles={['doctor']}>
-                        <BAIForm />
+                        <LicenseLocked instrument="BAI (Beck Anxiety Inventory)" />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* WHO-5 */}
+            <Route
+                path="/psychology/assessments/who5"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <WHO5Form />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* AUDIT */}
+            <Route
+                path="/psychology/assessments/audit"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <AUDITForm />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* PHQ-15 */}
+            <Route
+                path="/psychology/assessments/phq15"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <PHQ15Form />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* PC-PTSD-5 */}
+            <Route
+                path="/psychology/assessments/pc-ptsd-5"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <PCPTSD5Form />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* K10 */}
+            <Route
+                path="/psychology/assessments/k10"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <K10Form />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* K6 */}
+            <Route
+                path="/psychology/assessments/k6"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <K6Form />
                     </ProtectedRoute>
                 }
             />
@@ -206,6 +277,56 @@ const Routers = () => {
                 element={
                     <ProtectedRoute allowedRoles={['doctor']}>
                         <OCIRForm />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Herramientas TCC abiertas (no propietarias) */}
+            <Route
+                path="/psychology/assessments/cbt/suds"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <SUDSForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/psychology/assessments/cbt/thought-record"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <ThoughtRecordForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/psychology/assessments/cbt/distortions"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <CognitiveDistortionsForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/psychology/assessments/cbt/core-beliefs"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <CoreBeliefsForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/psychology/assessments/cbt/avoidance"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <AvoidanceBehaviorsForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/psychology/assessments/cbt/behavioral-activation"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <BehavioralActivationForm />
                     </ProtectedRoute>
                 }
             />

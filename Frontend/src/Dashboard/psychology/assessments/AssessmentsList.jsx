@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
 import Error from '../../../components/Error/Error';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const severityClass = (sev) => {
   const map = {
@@ -31,6 +32,7 @@ const testMeta = {
 };
 
 const AssessmentsList = ({ patientId }) => {
+  const token = useAuthToken();
   const [search] = useSearchParams();
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,9 +43,8 @@ const AssessmentsList = ({ patientId }) => {
     const fetchAssessments = async () => {
       try {
         setLoading(true);
-        const authToken = localStorage.getItem('token');
         const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/assessments`, {
-          headers: { Authorization: `Bearer ${authToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.message || 'Error al cargar evaluaciones');

@@ -5,8 +5,10 @@ import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
 import Error from '../../../components/Error/Error';
 import { toast } from 'react-toastify';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const GAD7Form = () => {
+  const token = useAuthToken();
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [search] = useSearchParams();
@@ -39,13 +41,12 @@ const GAD7Form = () => {
 
   useEffect(() => { (async () => {
     try {
-      const authToken = localStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/psychology/patients`, { headers: { Authorization: `Bearer ${authToken}` } });
+      const res = await fetch(`${BASE_URL}/psychology/patients`, { headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
       setPatients(json.data || []);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  })(); }, []);
+  })(); }, [token]);
   useEffect(() => {
     const preselected = search.get('patient');
     if (preselected) {
@@ -78,10 +79,9 @@ const GAD7Form = () => {
         scores: { total },
         interpretation: { severity: severity.label.toLowerCase() },
       };
-      const authToken = localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/psychology/assessments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
@@ -90,7 +90,7 @@ const GAD7Form = () => {
       try {
         await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ name: 'GAD-7', responses: formData.responses }),
         });
       } catch (e) { console.warn('Failed to create clinical measure:', e); }

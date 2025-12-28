@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { authContext } from '../context/AuthContext';
 
 const useFetchData = (url) => {
     const [data, setData] = useState([]); // Inicializar como array vacío
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const { token } = useContext(authContext);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const token = localStorage.getItem('token');
-                console.log("🔑 Token desde localStorage (useFetchData):", token);
+                if (!token) throw new Error('No autenticado');
+                console.log("🔑 Token desde contexto (useFetchData):", token);
                 const res = await fetch(url, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -30,7 +32,7 @@ const useFetchData = (url) => {
         };
 
         fetchData();
-    }, [url]);
+    }, [url, token]);
 
     return {
         data,

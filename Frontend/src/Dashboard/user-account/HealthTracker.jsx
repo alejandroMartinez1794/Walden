@@ -57,7 +57,7 @@ const HealthTracker = () => {
 
   useEffect(() => {
     const fetchMetrics = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/health/metrics`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -476,7 +476,7 @@ const HealthTracker = () => {
             <h3 className="text-lg font-bold mb-4">Log Health Data</h3>
             <div className="grid grid-cols-2 gap-4">
               <button onClick={async () => {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                 const res = await fetch(`${BASE_URL}/health/metrics`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -507,7 +507,7 @@ const HealthTracker = () => {
               </button>
 
               <button onClick={async () => {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                 const res = await fetch(`${BASE_URL}/health/metrics`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -532,7 +532,7 @@ const HealthTracker = () => {
               </button>
 
               <button onClick={async () => {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                 const res = await fetch(`${BASE_URL}/health/metrics`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

@@ -18,7 +18,7 @@ const MedicalHistory = () => {
 
   useEffect(() => {
     const fetchRecords = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/health/records`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -279,7 +279,7 @@ const MedicalHistory = () => {
                       }
                     }
 
-                    const token = localStorage.getItem('token');
+                    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                     const res = await fetch(`${BASE_URL}/health/records`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

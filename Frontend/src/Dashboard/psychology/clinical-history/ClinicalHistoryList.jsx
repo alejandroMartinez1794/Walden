@@ -4,8 +4,10 @@ import { BASE_URL } from '../../../config';
 import { Link } from 'react-router-dom';
 import Loading from '../../../components/Loader/Loading';
 import Error from '../../../components/Error/Error';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ClinicalHistoryList = () => {
+  const token = useAuthToken();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,7 +20,7 @@ const ClinicalHistoryList = () => {
     try {
       setLoading(true);
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);

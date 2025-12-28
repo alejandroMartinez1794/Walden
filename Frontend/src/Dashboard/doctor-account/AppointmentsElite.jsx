@@ -19,7 +19,7 @@ const AppointmentsElite = () => {
 
   const fetchAppointments = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/doctors/profile/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -38,7 +38,7 @@ const AppointmentsElite = () => {
 
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/bookings/${appointmentId}`, {
         method: 'PUT',
         headers: {

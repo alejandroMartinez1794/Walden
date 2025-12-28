@@ -4,8 +4,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
 import Error from '../../../components/Error/Error';
+import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ProgressCharts = ({ patientId }) => {
+  const token = useAuthToken();
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,7 +55,7 @@ const ProgressCharts = ({ patientId }) => {
   const fetchAssessments = async () => {
     try {
       const response = await fetch(`${BASE_URL}/psychology/patients/${patientId}/assessments`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);

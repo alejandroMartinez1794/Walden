@@ -73,7 +73,7 @@ const HealthTracker = () => {
   });
 
   const refreshMetrics = async () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/metrics`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -148,7 +148,7 @@ const HealthTracker = () => {
       return;
     }
 
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/metrics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

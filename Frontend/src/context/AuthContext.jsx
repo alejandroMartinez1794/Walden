@@ -10,17 +10,13 @@ const parseStoredJSON = (value) => {
     }
 };
 
-const getFromSessionFirst = (key) => {
-    const fromSession = sessionStorage.getItem(key);
-    if (fromSession !== null) return fromSession;
-    return localStorage.getItem(key);
-};
+const fromSession = (key) => sessionStorage.getItem(key);
 
 const initialState = {
-    user: parseStoredJSON(getFromSessionFirst('user')),
-    role: getFromSessionFirst('role') || null,
-    token: getFromSessionFirst('token') || null,
-    authProvider: getFromSessionFirst('authProvider') || null,
+    user: parseStoredJSON(fromSession('user')),
+    role: fromSession('role') || null,
+    token: fromSession('token') || null,
+    authProvider: fromSession('authProvider') || null,
 };
 
 export const authContext = createContext(initialState);

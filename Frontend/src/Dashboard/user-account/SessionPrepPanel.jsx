@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useContext } from 'react';
 import { HiOutlineChatAlt2, HiOutlineCalendar } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../config';
+import { authContext } from '../../context/AuthContext';
 
 const EXPERIMENT_STATUSES = ['Pendiente', 'En progreso', 'Completado'];
 
@@ -77,6 +78,7 @@ const hydrateProfile = (profile = {}) => ({
 });
 
 const SessionPrepPanel = ({ userData, onUserDataUpdate }) => {
+  const { token } = useContext(authContext);
   const [cbtProfile, setCbtProfile] = useState(() => hydrateProfile(userData?.cbtProfile));
   const [sessionPromptDraft, setSessionPromptDraft] = useState('');
   const [newInsight, setNewInsight] = useState('');
@@ -98,7 +100,7 @@ const SessionPrepPanel = ({ userData, onUserDataUpdate }) => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ cbtProfile: nextProfile }),
       });
