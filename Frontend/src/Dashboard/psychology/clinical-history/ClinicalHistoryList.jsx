@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../../config';
 import { Link } from 'react-router-dom';
 import Loading from '../../../components/Loader/Loading';
-import Error from '../../../components/Error/Error';
+import ErrorMessage from '../../../components/Error/Error';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ClinicalHistoryList = () => {
@@ -33,18 +33,36 @@ const ClinicalHistoryList = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-headingColor flex items-center gap-3">
-          📋 Historias Clínicas
-        </h1>
-        <p className="text-textColor mt-2">
-          Gestión de historias clínicas psicológicas (TCC)
-        </p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-headingColor flex items-center gap-3">
+            📋 Historias Clínicas
+          </h1>
+          <p className="text-textColor mt-2">
+            Gestión de historias clínicas psicológicas (TCC)
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link 
+            to="/psychology/patients/new"
+            className="bg-white border border-primaryColor text-primaryColor px-6 py-3 rounded-lg hover:bg-blue-50 transition-all flex items-center gap-2 font-medium shadow-sm"
+          >
+            <span className="text-xl">👤</span>
+            Nuevo Paciente
+          </Link>
+          <Link 
+            to="/psychology/clinical-history/new"
+            className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2 font-medium shadow-sm"
+          >
+            <span className="text-xl">📝</span>
+            Nueva Historia Clínica
+          </Link>
+        </div>
       </div>
 
       {/* Instructions Card */}

@@ -4,6 +4,8 @@ import TherapySession from '../models/TherapySessionSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
+import Booking from '../models/BookingSchema.js';
+import User from '../models/UserSchema.js';
 import mongoose from 'mongoose';
 
 // ============ PACIENTES ============
@@ -13,6 +15,14 @@ export const createPatient = async (req, res) => {
     const psychologistId = req.userId;
     const patientData = { ...req.body, psychologist: psychologistId };
     
+    // Intentar vincular con usuario existente por email
+    if (patientData.personalInfo?.email) {
+      const existingUser = await User.findOne({ email: patientData.personalInfo.email });
+      if (existingUser) {
+        patientData.user = existingUser._id;
+      }
+    }
+
     const newPatient = await PsychologicalPatient.create(patientData);
     
     res.status(201).json({
@@ -29,8 +39,57 @@ export const createPatient = async (req, res) => {
 export const getMyPatients = async (req, res) => {
   try {
     const psychologistId = req.userId;
+    console.log(`🧠 getMyPatients: Buscando pacientes para psicólogo ${psychologistId}`);
+    
     const { status } = req.query;
     
+    // 1. Sincronizar pacientes desde Reservas (Bookings)
+    // Buscar reservas de este doctor donde el usuario no tenga aún un expediente
+    const bookings = await Booking.find({ doctor: psychologistId }).populate('user');
+    
+    // Extraer usuarios únicos de las reservas
+    const uniqueUsers = {};
+    bookings.forEach(booking => {
+      if (booking.user && booking.user._id) {
+        uniqueUsers[booking.user._id.toString()] = booking.user;
+      }
+    });
+
+    // Verificar cuáles ya tienen expediente
+    const userIds = Object.keys(uniqueUsers);
+    if (userIds.length > 0) {
+      const existingPatients = await PsychologicalPatient.find({
+        psychologist: psychologistId,
+        user: { $in: userIds }
+      });
+      
+      const existingUserIds = new Set(existingPatients.map(p => p.user.toString()));
+      
+      // Crear expedientes para los nuevos
+      const newPatientsToCreate = userIds
+        .filter(id => !existingUserIds.has(id))
+        .map(id => {
+          const user = uniqueUsers[id];
+          return {
+            psychologist: psychologistId,
+            user: id,
+            personalInfo: {
+              fullName: user.name,
+              email: user.email,
+              phone: user.phone ? String(user.phone) : '',
+              gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
+              dateOfBirth: new Date(), // Placeholder, se debe actualizar
+            },
+            status: 'active'
+          };
+        });
+      
+      if (newPatientsToCreate.length > 0) {
+        await PsychologicalPatient.insertMany(newPatientsToCreate);
+      }
+    }
+
+    // 2. Obtener lista completa
     const filter = { psychologist: psychologistId };
     if (status) filter.status = status;
     
@@ -42,8 +101,8 @@ export const getMyPatients = async (req, res) => {
       data: patients,
     });
   } catch (error) {
-    console.error('Error al obtener pacientes:', error);
-    res.status(500).json({ success: false, message: 'Error al obtener pacientes' });
+    console.error('❌ Error en getMyPatients:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener pacientes', error: error.message });
   }
 };
 

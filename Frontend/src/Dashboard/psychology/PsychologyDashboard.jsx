@@ -4,7 +4,7 @@ import { BASE_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Loading from '../../components/Loader/Loading';
-import Error from '../../components/Error/Error';
+import ErrorMessage from '../../components/Error/Error';
 import DoctorAbout from '../../pages/Doctors/DoctorAbout';
 import DoctorProfileForm from '../doctor-account/Profile';
 import { authContext } from '../../context/AuthContext';
@@ -24,6 +24,75 @@ const PsychologyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Estado para búsqueda de pacientes (Agenda)
+  const [allPatients, setAllPatients] = useState([]);
+  const [patientSearchQuery, setPatientSearchQuery] = useState('');
+  const [showPatientResults, setShowPatientResults] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      const fetchPatients = async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/users/patients/active`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const result = await res.json();
+          if (result.success) {
+            setAllPatients(result.data);
+          }
+        } catch (err) {
+          console.error("Error fetching patients", err);
+        }
+      };
+      fetchPatients();
+    }
+  }, [token]);
+
+  const handleSelectPatient = (patient) => {
+    setBookingForm(prev => ({
+      ...prev,
+      patientId: patient._id,
+      patientName: patient.name,
+      patientEmail: patient.email
+    }));
+    setPatientSearchQuery(patient.name);
+    setShowPatientResults(false);
+  };
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    setBookingSubmitting(true);
+    try {
+      const res = await fetch(`${BASE_URL}/bookings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          doctorId: doctorProfile?._id,
+          patientId: bookingForm.patientId,
+          patientEmail: bookingForm.patientEmail,
+          patientName: bookingForm.patientName,
+          date: bookingForm.date,
+          time: bookingForm.time,
+          motivoConsulta: bookingForm.motivo,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message);
+      toast.success('Cita agendada exitosamente');
+      setBookingForm({ patientEmail: '', patientId: '', patientName: '', date: '', time: '', motivo: '' });
+      setPatientSearchQuery('');
+      // Recargar dashboard para ver la nueva cita
+      window.location.reload(); 
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setBookingSubmitting(false);
+    }
+  };
+
   const bookingMotivoTemplates = [
     'Sesión de seguimiento',
     'Revisión de tareas y plan semanal',
@@ -39,7 +108,7 @@ const PsychologyDashboard = () => {
     { id: 'analitica', label: 'Analítica' },
     { id: 'citas', label: 'Citas' },
     { id: 'perfil', label: 'Perfil' },
-    { id: 'atajos', label: 'Atajos' },
+    { id: 'atajos', label: 'Acciones Rápidas' },
   ];
 
   useEffect(() => {
@@ -108,7 +177,7 @@ const PsychologyDashboard = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
+  if (error) return <ErrorMessage message={error} />;
 
   const { totalPatients, activePatients, todaySessions, riskAlerts } = dashboardData || {};
   const sessionsCount = todaySessions?.length || 0;
@@ -687,6 +756,54 @@ const PsychologyDashboard = () => {
         )}
 
         {activePanel === 'agenda' && (
+          <div className="space-y-8">
+            {/* Estadísticas de Agenda */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-lg">
+                <div className="relative z-10">
+                  <p className="text-blue-100 text-sm font-medium mb-1">Total Citas Hoy</p>
+                  <h3 className="text-3xl font-bold">{sessionsCount}</h3>
+                  <div className="mt-2 flex items-center text-xs text-blue-100 bg-white/20 w-fit px-2 py-1 rounded-full">
+                    <span className="mr-1">📅</span> Hoy
+                  </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+              </div>
+
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg">
+                <div className="relative z-10">
+                  <p className="text-emerald-100 text-sm font-medium mb-1">Online</p>
+                  <h3 className="text-3xl font-bold">{todaySessions?.filter(s => s.modality === 'online').length || 0}</h3>
+                  <div className="mt-2 flex items-center text-xs text-emerald-100 bg-white/20 w-fit px-2 py-1 rounded-full">
+                    <span className="mr-1">📹</span> Remoto
+                  </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+              </div>
+
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white shadow-lg">
+                <div className="relative z-10">
+                  <p className="text-purple-100 text-sm font-medium mb-1">Presencial</p>
+                  <h3 className="text-3xl font-bold">{todaySessions?.filter(s => s.modality === 'in-person').length || 0}</h3>
+                  <div className="mt-2 flex items-center text-xs text-purple-100 bg-white/20 w-fit px-2 py-1 rounded-full">
+                    <span className="mr-1">🏥</span> Consultorio
+                  </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+              </div>
+
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 p-6 text-white shadow-lg">
+                <div className="relative z-10">
+                  <p className="text-amber-100 text-sm font-medium mb-1">Eficiencia</p>
+                  <h3 className="text-3xl font-bold">98%</h3>
+                  <div className="mt-2 flex items-center text-xs text-amber-100 bg-white/20 w-fit px-2 py-1 rounded-full">
+                    <span className="mr-1">⚡</span> Asistencia
+                  </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+              </div>
+            </div>
+
           <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr]">
             <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
             <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -756,46 +873,132 @@ const PsychologyDashboard = () => {
 
           <section className="rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
             <header className="mb-6 flex items-center gap-3">
-              <div className="rounded-2xl bg-red-100 p-3 text-red-600">
+              <div className="rounded-2xl bg-blue-100 p-3 text-blue-600">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-500">Alertas clínicas</p>
-                <h2 className="text-2xl font-semibold text-slate-900">Riesgos activos</h2>
+                <p className="text-sm font-semibold text-slate-500">Gestión de citas</p>
+                <h2 className="text-2xl font-semibold text-slate-900">Agendar nueva sesión</h2>
               </div>
             </header>
-            {riskAlerts && riskAlerts.length > 0 ? (
-              <ul className="space-y-4">
-                {riskAlerts.map((alert) => (
-                  <li key={alert._id} className="rounded-2xl border border-red-100 bg-red-50/60 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-base font-semibold text-red-700">{alert.patient?.personalInfo?.fullName}</p>
-                        <p className="text-sm text-red-600">{alert.riskAlert?.reason || 'Alerta registrada'}</p>
-                        {alert.riskAlert?.type && (
-                          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-red-500">{String(alert.riskAlert.type).replace(/_/g, ' ')}</p>
-                        )}
-                      </div>
-                      {alert.patient?._id && (
-                        <Link
-                          to={`/psychology/patients/${alert.patient._id}`}
-                          className="rounded-2xl border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
-                        >
-                          Abrir expediente
-                        </Link>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="rounded-2xl border border-slate-100 bg-slate-50 p-6 text-center text-slate-400">
-                Sin alertas críticas por ahora. Mantén el seguimiento continuo.
-              </p>
-            )}
+
+            <form onSubmit={handleBookingSubmit} className="space-y-5">
+              {/* Buscador de Pacientes */}
+              <div className="relative">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Buscar Paciente</label>
+                <input
+                  type="text"
+                  placeholder="Escribe el nombre del paciente..."
+                  value={patientSearchQuery}
+                  onChange={(e) => {
+                    setPatientSearchQuery(e.target.value);
+                    setShowPatientResults(true);
+                    if (!e.target.value) {
+                      setBookingForm(prev => ({ ...prev, patientId: '', patientName: '', patientEmail: '' }));
+                    }
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {showPatientResults && patientSearchQuery && (
+                  <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-100 bg-white shadow-xl">
+                    {allPatients.filter(p => p.name.toLowerCase().includes(patientSearchQuery.toLowerCase())).length > 0 ? (
+                      allPatients
+                        .filter(p => p.name.toLowerCase().includes(patientSearchQuery.toLowerCase()))
+                        .map(patient => (
+                          <div
+                            key={patient._id}
+                            onClick={() => handleSelectPatient(patient)}
+                            className="cursor-pointer px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-0"
+                          >
+                            <p className="font-medium text-slate-900">{patient.name}</p>
+                            <p className="text-xs text-slate-500">{patient.email}</p>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-slate-500">No se encontraron pacientes.</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Campos ocultos o de solo lectura para confirmar selección */}
+              {bookingForm.patientId && (
+                <div className="rounded-xl bg-blue-50 p-3 text-sm text-blue-700 flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold">Paciente:</span> {bookingForm.patientName}
+                    <div className="text-xs opacity-80">{bookingForm.patientEmail}</div>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setBookingForm(prev => ({ ...prev, patientId: '', patientName: '', patientEmail: '' }));
+                      setPatientSearchQuery('');
+                    }}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Fecha</label>
+                  <input
+                    type="date"
+                    required
+                    value={bookingForm.date}
+                    onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Hora</label>
+                  <input
+                    type="time"
+                    required
+                    value={bookingForm.time}
+                    onChange={(e) => setBookingForm({ ...bookingForm, time: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Motivo de consulta</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Sesión de seguimiento..."
+                  value={bookingForm.motivo}
+                  onChange={(e) => setBookingForm({ ...bookingForm, motivo: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none"
+                />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {bookingMotivoTemplates.slice(0, 3).map(template => (
+                    <button
+                      key={template}
+                      type="button"
+                      onClick={() => setBookingForm(prev => ({ ...prev, motivo: template }))}
+                      className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                    >
+                      {template}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={bookingSubmitting || !bookingForm.patientId}
+                className="w-full rounded-xl bg-slate-900 py-4 font-semibold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 hover:shadow-xl disabled:opacity-50 disabled:shadow-none"
+              >
+                {bookingSubmitting ? 'Agendando...' : 'Confirmar Cita'}
+              </button>
+            </form>
           </section>
+          </div>
           </div>
         )}
 
@@ -1085,100 +1288,212 @@ const PsychologyDashboard = () => {
 
         {activePanel === 'citas' && (
           <section className="rounded-[32px] border border-white/10 bg-white/95 p-8 shadow-[0_25px_80px_rgba(9,12,28,0.1)]">
-          <header className="mb-6 flex flex-col gap-2">
-            <p className="text-sm font-semibold text-slate-500">Agendar cita directa</p>
-            <h2 className="text-2xl font-semibold text-slate-900">Programa una nueva cita</h2>
-            <p className="text-sm text-slate-500">Agenda una sesión y deja el motivo en términos clínicos (objetivo / tarea / seguimiento).</p>
-          </header>
-          <form onSubmit={handleCreateBooking} className="grid gap-4 lg:grid-cols-5">
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600 lg:col-span-2">
-              Paciente (email o ID)
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <input
-                  type="email"
-                  name="patientEmail"
-                  value={bookingForm.patientEmail}
-                  onChange={handleBookingInput}
-                  placeholder="paciente@correo.com"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
-                />
-                <input
-                  type="text"
-                  name="patientId"
-                  value={bookingForm.patientId}
-                  onChange={handleBookingInput}
-                  placeholder="ID (opcional)"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
-                />
+            <header className="mb-8 flex flex-col gap-2 border-b border-slate-100 pb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-2xl">📅</div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Nueva Sesión</h2>
+                  <p className="text-sm text-slate-500">Agenda citas para pacientes registrados o nuevos.</p>
+                </div>
               </div>
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600 lg:col-span-2">
-              Nombre del paciente
-              <input
-                type="text"
-                name="patientName"
-                value={bookingForm.patientName}
-                onChange={handleBookingInput}
-                placeholder="Nombre completo"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
-              />
-              <span className="text-xs font-normal text-slate-400">Completa este campo si el paciente aún no está registrado.</span>
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600">
-              Fecha
-              <input
-                type="date"
-                name="date"
-                value={bookingForm.date}
-                onChange={handleBookingInput}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-slate-400 focus:bg-white focus:outline-none"
-                required
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600">
-              Hora
-              <input
-                type="time"
-                name="time"
-                value={bookingForm.time}
-                onChange={handleBookingInput}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-slate-400 focus:bg-white focus:outline-none"
-                required
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-600 lg:col-span-2">
-              Motivo (opcional)
-              <input
-                type="text"
-                name="motivo"
-                value={bookingForm.motivo}
-                onChange={handleBookingInput}
-                placeholder="Ej. Sesión de seguimiento"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
-              />
-              <div className="flex flex-wrap gap-2">
-                {bookingMotivoTemplates.map((template) => (
+            </header>
+
+            <form onSubmit={handleBookingSubmit} className="grid gap-8 lg:grid-cols-12">
+              {/* Columna Izquierda: Selección de Paciente */}
+              <div className="flex flex-col gap-6 lg:col-span-5">
+                <div className="relative">
+                  <label className="mb-2 block text-sm font-bold text-slate-700">1. Seleccionar Paciente</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={patientSearchQuery}
+                      onFocus={() => setShowPatientResults(true)}
+                      onChange={(e) => {
+                        setPatientSearchQuery(e.target.value);
+                        setShowPatientResults(true);
+                        // Si borra todo, limpiar formulario
+                        if (e.target.value === '') {
+                          setBookingForm(prev => ({ ...prev, patientId: '', patientName: '', patientEmail: '' }));
+                        }
+                      }}
+                      placeholder="Buscar por nombre o correo..."
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 pl-12 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:outline-none transition-all"
+                    />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+                  </div>
+
+                  {/* Dropdown de Resultados */}
+                  {showPatientResults && (
+                    <div className="absolute top-full z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-xl ring-1 ring-slate-900/5">
+                      {allPatients
+                        .filter(p => 
+                          (p.name?.toLowerCase() || '').includes(patientSearchQuery.toLowerCase()) || 
+                          (p.email?.toLowerCase() || '').includes(patientSearchQuery.toLowerCase())
+                        )
+                        .map(patient => (
+                          <div
+                            key={patient._id}
+                            onClick={() => {
+                              handleSelectPatient(patient);
+                              setShowPatientResults(false);
+                            }}
+                            className="group flex cursor-pointer items-center gap-3 border-b border-slate-50 px-5 py-3 transition hover:bg-indigo-50 last:border-0"
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 font-bold">
+                              {patient.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-900 group-hover:text-indigo-700">{patient.name}</p>
+                              <p className="text-xs text-slate-500">{patient.email}</p>
+                            </div>
+                            <span className="ml-auto rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700">REGISTRADO</span>
+                          </div>
+                        ))}
+                      
+                      {/* Opción de Crear Nuevo si no hay match exacto o si quiere forzar nuevo */}
+                      <div 
+                        onClick={() => {
+                          setBookingForm(prev => ({ 
+                            ...prev, 
+                            patientId: '', 
+                            patientName: patientSearchQuery, // Usar lo que escribió como nombre
+                            patientEmail: '' 
+                          }));
+                          setShowPatientResults(false);
+                        }}
+                        className="cursor-pointer bg-slate-50 px-5 py-3 hover:bg-slate-100"
+                      >
+                        <p className="text-sm font-semibold text-indigo-600 flex items-center gap-2">
+                          <span className="text-lg">+</span> Crear nuevo paciente: "{patientSearchQuery}"
+                        </p>
+                        <p className="text-xs text-slate-500 pl-6">Se registrará automáticamente al agendar.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Campos condicionales si es nuevo o para confirmar */}
+                <div className={`rounded-2xl border p-5 transition-all ${!bookingForm.patientId ? 'border-indigo-100 bg-indigo-50/50' : 'border-slate-100 bg-slate-50'}`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      {bookingForm.patientId ? 'Paciente Seleccionado' : 'Datos del Nuevo Paciente'}
+                    </span>
+                    {bookingForm.patientId && <span className="text-xs font-bold text-emerald-600">✓ Verificado</span>}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">Nombre Completo</label>
+                      <input
+                        type="text"
+                        name="patientName"
+                        value={bookingForm.patientName}
+                        onChange={(e) => setBookingForm({...bookingForm, patientName: e.target.value})}
+                        readOnly={!!bookingForm.patientId} // Solo lectura si viene de DB
+                        className={`w-full rounded-xl border-0 bg-transparent px-0 py-1 text-lg font-bold text-slate-900 focus:ring-0 ${!bookingForm.patientId ? 'border-b border-slate-300 focus:border-indigo-500' : ''}`}
+                        placeholder="Nombre del paciente"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">Correo Electrónico {bookingForm.patientId ? '' : '(Requerido para notificaciones)'}</label>
+                      <input
+                        type="email"
+                        name="patientEmail"
+                        value={bookingForm.patientEmail}
+                        onChange={(e) => setBookingForm({...bookingForm, patientEmail: e.target.value})}
+                        readOnly={!!bookingForm.patientId}
+                        className={`w-full rounded-xl border-0 bg-transparent px-0 py-1 text-sm font-medium text-slate-600 focus:ring-0 ${!bookingForm.patientId ? 'border-b border-slate-300 focus:border-indigo-500' : ''}`}
+                        placeholder="correo@ejemplo.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Columna Derecha: Detalles de la Cita */}
+              <div className="flex flex-col gap-6 lg:col-span-7">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">2. Fecha</label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={bookingForm.date}
+                      onChange={(e) => setBookingForm({...bookingForm, date: e.target.value})}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">Hora</label>
+                    <input
+                      type="time"
+                      name="time"
+                      value={bookingForm.time}
+                      onChange={(e) => setBookingForm({...bookingForm, time: e.target.value})}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">3. Motivo de Consulta</label>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {bookingMotivoTemplates.map((template) => (
+                      <button
+                        key={template}
+                        type="button"
+                        onClick={() => setBookingForm((prev) => ({ ...prev, motivo: template }))}
+                        className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                          bookingForm.motivo === template 
+                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-200' 
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50'
+                        }`}
+                      >
+                        {template}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    name="motivo"
+                    value={bookingForm.motivo}
+                    onChange={(e) => setBookingForm({...bookingForm, motivo: e.target.value})}
+                    placeholder="Describe el objetivo de la sesión o notas previas..."
+                    rows="3"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div className="mt-auto pt-4">
                   <button
-                    key={template}
-                    type="button"
-                    onClick={() => setBookingForm((prev) => ({ ...prev, motivo: template }))}
-                    className="rounded-2xl border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    type="submit"
+                    disabled={bookingSubmitting}
+                    className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-slate-900 px-6 py-4 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-slate-800 hover:shadow-2xl hover:shadow-slate-900/30 disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    {template}
+                    {bookingSubmitting ? (
+                      <>
+                        <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Procesando Cita...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Confirmar Agendamiento</span>
+                        <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </>
+                    )}
                   </button>
-                ))}
+                  <p className="mt-3 text-center text-xs text-slate-400">
+                    Se enviará una notificación automática al correo del paciente.
+                  </p>
+                </div>
               </div>
-            </label>
-            <div className="flex items-end">
-              <button
-                type="submit"
-                disabled={bookingSubmitting}
-                className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {bookingSubmitting ? 'Agendando...' : 'Agendar cita'}
-              </button>
-            </div>
-          </form>
+            </form>
           </section>
         )}
 
@@ -1568,7 +1883,7 @@ const PsychologyDashboard = () => {
 
                 <section className="rounded-[28px] border border-slate-100 bg-white p-6">
                   <header className="mb-4">
-                    <p className="text-sm font-semibold text-slate-500">Atajos</p>
+                    <p className="text-sm font-semibold text-slate-500">Herramientas</p>
                     <h3 className="text-xl font-semibold text-slate-900">Acciones rápidas</h3>
                     <p className="text-sm text-slate-500">Entradas directas para mantener ritmo y documentación clínica.</p>
                   </header>

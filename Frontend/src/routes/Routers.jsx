@@ -11,6 +11,7 @@ import Dashboard from '../Dashboard/doctor-account/Dashboard';
 import PsychologyDashboard from '../Dashboard/psychology/PsychologyDashboard';
 import PatientList from '../Dashboard/psychology/PatientList';
 import PatientFile from '../Dashboard/psychology/patients/PatientFile';
+import NewPatientForm from '../Dashboard/psychology/patients/NewPatientForm';
 import ClinicalHistoryForm from '../Dashboard/psychology/patients/ClinicalHistoryForm';
 import ClinicalHistoryList from '../Dashboard/psychology/clinical-history/ClinicalHistoryList';
 import AssessmentSelector from '../Dashboard/psychology/assessments/AssessmentSelector';
@@ -24,6 +25,7 @@ import CognitiveDistortionsForm from '../Dashboard/psychology/assessments/CBT/Co
 import CoreBeliefsForm from '../Dashboard/psychology/assessments/CBT/CoreBeliefsForm';
 import AvoidanceBehaviorsForm from '../Dashboard/psychology/assessments/CBT/AvoidanceBehaviorsForm';
 import BehavioralActivationForm from '../Dashboard/psychology/assessments/CBT/BehavioralActivationForm';
+import CaseFormulationForm from '../Dashboard/psychology/assessments/CBT/CaseFormulationForm';
 import WHO5Form from '../Dashboard/psychology/assessments/WHO5Form';
 import AUDITForm from '../Dashboard/psychology/assessments/AUDITForm';
 import PHQ15Form from '../Dashboard/psychology/assessments/PHQ15Form';
@@ -95,6 +97,16 @@ const Routers = () => {
                 }
             />
             
+            {/* Nuevo Paciente */}
+            <Route
+                path="/psychology/patients/new"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <NewPatientForm />
+                    </ProtectedRoute>
+                }
+            />
+            
             {/* Expediente de Paciente */}
             <Route
                 path="/psychology/patients/:id"
@@ -115,6 +127,14 @@ const Routers = () => {
                 }
             />
             <Route
+                path="/psychology/clinical-history/new"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <ClinicalHistoryForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/psychology/clinical-history/:patientId"
                 element={
                     <ProtectedRoute allowedRoles={['doctor']}>
@@ -127,6 +147,23 @@ const Routers = () => {
                 element={
                     <ProtectedRoute allowedRoles={['doctor']}>
                         <ClinicalHistoryForm />
+                    </ProtectedRoute>
+                }
+            />
+            
+            <Route
+                path="/psychology/patients/:patientId/case-formulation"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <CaseFormulationForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/psychology/assessments/case-formulation"
+                element={
+                    <ProtectedRoute allowedRoles={['doctor']}>
+                        <CaseFormulationForm />
                     </ProtectedRoute>
                 }
             />

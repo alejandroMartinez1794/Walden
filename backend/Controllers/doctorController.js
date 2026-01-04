@@ -111,6 +111,8 @@ export const getDoctorProfile = async (req, res) => {
 
         const { password, ...rest } = doctor._doc
         const appointments = await Booking.find({doctor: doctorId})
+            .populate('user', 'name email photo phone gender')
+            .sort({ appointmentDate: -1 });
     
         res
             .status(200)

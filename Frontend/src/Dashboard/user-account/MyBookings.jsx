@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "../../config";
 import Loading from "../../components/Loader/Loading";
-import Error from "../../components/Error/Error";
+import ErrorMessage from "../../components/Error/Error";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -88,7 +88,7 @@ const MyBookings = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <Error errMessage={error} />;
+  if (error) return <ErrorMessage errMessage={error} />;
 
   return (
     <div className="space-y-6">

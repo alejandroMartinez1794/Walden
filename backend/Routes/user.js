@@ -6,11 +6,15 @@ import {
     getSingleUser,
     getUserProfile,
     getMyAppointments,
+    getActivePatientsForDoctor,
 }   from "../Controllers/userController.js";
 
 import { authenticate, restrict } from "../auth/verifyToken.js";
 
 const router = express.Router();
+
+// Pacientes disponibles para los doctores al agendar
+router.get ("/patients/active", authenticate, restrict(['doctor', 'admin']), getActivePatientsForDoctor);
 
 router.get ("/:id", authenticate, restrict(['paciente']), getSingleUser);
 router.get ("/", authenticate, restrict(['admin']),  getAllUser);

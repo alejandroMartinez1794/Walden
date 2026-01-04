@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
-import Error from '../../../components/Error/Error';
+import ErrorMessage from '../../../components/Error/Error';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ProgressCharts = ({ patientId }) => {
@@ -112,7 +112,7 @@ const ProgressCharts = ({ patientId }) => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
+  if (error) return <ErrorMessage message={error} />;
 
   const chartData = formatChartData();
   const availableTests = getAvailableTests();

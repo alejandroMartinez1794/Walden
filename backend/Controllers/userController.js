@@ -2,6 +2,36 @@ import User from "../models/UserSchema.js"
 import Booking from "../models/BookingSchema.js" 
 import Doctor from "../models/DoctorSchema.js"
 
+// Lista de pacientes (rol "paciente") para que los doctores puedan elegir al agendar
+export const getActivePatientsForDoctor = async (req, res) => {
+    try {
+        const { search = "" } = req.query;
+        const filter = { role: "paciente" };
+
+        if (search.trim()) {
+            const term = search.trim();
+            filter.$or = [
+                { name: { $regex: term, $options: "i" } },
+                { email: { $regex: term, $options: "i" } },
+                { phone: { $regex: term, $options: "i" } },
+            ];
+        }
+
+        const patients = await User.find(filter)
+            .select("name email phone role")
+            .sort({ name: 1 });
+
+        res.status(200).json({
+            success: true,
+            message: "Pacientes obtenidos correctamente",
+            data: patients,
+        });
+    } catch (error) {
+        console.error("❌ Error en getActivePatientsForDoctor:", error);
+        res.status(500).json({ success: false, message: "Error al obtener pacientes" });
+    }
+};
+
 export const updateUser = async (req, res) => {
 
     const id = req.params.id

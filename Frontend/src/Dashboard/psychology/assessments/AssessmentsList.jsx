@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
-import Error from '../../../components/Error/Error';
+import ErrorMessage from '../../../components/Error/Error';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const severityClass = (sev) => {
@@ -62,7 +62,7 @@ const AssessmentsList = ({ patientId }) => {
   const filtered = useMemo(() => filter === 'all' ? assessments : assessments.filter(a => a.testType === filter), [assessments, filter]);
 
   if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="space-y-6">

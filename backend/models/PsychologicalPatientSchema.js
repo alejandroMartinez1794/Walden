@@ -63,6 +63,13 @@ const psychologicalPatientSchema = new mongoose.Schema({
     required: true 
   },
 
+  // Relación opcional con usuario registrado
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
+  },
+
   // Estado del caso
   status: { 
     type: String, 

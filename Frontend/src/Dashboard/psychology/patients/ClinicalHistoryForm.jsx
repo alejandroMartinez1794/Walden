@@ -4,7 +4,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import { toast } from 'react-toastify';
 import Loading from '../../../components/Loader/Loading';
-import Error from '../../../components/Error/Error';
+import ErrorMessage from '../../../components/Error/Error';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ClinicalHistoryForm = () => {
@@ -19,6 +19,7 @@ const ClinicalHistoryForm = () => {
   const [data, setData] = useState({
     intake: { chiefComplaint: '', referralSource: '', date: '', presentingConcerns: '' },
     currentProblemHistory: { onset: '', duration: '', severity: '', frequency: '', triggers: '', maintainingFactors: '', cognitiveContent: '', emotionalResponse: '', behavioralPatterns: '', previousTreatments: '' },
+    functionalAnalysis: { antecedents: '', behavior: '', consequencesShortTerm: '', consequencesLongTerm: '' },
     personalHistory: { family: '', childhood: '', education: '', work: '', relationships: '', medical: '', psychiatric: '' },
     familyAndSupport: { supportNetwork: '', familyDynamics: '', significantRelationships: '' },
     substanceUse: { alcohol: '', tobacco: '', drugs: '', details: '' },
@@ -30,7 +31,19 @@ const ClinicalHistoryForm = () => {
     consent: { statement: '', informedConsent: false, confidentialityExplained: false, limitationsDiscussed: false },
   });
 
+  const [newPatientData, setNewPatientData] = useState({
+    fullName: '',
+    dateOfBirth: '',
+    gender: 'prefer-not-to-say',
+    phone: '',
+    email: '',
+  });
+
   useEffect(() => { (async () => {
+    if (!patientId) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/clinical-history`, { headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
@@ -53,24 +66,58 @@ const ClinicalHistoryForm = () => {
   const save = async () => {
     try {
       setSaving(true);
-      const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/clinical-history`, {
+      let targetPatientId = patientId;
+
+      // Si no hay ID de paciente, crearlo primero
+      if (!targetPatientId) {
+        if (!newPatientData.fullName || !newPatientData.dateOfBirth) {
+          toast.error('Por favor complete el nombre y fecha de nacimiento del paciente');
+          setSaving(false);
+          return;
+        }
+
+        const patientPayload = {
+          personalInfo: {
+            ...newPatientData,
+            address: '',
+            emergencyContact: { name: '', relationship: '', phone: '' }
+          },
+          clinicalInfo: {
+            chiefComplaint: data.intake?.chiefComplaint || '',
+            referralSource: data.intake?.referralSource || ''
+          }
+        };
+
+        const createRes = await fetch(`${BASE_URL}/psychology/patients`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(patientPayload)
+        });
+        
+        const createJson = await createRes.json();
+        if (!createRes.ok) throw new Error(createJson.message);
+        targetPatientId = createJson.data._id;
+      }
+
+      // Guardar historia clínica
+      const res = await fetch(`${BASE_URL}/psychology/patients/${targetPatientId}/clinical-history`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      toast.success('Historia clínica guardada');
-      navigate(`/psychology/patients/${patientId}`);
+      
+      toast.success('Historia clínica guardada exitosamente');
+      navigate(`/psychology/patients/${targetPatientId}`);
     } catch (e) { toast.error(e.message); } finally { setSaving(false); }
   };
 
-  if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
-
   const tabs = [
+    ...(!patientId ? [{ name: 'Datos Paciente', icon: '👤' }] : []),
     { name: 'Ingreso', icon: '📝' },
     { name: 'Problema Actual', icon: '🔍' },
+    { name: 'Análisis Funcional', icon: '⚙️' },
     { name: 'Historia Personal', icon: '📖' },
     { name: 'Examen Mental', icon: '🧠' },
     { name: 'Riesgo', icon: '⚠️' },
@@ -81,7 +128,76 @@ const ClinicalHistoryForm = () => {
   ];
 
   const renderTabContent = () => {
-    switch (currentTab) {
+    // Ajustar índice si hay pestaña extra
+    const effectiveTab = !patientId ? currentTab - 1 : currentTab;
+
+    if (!patientId && currentTab === 0) {
+      return (
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-headingColor mb-4">Datos Básicos del Nuevo Paciente</h3>
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+            <p className="text-sm text-blue-800">
+              ℹ️ Estás creando una historia clínica para un paciente nuevo. Al guardar, se creará automáticamente el expediente del paciente.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Nombre Completo *</label>
+              <input 
+                type="text" 
+                required
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" 
+                value={newPatientData.fullName} 
+                onChange={e => setNewPatientData({...newPatientData, fullName: e.target.value})} 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Fecha de Nacimiento *</label>
+              <input 
+                type="date" 
+                required
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" 
+                value={newPatientData.dateOfBirth} 
+                onChange={e => setNewPatientData({...newPatientData, dateOfBirth: e.target.value})} 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Género</label>
+              <select 
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" 
+                value={newPatientData.gender} 
+                onChange={e => setNewPatientData({...newPatientData, gender: e.target.value})}
+              >
+                <option value="male">Masculino</option>
+                <option value="female">Femenino</option>
+                <option value="other">Otro</option>
+                <option value="prefer-not-to-say">Prefiero no decir</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Teléfono</label>
+              <input 
+                type="tel" 
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" 
+                value={newPatientData.phone} 
+                onChange={e => setNewPatientData({...newPatientData, phone: e.target.value})} 
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2">Email (Opcional - para vincular cuenta)</label>
+              <input 
+                type="email" 
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" 
+                value={newPatientData.email} 
+                onChange={e => setNewPatientData({...newPatientData, email: e.target.value})} 
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    switch (effectiveTab) {
       case 0: // Ingreso
         return (
           <div className="space-y-4">
@@ -156,7 +272,37 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 2: // Historia Personal
+      case 2: // Análisis Funcional
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-headingColor mb-4">Análisis Funcional de la Conducta</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                <label className="block font-bold mb-2 text-yellow-800">Antecedentes (Disparadores)</label>
+                <textarea className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" rows={4} value={data.functionalAnalysis?.antecedents || ''} onChange={e=>onChange('functionalAnalysis.antecedents', e.target.value)} placeholder="¿Qué sucede antes? (Interno/Externo)" />
+              </div>
+              <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                <label className="block font-bold mb-2 text-red-800">Conducta Problema</label>
+                <textarea className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" rows={4} value={data.functionalAnalysis?.behavior || ''} onChange={e=>onChange('functionalAnalysis.behavior', e.target.value)} placeholder="Descripción detallada de la conducta" />
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100 md:col-span-2">
+                <label className="block font-bold mb-2 text-green-800">Consecuencias</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Corto Plazo</label>
+                    <textarea className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" rows={2} value={data.functionalAnalysis?.consequencesShortTerm || ''} onChange={e=>onChange('functionalAnalysis.consequencesShortTerm', e.target.value)} placeholder="Alivio inmediato, gratificación..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Largo Plazo</label>
+                    <textarea className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" rows={2} value={data.functionalAnalysis?.consequencesLongTerm || ''} onChange={e=>onChange('functionalAnalysis.consequencesLongTerm', e.target.value)} placeholder="Costos, mantenimiento del problema..." />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3: // Historia Personal
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Historia Personal y Psicosocial</h3>
@@ -204,7 +350,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 3: // Examen Mental
+      case 4: // Examen Mental
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Examen del Estado Mental</h3>
@@ -265,7 +411,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 4: // Riesgo
+      case 5: // Riesgo
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Evaluación de Riesgo y Plan de Seguridad</h3>
@@ -316,7 +462,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 5: // Escalas
+      case 6: // Escalas
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Escalas Estandarizadas</h3>
@@ -393,7 +539,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 6: // Diagnóstico
+      case 7: // Diagnóstico
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Diagnóstico DSM-5</h3>
@@ -435,7 +581,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 7: // Plan TCC
+      case 8: // Plan TCC
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Plan de Tratamiento TCC</h3>
@@ -468,7 +614,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 8: // Consentimiento
+      case 9: // Consentimiento
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-headingColor mb-4">Consentimiento Informado y Confidencialidad</h3>

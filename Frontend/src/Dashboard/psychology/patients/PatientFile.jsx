@@ -3,13 +3,15 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
-import Error from '../../../components/Error/Error';
+import ErrorMessage from '../../../components/Error/Error';
 import ProgressCharts from '../charts/ProgressCharts';
 import AssessmentsList from '../assessments/AssessmentsList';
 import RiskBanner from '../../../components/RiskBanner';
 import PatientQuickBar from '../../../components/PatientQuickBar';
 import SessionToolkit from '../../../components/SessionToolkit';
 import RiskMitigationChecklist from '../../../components/RiskMitigationChecklist';
+import TreatmentPersonalizationPanel from '../treatment/TreatmentPersonalizationPanel';
+import ClinicalHistoryView from '../clinical-history/ClinicalHistoryView';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const PatientFile = () => {
@@ -134,8 +136,8 @@ const PatientFile = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
-  if (!patient) return <Error message="Paciente no encontrado" />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!patient) return <ErrorMessage message="Paciente no encontrado" />;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -175,6 +177,7 @@ const PatientFile = () => {
         <nav className="flex space-x-8">
           {[
             { id: 'info', label: 'Información General', icon: '👤' },
+            { id: 'history', label: 'Historia Clínica', icon: '📖' },
             { id: 'sessions', label: 'Historial de Sesiones', icon: '📋', count: sessions.length },
             { id: 'assessments', label: 'Evaluaciones', icon: '📊', count: assessments.length },
             { id: 'treatment', label: 'Plan de Tratamiento', icon: '🎯' },
@@ -335,6 +338,11 @@ const PatientFile = () => {
               )}
             </div>
           </div>
+        )}
+
+        {/* Clinical History Tab */}
+        {activeTab === 'history' && (
+          <ClinicalHistoryView patientId={id} />
         )}
 
         {/* Sessions Tab */}
@@ -516,74 +524,7 @@ const PatientFile = () => {
 
         {/* Treatment Plan Tab */}
         {activeTab === 'treatment' && (
-          <div>
-            <h2 className="text-xl font-bold text-headingColor mb-4">Plan de Tratamiento</h2>
-            {treatmentPlan ? (
-              <div className="space-y-6">
-                {/* Basic Info */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Orientación Teórica</label>
-                    <p className="text-gray-900">{treatmentPlan.theoreticalOrientation}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Frecuencia de Sesiones</label>
-                    <p className="text-gray-900">{treatmentPlan.sessionFrequency}</p>
-                  </div>
-                </div>
-
-                {/* Goals */}
-                {treatmentPlan.goals && treatmentPlan.goals.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Objetivos Terapéuticos</h3>
-                    <div className="space-y-4">
-                      {treatmentPlan.goals.map((goal, idx) => (
-                        <div key={idx} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <p className="font-medium">{goal.specific}</p>
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              goal.status === 'achieved' ? 'bg-green-100 text-green-800' :
-                              goal.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {goal.status === 'achieved' ? 'Logrado' : goal.status === 'in-progress' ? 'En Progreso' : 'No Iniciado'}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">Meta: {goal.measurable}</p>
-                          <div className="mb-2">
-                            <div className="flex justify-between text-xs text-gray-600 mb-1">
-                              <span>Progreso</span>
-                              <span>{goal.progress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className="bg-primaryColor h-2 rounded-full" style={{ width: `${goal.progress}%` }}></div>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-500">Plazo: {goal.timeframe}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Intervention Techniques */}
-                {treatmentPlan.interventionTechniques && treatmentPlan.interventionTechniques.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Técnicas de Intervención</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {treatmentPlan.interventionTechniques.map((technique, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                          {technique.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">No hay plan de tratamiento registrado</p>
-            )}
-          </div>
+          <TreatmentPersonalizationPanel patientId={id} />
         )}
 
         {/* Charts Tab */}

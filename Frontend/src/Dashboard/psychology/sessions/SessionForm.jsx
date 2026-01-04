@@ -4,7 +4,7 @@ import { useAuthToken } from '../../../hooks/useAuthToken';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
-import Error from '../../../components/Error/Error';
+import ErrorMessage from '../../../components/Error/Error';
 import { toast } from 'react-toastify';
 
 const SessionForm = () => {
@@ -22,6 +22,14 @@ const SessionForm = () => {
     sessionDate: new Date().toISOString().slice(0, 16),
     duration: 50,
     modality: 'in-person',
+    cbtStructure: {
+      moodCheck: false,
+      agendaSetting: '',
+      homeworkReview: '',
+      agendaDiscussion: false,
+      newHomework: false,
+      feedback: ''
+    },
     soapNotes: {
       subjective: '',
       objective: '',
@@ -167,7 +175,7 @@ const SessionForm = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <Error message={error} />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -252,6 +260,79 @@ const SessionForm = () => {
                     </span>
                   </label>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Estructura TCC */}
+        <div className="bg-blue-50 rounded-lg shadow-md p-6 border border-blue-100">
+          <h2 className="text-xl font-bold text-primaryColor mb-4">Estructura de Sesión TCC</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={formData.cbtStructure?.moodCheck}
+                  onChange={(e) => setFormData({...formData, cbtStructure: {...formData.cbtStructure, moodCheck: e.target.checked}})}
+                  className="w-5 h-5 text-primaryColor"
+                />
+                <span className="font-medium">1. Revisión del Estado de Ánimo</span>
+              </label>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">2. Agenda de la Sesión</label>
+                <input
+                  type="text"
+                  value={formData.cbtStructure?.agendaSetting || ''}
+                  onChange={(e) => setFormData({...formData, cbtStructure: {...formData.cbtStructure, agendaSetting: e.target.value}})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Temas a tratar hoy..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">3. Revisión de Tareas (Puente)</label>
+                <textarea
+                  value={formData.cbtStructure?.homeworkReview || ''}
+                  onChange={(e) => setFormData({...formData, cbtStructure: {...formData.cbtStructure, homeworkReview: e.target.value}})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="2"
+                  placeholder="¿Qué se hizo? ¿Qué se aprendió?"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={formData.cbtStructure?.agendaDiscussion}
+                  onChange={(e) => setFormData({...formData, cbtStructure: {...formData.cbtStructure, agendaDiscussion: e.target.checked}})}
+                  className="w-5 h-5 text-primaryColor"
+                />
+                <span className="font-medium">4. Discusión de Temas (Intervención)</span>
+              </label>
+
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={formData.cbtStructure?.newHomework}
+                  onChange={(e) => setFormData({...formData, cbtStructure: {...formData.cbtStructure, newHomework: e.target.checked}})}
+                  className="w-5 h-5 text-primaryColor"
+                />
+                <span className="font-medium">5. Asignación de Nuevas Tareas</span>
+              </label>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">6. Resumen y Feedback</label>
+                <textarea
+                  value={formData.cbtStructure?.feedback || ''}
+                  onChange={(e) => setFormData({...formData, cbtStructure: {...formData.cbtStructure, feedback: e.target.value}})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="2"
+                  placeholder="¿Qué se lleva el paciente hoy?"
+                />
               </div>
             </div>
           </div>

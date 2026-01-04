@@ -5,6 +5,7 @@ import Doctor from '../models/DoctorSchema.js';
 import { deleteCalendarEvent } from './calendarController.js';
 import { google } from 'googleapis';
 import { getOAuthClientWithUserTokens } from '../utils/getOAuthClientWithUserTokens.js';
+import sendEmail from '../utils/emailService.js';
 
 const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, description, start, end, attendees = [] }) => {
   try {
@@ -18,8 +19,23 @@ const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, descriptio
       start: { dateTime: start, timeZone: 'America/Bogota' },
       end: { dateTime: end, timeZone: 'America/Bogota' },
       attendees,
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: 'email', minutes: 24 * 60 },
+          { method: 'popup', minutes: 30 },
+        ],
+      },
     };
-    const response = await calendar.events.insert({ calendarId: 'primary', resource: event });
+    
+    // sendUpdates: 'all' envía notificaciones a los invitados (paciente)
+    const response = await calendar.events.insert({ 
+      calendarId: 'primary', 
+      resource: event,
+      sendUpdates: 'all' 
+    });
+    
+    console.log('📅 Evento de Google Calendar creado:', response.data.htmlLink);
     return response.data.id || null;
   } catch (err) {
     console.error('⚠️ No se pudo sincronizar con Google Calendar:', err.message);
@@ -144,6 +160,67 @@ export const createBooking = async (req, res) => {
       calendarEventId,
     });
 
+    // Enviar notificaciones por correo (sin await para no bloquear)
+    try {
+      console.log('📧 Intentando enviar correos...');
+      console.log('👤 Paciente:', patientProfile?.email);
+      console.log('👨‍⚕️ Doctor:', doctorProfile?.email);
+
+      // Correo al paciente
+      if (patientProfile?.email) {
+        console.log('📨 Enviando correo al paciente...');
+        sendEmail({
+          email: patientProfile.email,
+          subject: 'Confirmación de Cita - Medicare Booking',
+          message: `Hola ${patientProfile.name},\n\nTu cita con el Dr. ${doctorProfile.name} ha sido programada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}\n\nGracias por confiar en nosotros.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Confirmación de Cita</h2>
+              <p>Hola <strong>${patientProfile.name}</strong>,</p>
+              <p>Tu cita con el Dr. <strong>${doctorProfile.name}</strong> ha sido programada exitosamente.</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>📅 Fecha:</strong> ${startDateTime.toLocaleDateString()}</p>
+                <p style="margin: 5px 0;"><strong>⏰ Hora:</strong> ${startDateTime.toLocaleTimeString()}</p>
+                <p style="margin: 5px 0;"><strong>📝 Motivo:</strong> ${motivoConsulta}</p>
+              </div>
+              <p>Si necesitas reprogramar, por favor contáctanos.</p>
+            </div>
+          `
+        })
+        .then(() => console.log('✅ Correo enviado al paciente'))
+        .catch(err => console.error('⚠️ Error enviando correo al paciente:', err.message));
+      } else {
+        console.warn('⚠️ No se envió correo al paciente porque no tiene email registrado.');
+      }
+
+      // Correo al doctor
+      if (doctorProfile?.email) {
+        console.log('📨 Enviando correo al doctor...');
+        sendEmail({
+          email: doctorProfile.email,
+          subject: 'Nueva Cita Programada - Medicare Booking',
+          message: `Hola Dr. ${doctorProfile.name},\n\nSe ha programado una nueva cita con el paciente ${patientProfile.name} para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #059669;">Nueva Cita Programada</h2>
+              <p>Hola Dr. <strong>${doctorProfile.name}</strong>,</p>
+              <p>Se ha programado una nueva cita en su agenda.</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>👤 Paciente:</strong> ${patientProfile.name}</p>
+                <p style="margin: 5px 0;"><strong>📅 Fecha:</strong> ${startDateTime.toLocaleDateString()}</p>
+                <p style="margin: 5px 0;"><strong>⏰ Hora:</strong> ${startDateTime.toLocaleTimeString()}</p>
+                <p style="margin: 5px 0;"><strong>📝 Motivo:</strong> ${motivoConsulta}</p>
+              </div>
+            </div>
+          `
+        })
+        .then(() => console.log('✅ Correo enviado al doctor'))
+        .catch(err => console.error('⚠️ Error enviando correo al doctor:', err.message));
+      }
+    } catch (emailError) {
+      console.error('⚠️ Error preparando correos:', emailError.message);
+    }
+
     // 4. ✅ Enviar respuesta
     res.status(201).json({
       success: true,
@@ -168,13 +245,15 @@ export const cancelBooking = async (req, res) => {
     const userId = req.user.id;
     const { bookingId } = req.params;
 
-    const booking = await Booking.findById(bookingId);
+    const booking = await Booking.findById(bookingId)
+      .populate('user', 'name email')
+      .populate('doctor', 'name email');
 
     if (!booking) {
       return res.status(404).json({ error: 'Cita no encontrada' });
     }
 
-    if (booking.user.toString() !== userId) {
+    if (booking.user._id.toString() !== userId) {
       return res.status(403).json({ error: 'No autorizado para cancelar esta cita' });
     }
 
@@ -188,6 +267,48 @@ export const cancelBooking = async (req, res) => {
         status: () => ({ json: () => {} }), // mock básico
       };
       await deleteCalendarEvent(deleteEventReq, deleteEventRes);
+    }
+
+    // Enviar notificación de cancelación (sin await)
+    try {
+      const patient = booking.user;
+      const doctor = booking.doctor;
+      const dateStr = new Date(booking.appointmentDate).toLocaleString();
+
+      // Correo al paciente
+      if (patient?.email) {
+        sendEmail({
+          email: patient.email,
+          subject: 'Cita Cancelada - Medicare Booking',
+          message: `Hola ${patient.name},\n\nTu cita con el Dr. ${doctor.name} programada para el ${dateStr} ha sido cancelada.\n\nSi no fuiste tú quien realizó esta acción, por favor contáctanos.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #dc2626;">Cita Cancelada</h2>
+              <p>Hola <strong>${patient.name}</strong>,</p>
+              <p>Tu cita con el Dr. <strong>${doctor.name}</strong> programada para el <strong>${dateStr}</strong> ha sido cancelada.</p>
+              <p>Si deseas reprogramar, visita nuestra plataforma.</p>
+            </div>
+          `
+        }).catch(err => console.error('⚠️ Error enviando correo cancelación paciente:', err.message));
+      }
+
+      // Correo al doctor
+      if (doctor?.email) {
+        sendEmail({
+          email: doctor.email,
+          subject: 'Cita Cancelada - Medicare Booking',
+          message: `Hola Dr. ${doctor.name},\n\nLa cita con el paciente ${patient.name} programada para el ${dateStr} ha sido cancelada.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #dc2626;">Cita Cancelada</h2>
+              <p>Hola Dr. <strong>${doctor.name}</strong>,</p>
+              <p>La cita con el paciente <strong>${patient.name}</strong> programada para el <strong>${dateStr}</strong> ha sido cancelada.</p>
+            </div>
+          `
+        }).catch(err => console.error('⚠️ Error enviando correo cancelación doctor:', err.message));
+      }
+    } catch (emailError) {
+      console.error('⚠️ Error preparando correos de cancelación:', emailError.message);
     }
 
     // Eliminamos la cita de la base de datos

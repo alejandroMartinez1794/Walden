@@ -346,6 +346,26 @@ const AssessmentSelector = () => {
         </div>
       </div>
 
+      {/* Herramientas TCC Avanzadas */}
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold text-headingColor">🧠 Herramientas Clínicas TCC</h2>
+        <p className="text-textColor mt-1">Instrumentos para conceptualización y tratamiento cognitivo-conductual.</p>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Link to="/psychology/assessments/case-formulation" className="block">
+                <div className="bg-purple-600 text-white rounded-lg shadow-lg p-6 transition-all transform hover:scale-105 h-full flex flex-col">
+                  <h3 className="text-2xl font-bold text-center mb-2">Formulación de Caso</h3>
+                  <p className="text-sm text-center opacity-90 mb-3">Conceptualización Cognitiva</p>
+                  <div className="flex-grow">
+                    <p className="text-sm text-center mb-4">Mapa clínico completo: Creencias, Estrategias, Análisis Funcional y Plan.</p>
+                  </div>
+                  <div className="flex items-center justify-center text-sm opacity-75">
+                    ⏱ 30-45 min
+                  </div>
+                </div>
+            </Link>
+        </div>
+      </div>
+
       {/* Conditional */}
       <div className="mb-10">
         <h2 className="text-2xl font-bold text-headingColor">🟡 Disponibles al activar licencia</h2>

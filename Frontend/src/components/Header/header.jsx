@@ -53,6 +53,7 @@ const Header = () => {
     navigate('/login');
   };
 
+
   useEffect(() => {
     if (user?.photo) {
       setDoctorAvatar(user.photo);

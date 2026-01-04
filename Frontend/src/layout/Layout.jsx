@@ -6,6 +6,7 @@ import Header from "../components/Header/header";
 import Footer from "../components/Footer/Footer";
 import Routers from "../routes/Routers";
 import Chatbot from "../components/Chatbot/Chatbot";
+import BackButton from "../components/common/BackButton";
 
 
 const Layout = () => {
@@ -13,7 +14,8 @@ const Layout = () => {
         <>
             <Header />
             <main>
-                <Routers/>   
+                <Routers/>
+                <BackButton />   
             </main>
             <Footer />  
             <Chatbot />
