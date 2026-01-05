@@ -136,7 +136,7 @@ const Contact = () => {
                         <div className='bg-white rounded-lg shadow-md p-6'>
                             <h3 className='text-xl font-semibold mb-2'>Contacto directo</h3>
                             <p className='text_para mb-4'>
-                                Email: <a href='mailto:contacto@medicare.example' className='text-primaryColor'>contacto@medicare.example</a>
+                                Email: <a href='mailto:contacto@psiconepsis.example' className='text-primaryColor'>contacto@psiconepsis.example</a>
                                 <br />
                                 Teléfono: <a href='tel:+573000000000' className='text-primaryColor'>+57 300 000 0000</a>
                             </p>

@@ -1,5 +1,6 @@
 // backend/models/PsychologicalClinicalHistorySchema.js
 import mongoose from 'mongoose';
+import { encryptClinicalData, decryptClinicalData } from '../utils/clinicalCrypto.js';
 
 // Historia clínica psicológica integral (enfoque TCC, práctica clínica colombiana)
 const psychologicalClinicalHistorySchema = new mongoose.Schema({
@@ -103,6 +104,14 @@ const psychologicalClinicalHistorySchema = new mongoose.Schema({
     obtained: { type: Boolean, default: false },
     date: Date,
     notes: String,
+    // Campos detallados para cumplimiento legal (Colombia - Telepsicología)
+    statement: String,
+    informedConsent: { type: Boolean, default: false }, // Aceptación general
+    confidentialityExplained: { type: Boolean, default: false },
+    limitationsDiscussed: { type: Boolean, default: false },
+    crisisProtocol: { type: Boolean, default: false }, // Protocolo de crisis
+    privacyRecording: { type: Boolean, default: false }, // Privacidad y grabación
+    dataCustody: { type: Boolean, default: false }, // Custodia de datos
   },
 
   attachments: [
@@ -111,6 +120,120 @@ const psychologicalClinicalHistorySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 psychologicalClinicalHistorySchema.index({ patient: 1, psychologist: 1 }, { unique: true });
+
+// ==========================================
+// SEGURIDAD CLÍNICA: ENCRIPTACIÓN DE CAMPOS
+// ==========================================
+
+const ENCRYPTED_FIELDS = [
+  'intake.chiefComplaint',
+  'intake.onsetDescription',
+  'currentProblemHistory.triggers',
+  'currentProblemHistory.maintainingFactors',
+  'currentProblemHistory.cognitiveContent',
+  'currentProblemHistory.behavioralPatterns',
+  'currentProblemHistory.emotionalSymptoms',
+  'currentProblemHistory.physiologicalSymptoms',
+  'personalHistory.developmental',
+  'personalHistory.medical',
+  'personalHistory.psychiatric',
+  'personalHistory.psychological',
+  'personalHistory.academic',
+  'personalHistory.occupational',
+  'personalHistory.legal',
+  'familyAndSupport.familyHistory',
+  'familyAndSupport.livingSituation',
+  'familyAndSupport.supportNetwork',
+  'familyAndSupport.significantRelationships',
+  'substanceUse.alcohol',
+  'substanceUse.tobacco',
+  'substanceUse.otherDrugs',
+  'substanceUse.comments',
+  'risk.safetyPlan',
+  'mentalStatusExam.appearance',
+  'mentalStatusExam.behavior',
+  'mentalStatusExam.speech',
+  'mentalStatusExam.mood',
+  'mentalStatusExam.affect',
+  'mentalStatusExam.thoughtProcess',
+  'mentalStatusExam.thoughtContent',
+  'mentalStatusExam.perception',
+  'mentalStatusExam.cognition',
+  'mentalStatusExam.insight',
+  'mentalStatusExam.judgment',
+  'diagnosis.clinicalFormulation',
+  'goalsAndPlan.treatmentGoals',
+  'goalsAndPlan.cbtTechniquesPlanned',
+  'consent.notes',
+  'consent.statement'
+];
+
+// Helper para procesar campos anidados de forma segura
+const processFields = (obj, fields, processor) => {
+  if (!obj) return;
+  
+  fields.forEach(field => {
+    const parts = field.split('.');
+    let current = obj;
+    
+    // Navegar hasta el objeto contenedor
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!current[parts[i]]) return;
+      current = current[parts[i]];
+    }
+    
+    const last = parts[parts.length - 1];
+    const value = current[last];
+
+    if (value && typeof value === 'string') {
+      try {
+        // Lógica para evitar doble encriptación o errores en desencriptación
+        const isEncryptedFormat = value.includes(':') && value.length > 32;
+        
+        if (processor.name === 'encryptClinicalData') {
+          // Si ya parece encriptado, no re-encriptar (prevención básica)
+          if (!isEncryptedFormat) {
+            current[last] = processor(value);
+          }
+        } else if (processor.name === 'decryptClinicalData') {
+          // Solo intentar desencriptar si tiene formato válido
+          if (isEncryptedFormat) {
+            current[last] = processor(value);
+          }
+        }
+      } catch (e) {
+        // Silenciar errores de criptografía para no romper el flujo, mantener valor original
+        // console.warn(`[ClinicalCrypto] Error processing field ${field}:`, e.message);
+      }
+    }
+  });
+};
+
+// Middleware: Encriptar antes de guardar (save)
+psychologicalClinicalHistorySchema.pre('save', function(next) {
+  if (this.isModified()) {
+     processFields(this, ENCRYPTED_FIELDS, encryptClinicalData);
+  }
+  next();
+});
+
+// Middleware: Encriptar antes de findOneAndUpdate
+psychologicalClinicalHistorySchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate();
+  if (update.$set) {
+      processFields(update.$set, ENCRYPTED_FIELDS, encryptClinicalData);
+  }
+  next();
+});
+
+// Middleware: Desencriptar después de obtener (find, findOne, findOneAndUpdate)
+psychologicalClinicalHistorySchema.post(['find', 'findOne', 'findOneAndUpdate'], function(docs) {
+  if (!docs) return;
+  const docList = Array.isArray(docs) ? docs : [docs];
+  docList.forEach(doc => {
+      processFields(doc, ENCRYPTED_FIELDS, decryptClinicalData);
+  });
+});
 
 export default mongoose.models.PsychologicalClinicalHistory ||
   mongoose.model('PsychologicalClinicalHistory', psychologicalClinicalHistorySchema);

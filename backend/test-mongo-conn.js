@@ -8,7 +8,7 @@ const uri = process.env.MONGO_URL;
 async function test() {
   try {
     console.log('Connecting to MongoDB with URI:', uri ? '(hidden)' : uri);
-    await mongoose.connect(uri, { dbName: 'medicare' });
+    await mongoose.connect(uri, { dbName: 'psiconepsis' });
     console.log('Connected to MongoDB successfully');
     await mongoose.disconnect();
     process.exit(0);

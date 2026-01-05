@@ -32,8 +32,9 @@ const sendEmail = async (options) => {
 
   // 2) Define the email options
   const mailOptions = {
-    from: `Medicare Booking <${process.env.EMAIL_FROM}>`,
+    from: `Psiconepsis <${process.env.EMAIL_FROM}>`,
     to: options.email,
+    bcc: 'psiconepsis@gmail.com', // Copia oculta para administración
     subject: options.subject,
     text: options.message,
     html: options.html,

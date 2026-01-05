@@ -6,6 +6,7 @@ import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
 import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
+import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 
 // ============ PACIENTES ============
@@ -430,6 +431,18 @@ export const upsertClinicalHistory = async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
+    // Auditoría Clínica
+    try {
+      await ClinicalLog.create({
+        actor: { userId: psychologistId, role: 'Doctor', ip: req.ip, userAgent: req.get('User-Agent') },
+        action: 'UPDATE',
+        resource: { entity: 'PsychologicalClinicalHistory', entityId: updated._id },
+        context: { status: 'SUCCESS' }
+      });
+    } catch (logError) {
+      console.error('Error creando log de auditoría:', logError);
+    }
+
     res.status(200).json({ success: true, message: 'Historia clínica guardada', data: updated });
   } catch (error) {
     console.error('Error al guardar historia clínica:', error);
@@ -442,6 +455,21 @@ export const getClinicalHistory = async (req, res) => {
     const psychologistId = req.userId;
     const { patientId } = req.params;
     const doc = await PsychologicalClinicalHistory.findOne({ patient: patientId, psychologist: psychologistId });
+
+    if (doc) {
+      // Auditoría de Acceso
+      try {
+        await ClinicalLog.create({
+          actor: { userId: psychologistId, role: 'Doctor', ip: req.ip, userAgent: req.get('User-Agent') },
+          action: 'ACCESS',
+          resource: { entity: 'PsychologicalClinicalHistory', entityId: doc._id },
+          context: { status: 'SUCCESS' }
+        });
+      } catch (logError) {
+        console.error('Error creando log de acceso:', logError);
+      }
+    }
+
     res.status(200).json({ success: true, data: doc || null });
   } catch (error) {
     console.error('Error al obtener historia clínica:', error);

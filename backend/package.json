@@ -1,5 +1,5 @@
 {
-  "name": "medicare-booking",
+  "name": "psiconepsis-booking",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -16,13 +16,19 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.2.1",
     "googleapis": "^148.0.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.6.1",
     "mongoose": "^8.13.2",
-    "nodemailer": "^7.0.12"
+    "nodemailer": "^7.0.12",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

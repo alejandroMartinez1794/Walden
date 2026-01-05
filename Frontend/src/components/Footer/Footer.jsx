@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {Link} from 'react-router-dom';
-import logo from '../../assets/images/logo.png';
+import logo from '../../assets/images/PsicoNepsis.png';
 import {RiLinkedinFill} from 'react-icons/ri';
 import {AiFillYoutube, AiFillGithub, AiOutlineInstagram} from 'react-icons/ai';
 
@@ -64,6 +64,14 @@ const quickLinks03 = [
         path: "/contact",
         display: "Contactanos",
     },
+    {
+        path: "/data-protection",
+        display: "Política de Privacidad",
+    },
+    {
+        path: "/terms-of-service",
+        display: "Términos y Condiciones",
+    },
 ]
 
 const Footer = () => {
@@ -74,7 +82,7 @@ const Footer = () => {
             <div className="container">
                 <div className="flex justify-between flex-col md:flex-row flex-wrap gap-[30px]">
                     <div>
-                        <img src={logo} alt=""/>
+                        <img src={logo} alt="" className="w-40 mb-6 mix-blend-multiply"/>
                         <p className="text-[16px] leading-7 font-[400] text-textColor">
                             Copyright {year} desarrollado por Bogobyte. Todos los derechos reservados.
                         </p>

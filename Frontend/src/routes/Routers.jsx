@@ -36,6 +36,8 @@ import LicenseLocked from '../Dashboard/psychology/assessments/LicenseLocked';
 import SessionForm from '../Dashboard/psychology/sessions/SessionForm';
 
 import GoogleAuthRedirect from '../pages/GoogleAuthRedirect'; // ✅ IMPORTACIÓN
+import DataProtection from '../pages/Legal/DataProtection';
+import TermsOfService from '../pages/Legal/TermsOfService';
 
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute';
@@ -51,6 +53,8 @@ const Routers = () => {
             <Route path="/Contact" element={<Contact />} />
             <Route path="/Services" element={<Services />} />
             <Route path="/testimonios" element={<Testimonios />} />
+            <Route path="/data-protection" element={<DataProtection />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route
                 path="/users/profile/me"
                 element={

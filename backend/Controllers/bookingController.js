@@ -171,7 +171,7 @@ export const createBooking = async (req, res) => {
         console.log('📨 Enviando correo al paciente...');
         sendEmail({
           email: patientProfile.email,
-          subject: 'Confirmación de Cita - Medicare Booking',
+          subject: 'Confirmación de Cita - Psiconepsis',
           message: `Hola ${patientProfile.name},\n\nTu cita con el Dr. ${doctorProfile.name} ha sido programada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}\n\nGracias por confiar en nosotros.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -198,7 +198,7 @@ export const createBooking = async (req, res) => {
         console.log('📨 Enviando correo al doctor...');
         sendEmail({
           email: doctorProfile.email,
-          subject: 'Nueva Cita Programada - Medicare Booking',
+          subject: 'Nueva Cita Programada - Psiconepsis',
           message: `Hola Dr. ${doctorProfile.name},\n\nSe ha programado una nueva cita con el paciente ${patientProfile.name} para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -279,7 +279,7 @@ export const cancelBooking = async (req, res) => {
       if (patient?.email) {
         sendEmail({
           email: patient.email,
-          subject: 'Cita Cancelada - Medicare Booking',
+          subject: 'Cita Cancelada - Psiconepsis',
           message: `Hola ${patient.name},\n\nTu cita con el Dr. ${doctor.name} programada para el ${dateStr} ha sido cancelada.\n\nSi no fuiste tú quien realizó esta acción, por favor contáctanos.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -296,7 +296,7 @@ export const cancelBooking = async (req, res) => {
       if (doctor?.email) {
         sendEmail({
           email: doctor.email,
-          subject: 'Cita Cancelada - Medicare Booking',
+          subject: 'Cita Cancelada - Psiconepsis',
           message: `Hola Dr. ${doctor.name},\n\nLa cita con el paciente ${patient.name} programada para el ${dateStr} ha sido cancelada.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

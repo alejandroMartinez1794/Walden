@@ -4,93 +4,100 @@ import { BASE_URL } from '../../config';
 // Intents y palabras clave
 const intents = {
   greeting: {
-    keywords: ['hola', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey', 'hi', 'saludos'],
+    keywords: ['hola', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey', 'hi', 'saludos', 'quiubo', 'que mas', 'bien o no'],
     responses: [
-      '¡Hola! 👋 ¿En qué puedo ayudarte hoy?',
-      '¡Bienvenido! ¿Cómo puedo asistirte?',
-      '¡Hola! Estoy aquí para ayudarte con lo que necesites.',
+      '¡Hola! 👋 Soy PsicoBot, tu asistente virtual en Psiconepsis. ¿En qué vuelta te puedo ayudar hoy?',
+      '¡Quiubo! Bienvenido a Psiconepsis. ¿Qué necesitas? Estoy aquí para guiarte.',
+      '¡Hola! Espero que estés teniendo un día bacano. ¿Cómo te puedo colaborar?',
     ],
-    quickReplies: ['Agendar cita', 'Ver doctores', 'Servicios'],
+    quickReplies: ['Agendar cita', 'Ver especialistas', 'Servicios', 'Precios'],
   },
   booking: {
-    keywords: ['agendar', 'cita', 'turno', 'reservar', 'appointment', 'appointment booking', 'consulta'],
+    keywords: ['agendar', 'cita', 'turno', 'reservar', 'appointment', 'appointment booking', 'consulta', 'sacar cita'],
     responses: [
-      'Para agendar una cita, puedes:\n\n1. Ir a la sección "Doctores" y seleccionar un especialista\n2. Elegir una fecha y hora disponible\n3. Confirmar tu reserva\n\n¿Te gustaría ver nuestros doctores disponibles?',
+      '¡De una! Para agendar es súper fácil:\n\n1. Ve a la sección "Doctores".\n2. Elige al especialista que más te trame.\n3. Selecciona la hora que te sirva.\n\n¿Quieres que te muestre los doctores de una vez?',
     ],
-    quickReplies: ['Ver doctores', 'Ver mis citas', 'Cancelar una cita'],
+    quickReplies: ['Ver doctores', 'Ver mis citas', 'Cancelar cita'],
   },
   doctors: {
-    keywords: ['doctor', 'doctores', 'especialista', 'medico', 'médico', 'profesional'],
+    keywords: ['doctor', 'doctores', 'especialista', 'medico', 'médico', 'profesional', 'psicologo', 'psiquiatra'],
     responses: [
-      'Contamos con doctores especializados en diversas áreas. ¿Qué especialidad estás buscando?',
+      'Tenemos un equipo de primera. ¿Qué tipo de especialista estás buscando? Tenemos psicólogos, psiquiatras y médicos generales.',
     ],
-    quickReplies: ['Cardiología', 'Neurología', 'Dermatología', 'Ginecología'],
+    quickReplies: ['Psicología', 'Psiquiatría', 'Medicina General', 'Ver todos'],
     fetchDoctors: true,
   },
   services: {
-    keywords: ['servicio', 'servicios', 'que ofrecen', 'especialidades', 'tratamiento'],
+    keywords: ['servicio', 'servicios', 'que ofrecen', 'especialidades', 'tratamiento', 'que hacen'],
     responses: [
-      'Medicare ofrece los siguientes servicios:\n\n🩺 Consultas médicas generales\n🧠 Evaluaciones psicológicas\n💊 Medicina interna\n🫀 Cardiología\n🧬 Neurología\n🔬 Análisis clínicos\n\n¿Te interesa algún servicio en particular?',
+      'En Psiconepsis nos encargamos de tu salud integral con:\n\n🧠 Psicología Clínica (TCC)\n💊 Psiquiatría\n🩺 Medicina General\n📹 Telepsicología Segura\n\nTodo con la mejor tecnología y seguridad. ¿Te interesa algo en específico?',
     ],
-    quickReplies: ['Agendar cita', 'Ver doctores', 'Consultar precios'],
+    quickReplies: ['Agendar cita', 'Ver doctores', 'Telepsicología'],
+  },
+  security: {
+    keywords: ['seguridad', 'privacidad', 'datos', 'seguro', 'encriptado', 'confidencial'],
+    responses: [
+      '¡Tranquilo! Aquí la seguridad es lo primero. Usamos "PsicoNepsis Shield":\n\n🔒 Encriptación AES-256 (Nivel militar)\n🛡️ Auditoría clínica inmutable\n🤐 Confidencialidad total\n\nTus secretos están a salvo con nosotros, ni nosotros podemos leerlos.',
+    ],
+    quickReplies: ['Ver política de datos', 'Agendar cita segura'],
   },
   psychology: {
-    keywords: ['psicolog', 'ansiedad', 'depresion', 'estres', 'mental', 'terapia', 'salud mental'],
+    keywords: ['ansiedad', 'depresion', 'estres', 'triste', 'ayuda mental', 'terapia', 'tusa', 'mal'],
     responses: [
-      'Ofrecemos servicios de psicología y salud mental:\n\n✅ Evaluaciones psicológicas (PHQ-9, GAD-7, BDI-II)\n✅ Terapia individual\n✅ Manejo de ansiedad y estrés\n✅ Tratamiento de depresión\n\n¿Necesitas agendar una evaluación?',
+      'Entiendo, a veces la vida se pone pesada. En Psiconepsis tenemos expertos en:\n\n✅ Manejo de ansiedad y estrés\n✅ Depresión\n✅ Terapia de pareja\n✅ Crecimiento personal\n\nNo tienes que pasar por esto solo. ¿Te gustaría hablar con alguien?',
     ],
-    quickReplies: ['Hacer evaluación', 'Agendar terapia', 'Ver psicólogos'],
+    quickReplies: ['Agendar con Psicólogo', 'Hacer test de ansiedad', 'Urgencia'],
   },
   prices: {
-    keywords: ['precio', 'costo', 'cuanto cuesta', 'tarifa', 'pago', 'seguro'],
+    keywords: ['precio', 'costo', 'cuanto cuesta', 'tarifa', 'pago', 'billete', 'plata', 'vale'],
     responses: [
-      'Los precios varían según el servicio:\n\n💰 Consulta general: $50-80\n💰 Especialistas: $80-150\n💰 Evaluaciones psicológicas: $60\n\nAceptamos seguros médicos y pagos con tarjeta. ¿Te gustaría agendar una cita?',
-    ],
-    quickReplies: ['Sí, agendar cita', 'Ver doctores', 'Más información'],
-  },
-  myBookings: {
-    keywords: ['mis citas', 'mi cita', 'mis turnos', 'reservas', 'appointments'],
-    responses: [
-      'Puedes ver todas tus citas en la sección "Mis Citas" de tu perfil. Allí podrás:\n\n📅 Ver próximas citas\n✏️ Ver detalles\n❌ Cancelar citas si es necesario\n\n¿Necesitas ayuda con alguna cita específica?',
-    ],
-    quickReplies: ['Ir a mis citas', 'Agendar nueva cita'],
-  },
-  cancel: {
-    keywords: ['cancelar', 'eliminar cita', 'borrar cita', 'no puedo ir'],
-    responses: [
-      'Para cancelar una cita:\n\n1. Ve a "Mis Citas"\n2. Encuentra la cita que deseas cancelar\n3. Haz clic en "Cancelar"\n\n⚠️ Te recomendamos cancelar con al menos 24 horas de anticipación.',
-    ],
-    quickReplies: ['Ir a mis citas', 'Agendar nueva cita'],
-  },
-  contact: {
-    keywords: ['contacto', 'telefono', 'email', 'direccion', 'ubicacion', 'donde estan'],
-    responses: [
-      '📞 Información de contacto:\n\n📱 Teléfono: +1 (555) 123-4567\n📧 Email: info@medicare.com\n📍 Dirección: 123 Health Street, Medical District\n\n🕐 Horario: Lunes a Viernes 8:00 AM - 8:00 PM\n\n¿Necesitas algo más?',
-    ],
-    quickReplies: ['Agendar cita', 'Ver servicios'],
-  },
-  help: {
-    keywords: ['ayuda', 'help', 'no entiendo', 'que puedes hacer', 'opciones'],
-    responses: [
-      'Puedo ayudarte con:\n\n🩺 Agendar citas médicas\n👨‍⚕️ Buscar doctores y especialistas\n📋 Información sobre servicios\n💰 Consultar precios\n📅 Gestionar tus citas\n📞 Información de contacto\n\n¿Qué necesitas?',
-    ],
-    quickReplies: ['Agendar cita', 'Ver doctores', 'Ver servicios', 'Contacto'],
-  },
-  thanks: {
-    keywords: ['gracias', 'thanks', 'muchas gracias', 'perfecto', 'excelente', 'bien'],
-    responses: [
-      '¡De nada! 😊 Estoy aquí si necesitas algo más.',
-      '¡Un placer ayudarte! ¿Hay algo más en lo que pueda asistirte?',
-      '¡Genial! Si tienes más preguntas, no dudes en escribirme.',
+      'Manejamos tarifas justas para que te cuides:\n\n💰 Consulta General: $50.000 - $80.000\n💰 Especialistas: $80.000 - $150.000\n💰 Terapia TCC: $100.000\n\nPuedes pagar con Nequi, Daviplata o Tarjeta. ¿Te animas?',
     ],
     quickReplies: ['Agendar cita', 'Ver doctores'],
   },
-  goodbye: {
-    keywords: ['adios', 'chao', 'hasta luego', 'bye', 'nos vemos'],
+  payment: {
+    keywords: ['pagar', 'nequi', 'daviplata', 'tarjeta', 'efectivo', 'metodos de pago'],
     responses: [
-      '¡Hasta pronto! 👋 Que tengas un excelente día.',
-      '¡Nos vemos! Cuídate mucho. 💙',
-      '¡Adiós! Estoy aquí cuando me necesites.',
+      'Recibimos de todo para que no te vares:\n\n💳 Tarjetas Débito/Crédito\n📱 Nequi y Daviplata\n🏦 PSE\n\nEl pago se hace al confirmar la cita. ¡Fácil y rápido!',
+    ],
+    quickReplies: ['Agendar cita'],
+  },
+  myBookings: {
+    keywords: ['mis citas', 'mi cita', 'mis turnos', 'reservas', 'cuando me toca'],
+    responses: [
+      'Revisa tus vueltas en "Mi Perfil" -> "Mis Citas". Ahí ves fecha, hora y hasta puedes entrar a la videollamada si es virtual.',
+    ],
+    quickReplies: ['Ir a mis citas', 'Agendar nueva'],
+  },
+  contact: {
+    keywords: ['contacto', 'telefono', 'email', 'direccion', 'ubicacion', 'donde estan', 'llamar'],
+    responses: [
+      '📞 Contáctanos de una:\n\n📱 WhatsApp: +57 300 123 4567\n📧 Email: psiconepsis@gmail.com\n📍 Sede Principal: Calle 123 # 45-67, Bogotá\n\n¡Estamos atentos!',
+    ],
+    quickReplies: ['Agendar cita', 'Ver mapa'],
+  },
+  insult: {
+    keywords: ['bobo', 'estupido', 'idiota', 'mierda', 'puta', 'malparido', 'gonorrea'],
+    responses: [
+      'Epa, bájele al tono. Aquí estamos para ayudar con buena vibra. Respeto ante todo, parcero. ✌️',
+      'Oye, tranqui. No hay necesidad de esas palabras. ¿En qué te puedo ayudar de buena manera?',
+    ],
+  },
+  thanks: {
+    keywords: ['gracias', 'thanks', 'muchas gracias', 'perfecto', 'excelente', 'bien', 'listo', 'todo bien'],
+    responses: [
+      '¡Con gusto! Pa\' las que sea. 😎',
+      '¡A la orden! Cuídate mucho.',
+      '¡Todo bien! Aquí estamos firmes.',
+    ],
+    quickReplies: ['Agendar cita', 'Cerrar chat'],
+  },
+  goodbye: {
+    keywords: ['adios', 'chao', 'hasta luego', 'bye', 'nos vemos', 'suerte'],
+    responses: [
+      '¡La buena! Que tengas un día chimba. 👋',
+      '¡Chao pues! Cuídate.',
+      '¡Nos pillamos! Vuelve cuando quieras.',
     ],
   },
 };

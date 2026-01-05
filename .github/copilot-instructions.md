@@ -1,4 +1,4 @@
-# Medicare Booking Platform - AI Agent Guide
+# Psiconepsis Platform - AI Agent Guide
 
 ## Project Architecture
 
@@ -70,7 +70,7 @@ const { data, loading, error } = useFetchData(`${BASE_URL}/doctors`);
 ```javascript
 // In doctor.js
 
-# Medicare Booking — Guía breve para agentes de código (en español)
+# Psiconepsis — Guía breve para agentes de código (en español)
 
 Orientación rápida para hacer cambios productivos en este repositorio (concisa y accionable).
 

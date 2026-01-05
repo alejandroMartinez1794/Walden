@@ -29,8 +29,8 @@ const Chatbot = () => {
       const welcomeMsg = {
         id: Date.now(),
         text: user
-          ? `¡Hola ${user.name}! 👋 Soy el asistente virtual de Medicare. ¿En qué puedo ayudarte hoy?`
-          : '¡Hola! 👋 Soy el asistente virtual de Medicare. ¿En qué puedo ayudarte hoy?',
+          ? `¡Hola ${user.name}! 👋 Soy el asistente virtual de Psiconepsis. ¿En qué puedo ayudarte hoy?`
+          : '¡Hola! 👋 Soy el asistente virtual de Psiconepsis. ¿En qué puedo ayudarte hoy?',
         sender: 'bot',
         timestamp: new Date(),
         quickReplies: [
@@ -141,7 +141,7 @@ const Chatbot = () => {
                 <span className="text-2xl">🏥</span>
               </div>
               <div>
-                <h3 className="font-bold text-lg">Medicare Assistant</h3>
+                <h3 className="font-bold text-lg">Psiconepsis Assistant</h3>
                 <p className="text-xs opacity-90">Siempre disponible</p>
               </div>
             </div>
@@ -202,7 +202,7 @@ const Chatbot = () => {
 
           {/* Footer */}
           <div className="bg-gray-100 px-4 py-2 text-center text-xs text-gray-500">
-            Powered by Medicare AI
+            Powered by Psiconepsis AI
           </div>
         </div>
       )}

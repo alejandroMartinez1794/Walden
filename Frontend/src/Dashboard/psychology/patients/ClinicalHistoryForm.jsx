@@ -617,23 +617,67 @@ const ClinicalHistoryForm = () => {
       case 9: // Consentimiento
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-headingColor mb-4">Consentimiento Informado y Confidencialidad</h3>
+            <h3 className="text-lg font-semibold text-headingColor mb-4">Consentimiento Informado y Telepsicología (Colombia)</h3>
+            
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+              <h4 className="font-bold text-blue-800 mb-2">⚖️ Marco Legal para Atención 100% Virtual</h4>
+              <p className="text-sm text-blue-700 mb-2">
+                Este servicio se presta bajo la modalidad de <strong>Telemedicina / Telesalud</strong>, cumpliendo con:
+              </p>
+              <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                <li><strong>Ley 1090 de 2006:</strong> Código Deontológico y Bioético del Psicólogo.</li>
+                <li><strong>Resolución 2654 de 2019:</strong> Disposiciones para la Telesalud y Telemedicina en Colombia.</li>
+                <li><strong>Resolución 1995 de 1999:</strong> Normas para el manejo de la Historia Clínica (Custodia 20 años).</li>
+                <li><strong>Ley 1581 de 2012:</strong> Protección de Datos Personales (Habeas Data).</li>
+              </ul>
+              <div className="mt-3 text-sm text-blue-800">
+                <p>Para más detalles, consulte nuestra <Link to="/data-protection" target="_blank" className="underline font-bold">Política de Privacidad</Link> y <Link to="/terms-of-service" target="_blank" className="underline font-bold">Términos y Condiciones</Link>.</p>
+              </div>
+              <p className="text-xs text-blue-600 mt-2">
+                * No se requiere sede física abierta al público para la atención clínica, siempre que se garantice la confidencialidad y la historia clínica.
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">Declaración de consentimiento</label>
               <textarea className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" rows={6} value={data.consent?.statement || ''} onChange={e=>onChange('consent.statement', e.target.value)} placeholder="Resumen de lo discutido sobre el proceso terapéutico, confidencialidad y sus límites" />
             </div>
-            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-              <label className="flex items-start space-x-3">
-                <input type="checkbox" className="mt-1 w-5 h-5" checked={!!data.consent?.informedConsent} onChange={e=>onChange('consent.informedConsent', e.target.checked)} />
-                <span className="text-sm">El paciente ha sido informado sobre el proceso de terapia cognitivo-conductual, incluyendo beneficios, riesgos y alternativas.</span>
+            <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h4 className="font-semibold text-gray-700 mb-2">Verificación de Puntos Críticos (Obligatorio)</h4>
+              
+              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
+                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.informedConsent} onChange={e=>onChange('consent.informedConsent', e.target.checked)} />
+                <span className="text-sm text-gray-700">
+                  <strong>1. Telepsicología y Alcance:</strong> El paciente acepta la atención virtual, entiende los riesgos tecnológicos (fallos de conexión) y asegura tener un espacio privado para las sesiones.
+                </span>
               </label>
-              <label className="flex items-start space-x-3">
-                <input type="checkbox" className="mt-1 w-5 h-5" checked={!!data.consent?.confidentialityExplained} onChange={e=>onChange('consent.confidentialityExplained', e.target.checked)} />
-                <span className="text-sm">Se han explicado los límites de la confidencialidad (riesgo inminente, abuso, orden judicial).</span>
+
+              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
+                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.crisisProtocol} onChange={e=>onChange('consent.crisisProtocol', e.target.checked)} />
+                <span className="text-sm text-gray-700">
+                  <strong>2. Manejo de Crisis:</strong> Se ha establecido un protocolo claro en caso de desconexión durante una crisis o emergencia (contacto de emergencia verificado).
+                </span>
               </label>
-              <label className="flex items-start space-x-3">
-                <input type="checkbox" className="mt-1 w-5 h-5" checked={!!data.consent?.limitationsDiscussed} onChange={e=>onChange('consent.limitationsDiscussed', e.target.checked)} />
-                <span className="text-sm">Se han discutido las políticas de cancelación, honorarios y límites profesionales.</span>
+
+              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
+                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.privacyRecording} onChange={e=>onChange('consent.privacyRecording', e.target.checked)} />
+                <span className="text-sm text-gray-700">
+                  <strong>3. Privacidad y Grabación:</strong> Se garantiza que las sesiones NO serán grabadas sin consentimiento escrito. La plataforma asegura la encriptación y confidencialidad.
+                </span>
+              </label>
+
+              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
+                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.dataCustody} onChange={e=>onChange('consent.dataCustody', e.target.checked)} />
+                <span className="text-sm text-gray-700">
+                  <strong>4. Historia Clínica y Custodia:</strong> Se informa que la historia clínica se custodiará por 20 años (Res. 1995/99) con acceso restringido y medidas de seguridad digital.
+                </span>
+              </label>
+
+              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
+                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.confidentialityExplained} onChange={e=>onChange('consent.confidentialityExplained', e.target.checked)} />
+                <span className="text-sm text-gray-700">
+                  <strong>5. Confidencialidad y Límites:</strong> Se explican las excepciones legales al secreto profesional (riesgo de vida, abuso de menores, orden judicial).
+                </span>
               </label>
             </div>
           </div>

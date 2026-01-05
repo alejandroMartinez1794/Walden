@@ -1,4 +1,4 @@
-# Medicare Booking (monorepo)
+# Psiconepsis (monorepo)
 
 Work-in-progress full-stack medical appointment booking platform.
 

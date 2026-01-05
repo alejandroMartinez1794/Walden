@@ -8,7 +8,6 @@ import ErrorMessage from '../../components/Error/Error';
 import DoctorAbout from '../../pages/Doctors/DoctorAbout';
 import DoctorProfileForm from '../doctor-account/Profile';
 import { authContext } from '../../context/AuthContext';
-import TelemedicinePanel from './panels/TelemedicinePanel';
 
 const PsychologyDashboard = () => {
   const { token } = useContext(authContext);
@@ -106,7 +105,6 @@ const PsychologyDashboard = () => {
   const panelTabs = [
     { id: 'resumen', label: 'Resumen' },
     { id: 'agenda', label: 'Agenda' },
-    { id: 'telepsicologia', label: 'Telepsicología' },
     { id: 'analitica', label: 'Analítica' },
     { id: 'citas', label: 'Citas' },
     { id: 'perfil', label: 'Perfil' },
@@ -1211,10 +1209,6 @@ const PsychologyDashboard = () => {
             </div>
           </section>
           </div>
-        )}
-
-        {activePanel === 'telepsicologia' && (
-          <TelemedicinePanel />
         )}
 
         {activePanel === 'perfil' && doctorProfile && (

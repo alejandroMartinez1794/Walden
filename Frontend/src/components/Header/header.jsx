@@ -2,7 +2,7 @@ import { useEffect, useRef, useContext, useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
-import logo from '../../assets/images/logo.png';
+import logo from '../../assets/images/PsicoNepsis.png';
 import { authContext } from '../../context/AuthContext';
 import { BASE_URL } from '../../config';
 
@@ -103,8 +103,10 @@ const Header = () => {
       <div className="container">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div>
-            <img src={logo} alt="logo" className="w-32" />
+          <div className="py-2">
+            <Link to="/home">
+              <img src={logo} alt="logo" className="h-20 w-auto mix-blend-multiply cursor-pointer hover:scale-105 transition-transform duration-200" />
+            </Link>
           </div>
 
           {/* Menu */}

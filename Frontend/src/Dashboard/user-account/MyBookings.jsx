@@ -162,7 +162,7 @@ const MyBookings = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded bg-gray-400"></div>
-              <span>Solo en Medicare</span>
+              <span>Solo en Psiconepsis</span>
             </div>
           </div>
           <FullCalendar
@@ -223,7 +223,7 @@ const MyBookings = () => {
                         </span>
                       ) : (
                         <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                          Solo en Medicare
+                          Solo en Psiconepsis
                         </span>
                       )}
                     </div>
