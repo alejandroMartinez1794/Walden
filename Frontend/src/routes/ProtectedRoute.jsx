@@ -5,7 +5,12 @@ import {Navigate} from 'react-router-dom';
 import {authContext} from '../context/AuthContext';
 
 const ProtectedRoute = ({children, allowedRoles}) => {
-    const { token, role } = useContext(authContext);
+    const { token, role, user } = useContext(authContext);
+
+    // 👑 SUPER ADMIN: Permitir acceso total a este correo
+    if (user?.email === 'alejandromartinez_94@hotmail.com') {
+        return token ? children : <Navigate to="/login" replace={true} />;
+    }
 
     const isAllowed = allowedRoles.includes(role);
     const accessibleRoute =

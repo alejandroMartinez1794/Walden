@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import Loading from '../../../components/Loader/Loading';
 import ErrorMessage from '../../../components/Error/Error';
 import { useAuthToken } from '../../../hooks/useAuthToken';
+import InformedConsent from '../../../pages/Legal/InformedConsent'; // Importación para vista previa
 
 const ClinicalHistoryForm = () => {
   const token = useAuthToken();
@@ -111,6 +112,40 @@ const ClinicalHistoryForm = () => {
       toast.success('Historia clínica guardada exitosamente');
       navigate(`/psychology/patients/${targetPatientId}`);
     } catch (e) { toast.error(e.message); } finally { setSaving(false); }
+  };
+
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showConsentPreview, setShowConsentPreview] = useState(false); // Estado para preview
+  const [emailForm, setEmailForm] = useState({ email: '', name: '' });
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  const handleSendConsentEmail = async (e) => {
+    e.preventDefault();
+    if(!emailForm.email) return toast.error("El correo es obligatorio");
+    
+    setSendingEmail(true);
+    try {
+      const res = await fetch(`${BASE_URL}/clinical/send-consent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: emailForm.email,
+          name: emailForm.name,
+          link: `${window.location.protocol}//${window.location.host}/consentimiento`
+        })
+      });
+      const result = await res.json();
+      if(!res.ok) throw new Error(result.message);
+      toast.success(result.message);
+      setShowEmailModal(false);
+    } catch (err) {
+      toast.error(err.message || 'Error al enviar correo');
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   const tabs = [
@@ -615,70 +650,199 @@ const ClinicalHistoryForm = () => {
         );
 
       case 9: // Consentimiento
+        const consentLink = `${window.location.protocol}//${window.location.host}/consentimiento`;
+        
+        const copyLink = () => {
+          navigator.clipboard.writeText(consentLink);
+          alert("Enlace copiado al portapapeles: " + consentLink); 
+        };
+
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-headingColor mb-4">Consentimiento Informado y Telepsicología (Colombia)</h3>
+          <div className="space-y-8 animate-fade-in-up">
             
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-              <h4 className="font-bold text-blue-800 mb-2">⚖️ Marco Legal para Atención 100% Virtual</h4>
-              <p className="text-sm text-blue-700 mb-2">
-                Este servicio se presta bajo la modalidad de <strong>Telemedicina / Telesalud</strong>, cumpliendo con:
-              </p>
-              <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
-                <li><strong>Ley 1090 de 2006:</strong> Código Deontológico y Bioético del Psicólogo.</li>
-                <li><strong>Resolución 2654 de 2019:</strong> Disposiciones para la Telesalud y Telemedicina en Colombia.</li>
-                <li><strong>Resolución 1995 de 1999:</strong> Normas para el manejo de la Historia Clínica (Custodia 20 años).</li>
-                <li><strong>Ley 1581 de 2012:</strong> Protección de Datos Personales (Habeas Data).</li>
-              </ul>
-              <div className="mt-3 text-sm text-blue-800">
-                <p>Para más detalles, consulte nuestra <Link to="/data-protection" target="_blank" className="underline font-bold">Política de Privacidad</Link> y <Link to="/terms-of-service" target="_blank" className="underline font-bold">Términos y Condiciones</Link>.</p>
-              </div>
-              <p className="text-xs text-blue-600 mt-2">
-                * No se requiere sede física abierta al público para la atención clínica, siempre que se garantice la confidencialidad y la historia clínica.
-              </p>
+            {/* Header Section Moderno con Gradiente */}
+            <div className="relative rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-white shadow-xl overflow-hidden group">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2 group-hover:opacity-10 transition duration-700"></div>
+               
+               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="bg-blue-500 text-xs font-bold px-2 py-1 rounded text-white uppercase tracking-wider">Legal & Compliance</span>
+                        <span className="text-slate-400 text-xs font-mono">COL-2025</span>
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-2">Gestión de Consentimiento Informado</h3>
+                    <p className="text-slate-300 max-w-xl text-sm leading-relaxed">
+                        Administre la documentación legal obligatoria para telepsicología. Envíe el formato digital al paciente o verifique los puntos verbalmente.
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                     <button 
+                        onClick={() => {
+                           setEmailForm({ email: data.personalInfo?.email || '', name: data.personalInfo?.fullName || '' });
+                           setShowEmailModal(true);
+                        }}
+                        type="button"
+                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-0.5"
+                     >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <span>Enviar por Email</span>
+                     </button>
+                     <button 
+                        onClick={copyLink}
+                        type="button"
+                        className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-lg border border-slate-600"
+                     >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                        <span>Copiar Link</span>
+                     </button>
+                     <button
+                        onClick={() => setShowConsentPreview(true)}
+                        type="button"
+                        className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-lg border border-slate-700"
+                     >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        <span>Ver Documento</span>
+                     </button>
+                  </div>
+               </div>
             </div>
+            
+            {showConsentPreview && (
+                <div className="fixed inset-0 z-[60] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-6xl h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                        <div className="bg-slate-900 p-4 flex justify-between items-center text-white shrink-0">
+                            <h3 className="font-bold text-lg flex items-center gap-2">
+                                <span>📄</span> Previsualización del Documento
+                            </h3>
+                            <button onClick={() => setShowConsentPreview(false)} className="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg transition">
+                                <span className="sr-only">Cerrar</span>
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto bg-gray-100 p-4 custom-scrollbar">
+                           <div className="transform scale-90 origin-top">
+                               <InformedConsent />
+                           </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Columna Izquierda: Marco Legal */}
+                <div className="lg:col-span-1 space-y-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+                        <h4 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2 relative z-10">
+                            <span className="text-2xl">⚖️</span> 
+                            Marco Normativo
+                        </h4>
+                        
+                        <ul className="space-y-4 relative z-10">
+                            {[ 
+                                { code: 'Ley 1090/06', desc: 'Ética Psicológica' }, 
+                                { code: 'Res. 2654/19', desc: 'Telesalud Colombia' },
+                                { code: 'Ley 1581/12', desc: 'Habeas Data' },
+                                { code: 'Res. 1995/99', desc: 'Historia Clínica' }
+                            ].map((item, i) => (
+                                <li key={i} className="flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-slate-50 transition">
+                                    <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
+                                    <div>
+                                        <p className="font-bold text-slate-700">{item.code}</p>
+                                        <p className="text-slate-500 text-xs">{item.desc}</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Declaración de consentimiento</label>
-              <textarea className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primaryColor focus:border-transparent" rows={6} value={data.consent?.statement || ''} onChange={e=>onChange('consent.statement', e.target.value)} placeholder="Resumen de lo discutido sobre el proceso terapéutico, confidencialidad y sus límites" />
-            </div>
-            <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-2">Verificación de Puntos Críticos (Obligatorio)</h4>
-              
-              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
-                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.informedConsent} onChange={e=>onChange('consent.informedConsent', e.target.checked)} />
-                <span className="text-sm text-gray-700">
-                  <strong>1. Telepsicología y Alcance:</strong> El paciente acepta la atención virtual, entiende los riesgos tecnológicos (fallos de conexión) y asegura tener un espacio privado para las sesiones.
-                </span>
-              </label>
+                        <div className="mt-6 pt-4 border-t border-slate-100">
+                             <a href="/consentimiento" target="_blank" className="flex items-center justify-between group p-3 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition cursor-pointer">
+                                <span className="text-sm font-bold">Ver Documento Fuente</span>
+                                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                             </a>
+                        </div>
+                    </div>
 
-              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
-                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.crisisProtocol} onChange={e=>onChange('consent.crisisProtocol', e.target.checked)} />
-                <span className="text-sm text-gray-700">
-                  <strong>2. Manejo de Crisis:</strong> Se ha establecido un protocolo claro en caso de desconexión durante una crisis o emergencia (contacto de emergencia verificado).
-                </span>
-              </label>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-1">
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-1">Nota de Profesional</label>
+                                <p className="text-xs text-slate-400">Resumen clínico del proceso de consentimiento</p>
+                            </div>
+                            <button 
+                                onClick={save}
+                                className="text-xs bg-slate-900 text-white px-3 py-1.5 rounded flex items-center gap-1 hover:bg-slate-700 transition shadow-sm"
+                                title="Guardar nota y finalizar"
+                            >
+                                <span>💾</span> Guardar Nota
+                            </button>
+                        </div>
+                        <textarea 
+                            className="w-full p-4 text-sm text-slate-700 leading-relaxed outline-none min-h-[160px] resize-none rounded-b-xl" 
+                            value={data.consent?.statement || ''} 
+                            onChange={e=>onChange('consent.statement', e.target.value)} 
+                            placeholder="Escriba aquí observaciones sobre la comprensión del paciente, dudas resueltas o particularidades del consentimiento..." 
+                        />
+                    </div>
+                </div>
 
-              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
-                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.privacyRecording} onChange={e=>onChange('consent.privacyRecording', e.target.checked)} />
-                <span className="text-sm text-gray-700">
-                  <strong>3. Privacidad y Grabación:</strong> Se garantiza que las sesiones NO serán grabadas sin consentimiento escrito. La plataforma asegura la encriptación y confidencialidad.
-                </span>
-              </label>
+                {/* Columna Derecha: Checklist */}
+                <div className="lg:col-span-2">
+                    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col h-full">
+                        <div className="bg-slate-50 p-6 border-b border-slate-200 flex justify-between items-center">
+                            <div>
+                                <h4 className="font-bold text-lg text-slate-800">Verificación de Criterios</h4>
+                                <p className="text-sm text-slate-500">Marque los ítems validados verbalmente o por escrito.</p>
+                            </div>
+                            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        </div>
 
-              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
-                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.dataCustody} onChange={e=>onChange('consent.dataCustody', e.target.checked)} />
-                <span className="text-sm text-gray-700">
-                  <strong>4. Historia Clínica y Custodia:</strong> Se informa que la historia clínica se custodiará por 20 años (Res. 1995/99) con acceso restringido y medidas de seguridad digital.
-                </span>
-              </label>
+                        <div className="divide-y divide-slate-100 flex-1">
+                             {[
+                                { key: 'informedConsent', title: '1. Telepsicología y Alcance', desc: 'Paciente acepta riesgos tecnológicos y garantiza privacidad en su entorno.' },
+                                { key: 'crisisProtocol', title: '2. Protocolo de Crisis', desc: 'Contacto de emergencia verificado y plan de acción ante desconexión.' },
+                                { key: 'privacyRecording', title: '3. No Grabación', desc: 'Prohibición explícita de capturar audio/video sin autorización escrita.' },
+                                { key: 'dataCustody', title: '4. Custodia de Historia', desc: 'Informado sobre retención legal de HC por 20 años y medidas de seguridad.' },
+                                { key: 'confidentialityExplained', title: '5. Límites Confidencialidad', desc: 'Explicación clara de excepciones legales (riesgo vital, abuso, orden judicial).' }
+                             ].map((item, idx) => (
+                                <label key={idx} className="flex items-start gap-4 p-5 hover:bg-slate-50 transition cursor-pointer group">
+                                    <div className="relative flex items-center pt-1">
+                                        <input 
+                                            type="checkbox" 
+                                            className="peer h-6 w-6 border-2 border-slate-300 rounded cursor-pointer transition checked:bg-slate-900 checked:border-slate-900 focus:ring-0 focus:ring-offset-0" 
+                                            checked={!!data.consent?.[item.key]} 
+                                            onChange={e=>onChange(`consent.${item.key}`, e.target.checked)} 
+                                        />
+                                        <svg className="absolute w-4 h-4 text-white left-1 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className={`font-bold text-sm transition ${data.consent?.[item.key] ? 'text-slate-900' : 'text-slate-600'}`}>{item.title}</p>
+                                        <p className="text-sm text-slate-500 mt-1 leading-snug group-hover:text-slate-700">{item.desc}</p>
+                                    </div>
+                                </label>
+                             ))}
+                        </div>
+                        
+                        <div className="p-5 bg-slate-900 text-white mt-auto">
+                             <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span className="font-bold text-sm uppercase tracking-wider">Declaración de Cumplimiento</span>
+                                </div>
+                                <p className="text-xs text-slate-300 leading-relaxed text-justify">
+                                    Certifico que he explicado detalladamente los puntos anteriores, asegurando la comprensión plena del paciente. La marcación de estos criterios constituye evidencia de consentimiento informado verbal/escrito para la telepsicología, en conformidad con la Ley 1090 de 2006 y la Resolución 2654 de 2019.
+                                </p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
 
-              <label className="flex items-start space-x-3 p-2 hover:bg-gray-100 rounded">
-                <input type="checkbox" className="mt-1 w-5 h-5 text-primaryColor" checked={!!data.consent?.confidentialityExplained} onChange={e=>onChange('consent.confidentialityExplained', e.target.checked)} />
-                <span className="text-sm text-gray-700">
-                  <strong>5. Confidencialidad y Límites:</strong> Se explican las excepciones legales al secreto profesional (riesgo de vida, abuso de menores, orden judicial).
-                </span>
-              </label>
             </div>
           </div>
         );
@@ -748,16 +912,8 @@ const ClinicalHistoryForm = () => {
         </div>
 
         {currentTab === tabs.length - 1 ? (
-          <button
-            onClick={save}
-            disabled={saving}
-            className="px-6 py-2 bg-primaryColor text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-          >
-            {saving ? 'Guardando...' : 'Guardar Historia Clínica'}
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
+          // Botón oculto por solicitud de UX - El guardado se gestiona en la pestaña
+          <div className="hidden"></div>
         ) : (
           <button
             onClick={() => setCurrentTab(Math.min(tabs.length - 1, currentTab + 1))}
@@ -770,6 +926,65 @@ const ClinicalHistoryForm = () => {
           </button>
         )}
       </div>
+      
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-slate-900 p-4 flex justify-between items-center text-white">
+               <h3 className="font-bold text-lg">Enviar Consentimiento por Correo</h3>
+               <button onClick={() => setShowEmailModal(false)} className="hover:bg-slate-700 rounded p-1">✕</button>
+            </div>
+            
+            <form onSubmit={handleSendConsentEmail} className="p-6 space-y-4">
+               <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-4">
+                 Se enviará un documento formal con enlace de firma digital a la dirección proporcionada.
+               </div>
+
+               <div>
+                 <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Paciente</label>
+                 <input 
+                   type="text" 
+                   required
+                   className="w-full border rounded p-2 focus:ring-2 focus:ring-slate-900" 
+                   value={emailForm.name}
+                   onChange={e => setEmailForm({...emailForm, name: e.target.value})}
+                   placeholder="Ej: Juan Pérez"
+                 />
+               </div>
+
+               <div>
+                 <label className="block text-sm font-bold text-gray-700 mb-1">Correo Electrónico Destino</label>
+                 <input 
+                   type="email" 
+                   required
+                   className="w-full border rounded p-2 focus:ring-2 focus:ring-slate-900" 
+                   value={emailForm.email}
+                   onChange={e => setEmailForm({...emailForm, email: e.target.value})}
+                   placeholder="correo@ejemplo.com"
+                 />
+               </div>
+
+               <div className="pt-4 flex justify-end gap-3">
+                 <button 
+                   type="button" 
+                   onClick={() => setShowEmailModal(false)}
+                   className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded"
+                 >
+                   Cancelar
+                 </button>
+                 <button 
+                   type="submit" 
+                   disabled={sendingEmail}
+                   className="px-6 py-2 bg-slate-900 text-white font-bold rounded shadow hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2"
+                 >
+                   {sendingEmail ? <Loading size={20} color="white" /> : '✈️ Enviar Documento'}
+                 </button>
+               </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

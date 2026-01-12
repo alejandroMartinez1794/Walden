@@ -1,11 +1,14 @@
 // backend/Routes/clinical.js
 import express from 'express';
 import { authenticate, restrict } from '../auth/verifyToken.js';
-import { createMeasure, generateClinicalSummaryHandler, listAlerts, resolveAlert, updateAlertMitigation, acceptSuggestion } from '../Controllers/clinicalController.js';
+import { createMeasure, generateClinicalSummaryHandler, listAlerts, resolveAlert, updateAlertMitigation, acceptSuggestion, sendConsentEmail } from '../Controllers/clinicalController.js';
 
 const router = express.Router();
 
 router.use(authenticate, restrict(['doctor']));
+
+// Tools
+router.post('/send-consent', sendConsentEmail);
 
 // Measures (creates score, risk, and alerts)
 router.post('/patients/:id/measures', createMeasure);

@@ -19,6 +19,12 @@ const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, descriptio
       start: { dateTime: start, timeZone: 'America/Bogota' },
       end: { dateTime: end, timeZone: 'America/Bogota' },
       attendees,
+      conferenceData: {
+        createRequest: {
+          requestId: `meet-${Date.now()}`,
+          conferenceSolutionKey: { type: 'hangoutsMeet' },
+        },
+      },
       reminders: {
         useDefault: false,
         overrides: [
@@ -32,7 +38,8 @@ const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, descriptio
     const response = await calendar.events.insert({ 
       calendarId: 'primary', 
       resource: event,
-      sendUpdates: 'all' 
+      sendUpdates: 'all',
+      conferenceDataVersion: 1,
     });
     
     console.log('📅 Evento de Google Calendar creado:', response.data.htmlLink);

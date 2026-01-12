@@ -6,6 +6,7 @@ import Login from '../pages/Login';
 import Signup from '../pages/Singup';
 import Contact from '../pages/Contact';
 import DoctorDetails from '../pages/Doctors/DoctorsDetails';
+import InformedConsent from '../pages/Legal/InformedConsent';
 import Myaccount from '../Dashboard/user-account/MyAccount';
 import Dashboard from '../Dashboard/doctor-account/Dashboard';
 import PsychologyDashboard from '../Dashboard/psychology/PsychologyDashboard';
@@ -55,6 +56,7 @@ const Routers = () => {
             <Route path="/testimonios" element={<Testimonios />} />
             <Route path="/data-protection" element={<DataProtection />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/consentimiento" element={<InformedConsent />} />
             <Route
                 path="/users/profile/me"
                 element={
