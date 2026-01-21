@@ -26,6 +26,7 @@
     "googleapis": "^148.0.0",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
+    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.6.1",
     "mongoose": "^8.13.2",
