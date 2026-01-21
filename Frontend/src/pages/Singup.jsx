@@ -1,4 +1,5 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 import SignupImg from "../assets/images/signup.gif";
 import avatar from "../assets/images/doctor-img01.png";
@@ -7,14 +8,13 @@ import uploadImageToCloudinary from '../utils/uploadCloudinary';
 import { BASE_URL } from '../config';
 import { toast } from 'react-toastify';
 import HashLoader from 'react-spinners/HashLoader';
-import { authContext } from '../context/AuthContext.jsx';
-import { getDashboardPath } from '../utils/getDashboardPath';
 
 const Signup   = () => {
 
     const [photoPreview, setPhotoPreview] = useState(null);
     const [photoUploading, setPhotoUploading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState(null);
 
 
     const [formData, setFormData] = useState({
@@ -27,7 +27,22 @@ const Signup   = () => {
     });
 
     const navigate = useNavigate();
-    const { dispatch } = useContext(authContext);
+    const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
+
+    const normalizeEmail = value => value.trim().toLowerCase();
+    const isValidEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    
+    // Validación frontend espejo del backend (Nivel Dios)
+    const isStrongPassword = value => {
+        const minLength = 8;
+        const hasUpperCase = /[A-Z]/.test(value);
+        const hasLowerCase = /[a-z]/.test(value);
+        const hasNumbers = /\d/.test(value);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+        return value.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+    };
+
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
     const handleInputChange = e => {
         setFormData({ ...formData, [e.target.name]: e.target.value });  
@@ -36,6 +51,22 @@ const Signup   = () => {
     const handleFileInputChange = async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('Solo se permiten imágenes.');
+            if (event.target) {
+                event.target.value = '';
+            }
+            return;
+        }
+
+        if (file.size > MAX_IMAGE_SIZE) {
+            toast.error('La imagen excede el tamaño máximo de 5MB.');
+            if (event.target) {
+                event.target.value = '';
+            }
+            return;
+        }
 
         const previousPhoto = formData.photo;
         const tempUrl = URL.createObjectURL(file);
@@ -67,36 +98,6 @@ const Signup   = () => {
         }
     };
 
-    const autoLoginAfterSignup = async () => {
-        const loginRes = await fetch(`${BASE_URL}/auth/login`, {
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: formData.email,
-                password: formData.password,
-            }),
-        });
-
-        const loginPayload = await loginRes.json();
-        if (!loginRes.ok) {
-            throw new Error(loginPayload.message || 'No se pudo iniciar sesión automáticamente.');
-        }
-
-        dispatch({
-            type: 'LOGIN_SUCCESS',
-            payload: {
-                user: loginPayload.data,
-                token: loginPayload.token,
-                role: loginPayload.role,
-                authProvider: loginPayload.data?.authProvider || 'local',
-            },
-        });
-
-        return loginPayload;
-    };
-
     const submitHandler = async event => {
 
         event.preventDefault();
@@ -105,15 +106,39 @@ const Signup   = () => {
             toast.info('Espera a que la imagen termine de subir.');
             return;
         }
+
+        const normalizedEmail = normalizeEmail(formData.email);
+        if (!formData.name?.trim()) {
+            toast.error('Nombre es requerido.');
+            return;
+        }
+        if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+            toast.error('Email inválido.');
+            return;
+        }
+        if (!isStrongPassword(formData.password)) {
+            toast.error('Contraseña débil: min 8 caracteres, mayúscula, minúscula, número y símbolo.');
+            return;
+        }
+        if (!captchaToken) {
+            toast.error('Completa el captcha.');
+            return;
+        }
+
         setLoading(true);
 
         try {
             const res = await fetch ( `${BASE_URL}/auth/register`, {
                 method: 'post',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    ...formData,
+                    email: normalizedEmail,
+                    captchaToken,
+                })
             });
 
             const payload = await res.json();
@@ -124,9 +149,8 @@ const Signup   = () => {
             }
 
             toast.success(successMessage);
-            const loginResult = await autoLoginAfterSignup();
-            const redirectPath = getDashboardPath(loginResult.role);
-            navigate(redirectPath, { replace: true });
+            toast.info('Verifica tu correo antes de iniciar sesión.');
+            navigate('/login', { replace: true });
 
         }   catch (err) {
             toast.error(err.message);
@@ -160,6 +184,7 @@ const Signup   = () => {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
+                                    maxLength={80}
                                     className="w-full pr-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none
                                     focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
                                     placeholder: text-textColor  cursor-pointer"
@@ -173,6 +198,9 @@ const Signup   = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
+                                    autoComplete="email"
+                                    inputMode="email"
+                                    maxLength={254}
                                     className="w-full pr-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none
                                     focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
                                     placeholder: text-textColor  cursor-pointer"
@@ -186,6 +214,9 @@ const Signup   = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
+                                    autoComplete="new-password"
+                                    minLength={8}
+                                    maxLength={128}
                                     className="w-full pr-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none
                                     focus:border-b-primaryColor text-[22px] leading-7 text-headingColor
                                     placeholder: text-textColor  cursor-pointer"
@@ -276,6 +307,18 @@ const Signup   = () => {
                                     )}
 
                                 </button>
+                            </div>
+
+                            <div className="mt-5 flex justify-center">
+                                {hcaptchaSiteKey ? (
+                                    <HCaptcha
+                                        sitekey={hcaptchaSiteKey}
+                                        onVerify={token => setCaptchaToken(token)}
+                                        onExpire={() => setCaptchaToken(null)}
+                                    />
+                                ) : (
+                                    <p className="text-sm text-red-500">Falta configurar VITE_HCAPTCHA_SITE_KEY</p>
+                                )}
                             </div>
 
                             <p className='mt-8 text-textColor text-center'>

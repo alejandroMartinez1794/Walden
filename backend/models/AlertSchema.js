@@ -16,6 +16,7 @@ const AlertSchema = new mongoose.Schema({
   resolved: { type: Boolean, default: false },
   resolvedAt: Date,
   notes: String,
+  lastNotified: { type: Date }, // Para tracking de notificaciones automáticas
 }, { timestamps: true });
 
 AlertSchema.index({ patient: 1, clinician: 1, createdAt: -1 });

@@ -5,22 +5,28 @@ const useFetchData = (url) => {
     const [data, setData] = useState([]); // Inicializar como array vacío
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { token } = useContext(authContext);
+    const { token, dispatch } = useContext(authContext);
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
+             setLoading(true);
             try {
                 if (!token) throw new Error('No autenticado');
-                console.log("🔑 Token desde contexto (useFetchData):", token);
+                // console.log("🔑 Token desde contexto (useFetchData):", token);
                 const res = await fetch(url, {
+                    credentials: 'include',
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
                 const result = await res.json();
 
                 if (!res.ok) {
-                    throw new Error(result.message + ' 🤢');
+                    if (res.status === 401) {
+                         dispatch({ type: 'LOGOUT' }); 
+                         window.location.href = '/login'; // Forzar redirección si el router no reacciona
+                         throw new Error('Sesión expirada');
+                    }
+                    throw new Error(result.message);
                 }
 
                 setData(result.data || []); // Asegurarse de que siempre sea un array

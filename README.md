@@ -1,6 +1,27 @@
 # Psiconepsis (monorepo)
 
-Work-in-progress full-stack medical appointment booking platform.
+Work-in-progress full-stack medical appointment booking platform with **automated workflows**.
+
+## ✨ Características Principales
+
+- 📅 Sistema de reservas con integración Google Calendar
+- 🤖 **Automatización nativa** (recordatorios, alertas, seguimientos)
+- 🔐 Autenticación JWT con roles (paciente/doctor/admin)
+- 🧠 Sistema de psicología con métricas de salud mental
+- 🚨 Detección automática de riesgos clínicos
+- 📧 Notificaciones por email automáticas
+
+## 🤖 Sistema de Automatización
+
+Este proyecto incluye un **sistema de automatización integrado** que elimina la necesidad de N8N:
+
+✅ Recordatorios de citas (24h y 1h antes)  
+✅ Alertas médicas críticas (monitoreo cada 30 min)  
+✅ Seguimiento post-sesión (cuestionarios y métricas)  
+✅ Detección automática de patrones de riesgo  
+
+**Ver documentación completa:** [backend/services/README.md](backend/services/README.md)  
+**Configuración rápida:** [backend/services/QUICK_START.md](backend/services/QUICK_START.md)
 
 ## Quick start - Backend
 

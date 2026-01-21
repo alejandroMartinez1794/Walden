@@ -18,22 +18,35 @@ const normalizeRole = (role = '') => {
 // ✅ Middleware para verificar el token JWT
 export const authenticate = async (req, res, next) => {
   const authToken = req.headers.authorization;
+  const cookieToken = req.cookies?.access_token;
 
   if (!authToken || !authToken.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'No token, authorization denied' });
+    if (!cookieToken) {
+      return res.status(401).json({ success: false, message: 'No token, authorization denied' });
+    }
   }
 
   try {
-    const token = authToken.split(' ')[1];
+    const token = authToken?.startsWith('Bearer ') ? authToken.split(' ')[1] : cookieToken;
     const secretKey = process.env.JWT_SECRET_KEY;
-    console.log('🔑 JWT_SECRET_KEY length:', secretKey ? secretKey.length : 'UNDEFINED');
     const decoded = jwt.verify(token, secretKey);
 
-  // Persistir información del usuario en la request para uso posterior
-  // decoded debe contener al menos: { id, role }
-  req.user = decoded;
-  req.userId = decoded.id; // compatibilidad con controladores que usan req.userId
-  req.role = decoded.role;
+    // Seguridad Nivel Dios: Verificar que el usuario sigue existiendo en la DB
+    // y no ha sido eliminado o baneado después de emitir el token.
+    const userExists = await User.findById(decoded.id) || await Doctor.findById(decoded.id);
+
+    if (!userExists) {
+        return res.status(401).json({ success: false, message: 'Usuario ya no existe. Acceso denegado.' });
+    }
+
+    // Persistir información del usuario
+    req.user = decoded; // Mantener payload del token para eficiencia
+    req.userId = decoded.id;
+    req.role = decoded.role;
+    
+    // Opcional: Pasar el objeto de usuario actualizado si se requiere información fresca
+    // req.currentUser = userExists; 
+
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
@@ -53,12 +66,6 @@ export const restrict = (roles) => async (req, res, next) => {
   const user = await User.findById(userId) || await Doctor.findById(userId);
   if (!user) {
     return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
-  }
-
-  // 👑 SUPER ADMIN BACKDOOR: Permitir acceso total a este correo
-  if (user.email === 'alejandromartinez_94@hotmail.com') {
-    next();
-    return;
   }
 
   if (!allowedRoles.includes(userRole)) {

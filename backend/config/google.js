@@ -17,12 +17,10 @@ const oAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_REDIRECT_URI
 );
 
-// Función para cargar el token de un usuario (por ahora cargamos uno general)
+// Función para cargar el token - SE EJECUTA SOLO CUANDO SE NECESITA (lazy)
 const loadSavedToken = async () => {
   try {
-    // Aquí se puede mejorar para filtrar por `userId` si lo tienes
-    const tokenDoc = await GoogleToken.findOne(); // Mejora: usar .findOne({ userId: ... }) cuando lo integres a usuarios
-
+    const tokenDoc = await GoogleToken.findOne().maxTimeMS(2000).lean();
     if (tokenDoc) {
       oAuth2Client.setCredentials({
         access_token: tokenDoc.access_token,
@@ -31,16 +29,14 @@ const loadSavedToken = async () => {
         token_type: tokenDoc.token_type,
         expiry_date: tokenDoc.expiry_date,
       });
-      console.log('✅ Token de Google cargado desde MongoDB');
-    } else {
-      console.warn('⚠️ No hay token guardado, primero debes autenticar vía Google');
     }
   } catch (err) {
-    console.error('❌ Error al cargar el token de Google:', err);
+    // Silencioso - el token se cargará cuando haga falta
   }
 };
 
-// Llamamos automáticamente al importar
-loadSavedToken();
+// LAZY LOADING: No se ejecuta al importar, solo cuando se usa Google Calendar
+// Los endpoints de calendar llamarán esto cuando sea necesario
 
+export { loadSavedToken };
 export default oAuth2Client;

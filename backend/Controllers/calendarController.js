@@ -4,7 +4,7 @@ import { google } from 'googleapis';
 import GoogleToken from '../models/GoogleTokenSchema.js';
 import User from '../models/UserSchema.js';
 import { createJWT } from '../utils/jwt.js';
-import oAuth2Client from '../config/google.js';
+import oAuth2Client, { loadSavedToken } from '../config/google.js';
 import jwt from 'jsonwebtoken';
 import {getOAuthClientWithUserTokens} from '../utils/getOAuthClientWithUserTokens.js';
 import Booking from '../models/BookingSchema.js';

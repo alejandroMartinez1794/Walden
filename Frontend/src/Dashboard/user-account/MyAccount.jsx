@@ -7,13 +7,14 @@ import PatientDashboard from './PatientDashboard';
 import MedicalHistory from './MedicalHistoryNew';
 import HealthTracker from './HealthTrackerNew';
 import SessionPrepPanel from './SessionPrepPanel';
+import TwoFactorSetup from '../../components/Security/TwoFactorSetup';
 
 import { BASE_URL } from '../../config';
 
 import Loading from '../../components/Loader/Loading';
 import ErrorState from '../../components/Error/Error';
 import MyCalendar from './MyCalendar';
-import { HiOutlineCalendar } from 'react-icons/hi';
+import { HiOutlineCalendar, HiShieldCheck } from 'react-icons/hi';
 
 const MyAccount = () => {
   const { dispatch, token: authToken, role: authRole, authProvider } = useContext(authContext);
@@ -164,6 +165,17 @@ const MyAccount = () => {
               >
                 Salud
               </button>
+              <button
+                onClick={() => setTab('security')}
+                className={`${
+                  tab === 'security'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm hover:bg-slate-800'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                } inline-flex items-center justify-center rounded-xl border px-5 py-2.5 text-sm font-semibold leading-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 gap-2`}
+              >
+                <HiShieldCheck className="text-lg" />
+                Seguridad
+              </button>
                 </div>
               </div>
             </div>
@@ -180,13 +192,6 @@ const MyAccount = () => {
               <>
                 <MyBookings />
                 <div className="mt-10">
-                  <h2 className="text-2xl font-bold mb-4 text-headingColor flex items-center gap-2">
-                    <HiOutlineCalendar className="text-primaryColor" />
-                    Tu Calendario
-                  </h2>
-                  <MyCalendar />
-                </div>
-                <div className="mt-10">
                   <SessionPrepPanel userData={userData} onUserDataUpdate={handleProfileUpdated} />
                 </div>
               </>
@@ -199,6 +204,8 @@ const MyAccount = () => {
             {tab === 'history' && <MedicalHistory userId={userData._id} />}
 
             {tab === 'health' && <HealthTracker />}
+            
+            {tab === 'security' && <TwoFactorSetup />}
           </div>
         )}
       </div>

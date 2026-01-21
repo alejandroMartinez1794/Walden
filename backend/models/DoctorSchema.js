@@ -39,6 +39,17 @@ const DoctorSchema = new mongoose.Schema({
     default: "pending",
   },
   appointments: [{ type: mongoose.Types.ObjectId, ref: "Appointment" }],
+  emailVerified: { type: Boolean, default: false },
+  emailVerificationToken: { type: String },
+  emailVerificationTokenExpires: { type: Date },
+
+  // 🛡️ Seguridad 2FA
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String, select: false },
+  twoFactorRecoveryCodes: [{ type: String, select: false }],
+
+  failedLoginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date },
 });
 
 export default mongoose.model("Doctor", DoctorSchema);

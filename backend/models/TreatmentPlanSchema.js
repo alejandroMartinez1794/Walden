@@ -1,19 +1,137 @@
 // backend/models/TreatmentPlanSchema.js
 import mongoose from 'mongoose';
 
+/**
+ * TreatmentPlan Schema - The Master Clinical Record (ENHANCED CBT VERSION)
+ * 
+ * This schema represents the entire CBT treatment journey for a patient.
+ * It implements the clinical state machine and tracks progression through therapy phases.
+ * 
+ * Clinical Phases (CBT Lifecycle):
+ * - INTAKE: Initial screening, consent, eligibility
+ * - ASSESSMENT: 2-3 sessions of data collection (PHQ-9, GAD-7, clinical interview)
+ * - FORMULATION: Collaborative CBT case conceptualization
+ * - INTERVENTION: Core CBT work (8-16 sessions)
+ * - CONSOLIDATION: Relapse prevention, maintenance
+ * - FOLLOW_UP: Post-discharge monitoring (1mo, 3mo, 6mo)
+ * 
+ * Risk Levels (NEVER exposed to patient frontend):
+ * - LOW: Standard monitoring
+ * - MODERATE: Enhanced monitoring, weekly check-ins
+ * - HIGH: Crisis protocol standby, safety plan active
+ * - IMMINENT: Immediate protocol activation required
+ */
+
 const treatmentPlanSchema = new mongoose.Schema({
-  // Relaciones
+  // Relaciones (backwards compatible with existing code)
   patient: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'PsychologicalPatient', 
-    required: true 
+    required: true,
+    index: true
+  },
+  // Alias for new clinical architecture
+  patientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   },
   psychologist: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Doctor', 
-    required: true 
+    required: true,
+    index: true
+  },
+  // Alias for new clinical architecture
+  psychologistId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Doctor',
   },
 
+  // ============= NEW: CLINICAL STATE MACHINE =============
+  currentPhase: {
+    type: String,
+    enum: [
+      'INTAKE',
+      'ASSESSMENT',
+      'FORMULATION',
+      'INTERVENTION',
+      'CONSOLIDATION',
+      'FOLLOW_UP',
+    ],
+    default: 'INTAKE',
+    index: true,
+  },
+  phaseHistory: [
+    {
+      phase: String,
+      enteredAt: { type: Date, default: Date.now },
+      exitedAt: Date,
+      clinicianNotes: String,
+    },
+  ],
+
+  // ============= NEW: RISK ASSESSMENT (CRITICAL) =============
+  riskLevel: {
+    type: String,
+    enum: ['LOW', 'MODERATE', 'HIGH', 'IMMINENT'],
+    default: 'LOW',
+    select: false, // Prevent accidental exposure in queries
+  },
+  riskFactors: [
+    {
+      factor: String,
+      severity: { type: String, enum: ['LOW', 'MODERATE', 'HIGH'] },
+      identifiedAt: { type: Date, default: Date.now },
+      mitigationPlan: String,
+    },
+  ],
+  lastRiskAssessment: {
+    date: Date,
+    assessedBy: { type: mongoose.Types.ObjectId, ref: 'Doctor' },
+    columbiaScore: Number,
+    interventionRequired: Boolean,
+  },
+
+  // ============= NEW: BASELINE AND PROGRESS METRICS =============
+  baselineMetrics: {
+    phq9: { type: Number, min: 0, max: 27 },
+    gad7: { type: Number, min: 0, max: 21 },
+    whodas: { type: Number, min: 0, max: 100 },
+    assessmentDate: Date,
+  },
+  currentMetrics: {
+    phq9: Number,
+    gad7: Number,
+    lastUpdated: Date,
+  },
+
+  // ============= NEW: TREATMENT STATUS =============
+  status: {
+    type: String,
+    enum: [
+      'ACTIVE',
+      'ON_HOLD',
+      'COMPLETED',
+      'DISCHARGED',
+      'REFERRED_OUT',
+      'ABANDONED',
+    ],
+    default: 'ACTIVE',
+    index: true,
+  },
+  statusReason: String,
+
+  // ============= NEW: ADHERENCE TRACKING =============
+  adherenceMetrics: {
+    totalSessionsScheduled: { type: Number, default: 0 },
+    totalSessionsAttended: { type: Number, default: 0 },
+    totalSessionsCancelled: { type: Number, default: 0 },
+    totalSessionsNoShow: { type: Number, default: 0 },
+    homeworkCompletionRate: { type: Number, min: 0, max: 100 },
+    lastAttendedSession: Date,
+  },
+
+  // ============= EXISTING FIELDS (PRESERVED) =============
   // Marco teórico y enfoque terapéutico
   theoreticalOrientation: {
     type: String,

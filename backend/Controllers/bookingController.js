@@ -165,6 +165,8 @@ export const createBooking = async (req, res) => {
       appointmentDate: startDateTime,
       reason: motivoConsulta,
       calendarEventId,
+      status: 'approved',
+      durationMinutes,
     });
 
     // Enviar notificaciones por correo (sin await para no bloquear)

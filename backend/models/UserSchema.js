@@ -90,6 +90,17 @@ const UserSchema = new mongoose.Schema({
     enum: ["local", "google"],
     default: "local",
   },
+  emailVerified: { type: Boolean, default: false },
+  emailVerificationToken: { type: String },
+  emailVerificationTokenExpires: { type: Date },
+  
+  // 🛡️ Seguridad 2FA
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String, select: false }, // Oculto por defecto
+  twoFactorRecoveryCodes: [{ type: String, select: false }],
+
+  failedLoginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date },
   cbtProfile: {
     type: cbtProfileSchema,
     default: () => ({}),
