@@ -1,6 +1,8 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { register, login, verifyEmail, resendVerification, getCsrfToken, logout } from '../Controllers/authController.js';
+import { authenticate } from '../auth/verifyToken.js';
+import { auditAuth } from '../middleware/auditLogger.js';
 
 // ✅ IMPORTAR VALIDACIÓN
 import { validate } from '../validators/middleware/validate.js';
@@ -25,12 +27,16 @@ const router = express.Router();
  * - Ventana: 15 minutos
  * - Máximo: 10 intentos por ventana
  * - Después: Bloqueo temporal de 15 minutos
+ * 
+ * ⚠️ DESHABILITADO en tests para no bloquear integration tests
  */
-const authLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	max: 10,
-	message: 'Demasiados intentos. Intenta nuevamente en 15 minutos.',
-});
+const authLimiter = process.env.NODE_ENV === 'test' 
+	? (req, res, next) => next() // Bypass en tests
+	: rateLimit({
+		windowMs: 15 * 60 * 1000,
+		max: 10,
+		message: 'Demasiados intentos. Intenta nuevamente en 15 minutos.',
+	});
 
 /**
  * 📝 REGISTRO DE USUARIO
@@ -58,8 +64,10 @@ router.post('/register', authLimiter, validate(registerSchema), register);
  * - Pueden existir contraseñas legacy (creadas antes de reglas actuales)
  * - La validación de complejidad solo aplica en REGISTRO
  * - En login solo verificamos que el input no sea vacío
+ * 
+ * HIPAA Compliance: auditAuth('LOGIN_SUCCESS') registra todos los intentos
  */
-router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/login', authLimiter, validate(loginSchema), auditAuth('LOGIN_SUCCESS'), login);
 
 /**
  * 🎫 CSRF TOKEN
@@ -90,9 +98,11 @@ router.post('/resend-verification', authLimiter, validate(passwordResetRequestSc
 /**
  * 🚪 LOGOUT
  * 
- * No requiere validación (endpoint simple sin parámetros)
- * TODO: Implementar blacklist de tokens JWT para invalidarlos
+ * ✅ SEGURIDAD: Ahora requiere autenticación para invalidar el token
+ * - Middleware authenticate extrae el token y userId
+ * - Controller lo agrega a blacklist
+ * - Audit log registra el evento (HIPAA compliance)
  */
-router.post('/logout', logout);
+router.post('/logout', authenticate, logout);
 
 export default router;

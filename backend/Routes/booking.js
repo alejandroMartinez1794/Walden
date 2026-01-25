@@ -80,6 +80,6 @@ router.post('/', authenticate, validate(createBookingSchema), createBooking);
  * TODO: Política de cancelación (¿con cuánta anticipación?)
  * TODO: ¿Penalización por cancelaciones frecuentes?
  */
-router.delete('/:bookingId', authenticate, validateId, cancelBooking);
+router.delete('/:id', authenticate, validateId, cancelBooking);
 
 export default router;

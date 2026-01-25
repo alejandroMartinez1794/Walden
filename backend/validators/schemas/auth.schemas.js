@@ -62,8 +62,10 @@ export const registerSchema = Joi.object({
   // Campos específicos para doctores (opcionales en registro, se completan después)
   specialization: Joi.when('role', {
     is: 'doctor',
-    then: Joi.string().min(3).max(100).optional(),
+    then: Joi.string().min(3).max(100).required(),
     otherwise: Joi.forbidden() // No permitir si no es doctor
+  }).messages({
+    'any.required': 'La especialización es requerida para doctores'
   }),
   
   ticketPrice: Joi.when('role', {
@@ -71,7 +73,7 @@ export const registerSchema = Joi.object({
     then: Joi.number().min(0).max(1000000).optional(),
     otherwise: Joi.forbidden()
   })
-}).messages({
+}).options({ stripUnknown: true }).messages({
   'object.unknown': 'Campo {{#label}} no está permitido'
 });
 
@@ -137,8 +139,10 @@ export const passwordResetRequestSchema = Joi.object({
  */
 export const passwordResetConfirmSchema = Joi.object({
   token: Joi.string()
+    .min(64)
     .required()
     .messages({
+      'string.min': 'El token debe tener al menos 64 caracteres',
       'any.required': 'Token de reset es requerido'
     }),
   

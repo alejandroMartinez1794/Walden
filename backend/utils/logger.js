@@ -15,50 +15,65 @@
  * - info: Información general (producción)
  * - debug: Debugging detallado (solo desarrollo)
  * 
- * TODO: Instalar Winston en fase de monitoring
- * Por ahora, usar console.log con formato mejorado
+ * Logger real con Winston y rotación de archivos
  */
+import fs from 'fs';
+import path from 'path';
+import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
-const levels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3
-};
+const LOG_DIR = process.env.LOG_DIR || 'logs';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const LOG_LEVEL = process.env.LOG_LEVEL || (NODE_ENV === 'production' ? 'info' : 'debug');
 
-const currentLevel = process.env.LOG_LEVEL || 'info';
-const currentLevelNum = levels[currentLevel] || levels.info;
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+}
 
-const formatMessage = (level, message, meta = {}) => {
-  const timestamp = new Date().toISOString();
-  const metaStr = Object.keys(meta).length > 0 ? JSON.stringify(meta) : '';
-  return `[${timestamp}] ${level.toUpperCase()}: ${message} ${metaStr}`;
-};
+const jsonFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.errors({ stack: true }),
+  winston.format.json()
+);
 
-const logger = {
-  error: (message, meta) => {
-    if (levels.error <= currentLevelNum) {
-      console.error(formatMessage('error', message, meta));
-    }
-  },
-  
-  warn: (message, meta) => {
-    if (levels.warn <= currentLevelNum) {
-      console.warn(formatMessage('warn', message, meta));
-    }
-  },
-  
-  info: (message, meta) => {
-    if (levels.info <= currentLevelNum) {
-      console.log(formatMessage('info', message, meta));
-    }
-  },
-  
-  debug: (message, meta) => {
-    if (levels.debug <= currentLevelNum) {
-      console.log(formatMessage('debug', message, meta));
-    }
-  }
-};
+const prettyFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp(),
+  winston.format.errors({ stack: true }),
+  winston.format.printf(({ timestamp, level, message, ...meta }) => {
+    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+    return `[${timestamp}] ${level}: ${message}${metaStr}`;
+  })
+);
+
+const transports = [
+  new winston.transports.Console({
+    level: LOG_LEVEL,
+    format: NODE_ENV === 'production' ? jsonFormat : prettyFormat
+  })
+];
+
+if (NODE_ENV === 'production') {
+  transports.push(
+    new DailyRotateFile({
+      filename: path.join(LOG_DIR, 'error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      level: 'error',
+      maxFiles: '30d'
+    }),
+    new DailyRotateFile({
+      filename: path.join(LOG_DIR, 'combined-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxFiles: '14d'
+    })
+  );
+}
+
+const logger = winston.createLogger({
+  level: LOG_LEVEL,
+  defaultMeta: { service: 'psiconepsis-api' },
+  format: jsonFormat,
+  transports
+});
 
 export default logger;

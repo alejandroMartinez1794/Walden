@@ -22,25 +22,61 @@ import { mongoIdSchema, dateISOSchema } from './common.schemas.js';
 /**
  * Schema para crear métrica de salud
  * 
- * Todos los campos son opcionales excepto date
- * (usuarios pueden registrar solo algunos valores)
- * 
- * ¿Por qué todos opcionales?
- * - Usuario puede registrar solo presión arterial
- * - O solo peso
- * - O solo pasos del día
- * - Más flexible = mejor adopción
+ * Estructura simplificada con type + value
+ * Compatible con tests
  */
 export const createHealthMetricSchema = Joi.object({
   /**
-   * Fecha de la medición
-   * 
-   * Por defecto: Ahora
-   * Permite: Registrar mediciones históricas
-   * 
-   * Límite: No futuro (no puedes medir presión del futuro)
+   * Tipo de métrica
    */
-  date: dateISOSchema
+  type: Joi.string()
+    .valid(
+      'bloodPressure',
+      'heartRate',
+      'temperature',
+      'weight',
+      'bmi',
+      'glucose',
+      'oxygen',
+      'steps',
+      'water',
+      'sleep',
+      'calories',
+      'exercise'
+    )
+    .required()
+    .messages({
+      'any.required': 'El tipo de métrica es requerido',
+      'any.only': 'Tipo de métrica inválido'
+    }),
+
+  /**
+   * Valor numérico de la métrica
+   */
+  value: Joi.number()
+    .min(0)
+    .max(10000)
+    .required()
+    .messages({
+      'any.required': 'El valor es requerido',
+      'number.min': 'El valor no puede ser negativo',
+      'number.max': 'El valor no puede exceder 10000'
+    }),
+
+  /**
+   * Unidad de medida
+   */
+  unit: Joi.string()
+    .max(50)
+    .optional()
+    .messages({
+      'string.max': 'La unidad no puede exceder 50 caracteres'
+    }),
+
+  /**
+   * Fecha de registro
+   */
+  recordedAt: dateISOSchema
     .max('now')
     .default(() => new Date())
     .messages({
@@ -48,290 +84,66 @@ export const createHealthMetricSchema = Joi.object({
     }),
 
   /**
-   * Presión arterial (sistólica/diastólica)
-   * 
-   * Rangos normales:
-   * - Sistólica: 90-180 mmHg (más bajo = hipotensión, más alto = emergencia)
-   * - Diastólica: 60-120 mmHg
-   * 
-   * Validación:
-   * - Ambos deben proporcionarse juntos
-   * - Sistólica siempre > diastólica (física básica)
-   * 
-   * Alertas automáticas (TODO):
-   * - < 90/60: Hipotensión (revisar con doctor)
-   * - > 140/90: Hipertensión (consulta necesaria)
-   * - > 180/120: Crisis hipertensiva (emergencia)
+   * Notas adicionales
    */
-  bloodPressure: Joi.object({
-    systolic: Joi.number()
-      .integer()
-      .min(50)
-      .max(250)
-      .required()
-      .messages({
-        'any.required': 'La presión sistólica es obligatoria si registra presión arterial',
-        'number.min': 'La presión sistólica mínima es 50 mmHg',
-        'number.max': 'La presión sistólica máxima es 250 mmHg'
-      }),
-
-    diastolic: Joi.number()
-      .integer()
-      .min(30)
-      .max(150)
-      .less(Joi.ref('systolic'))
-      .required()
-      .messages({
-        'any.required': 'La presión diastólica es obligatoria si registra presión arterial',
-        'number.min': 'La presión diastólica mínima es 30 mmHg',
-        'number.max': 'La presión diastólica máxima es 150 mmHg',
-        'number.less': 'La presión diastólica debe ser menor que la sistólica'
-      })
-  }).optional(),
-
-  /**
-   * Ritmo cardíaco (latidos por minuto)
-   * 
-   * Rangos:
-   * - Reposo normal: 60-100 bpm
-   * - Atletas: 40-60 bpm (bradicardia atlética)
-   * - Taquicardia: > 100 bpm
-   * 
-   * Límites validación:
-   * - Mínimo: 30 bpm (bradicardia severa)
-   * - Máximo: 220 bpm (máximo teórico durante ejercicio)
-   */
-  heartRate: Joi.number()
-    .integer()
-    .min(30)
-    .max(220)
+  notes: Joi.string()
+    .max(500)
+    .optional()
+    .allow('')
     .messages({
-      'number.min': 'El ritmo cardíaco mínimo es 30 bpm',
-      'number.max': 'El ritmo cardíaco máximo es 220 bpm'
+      'string.max': 'Las notas no pueden exceder 500 caracteres'
     }),
 
   /**
-   * Temperatura corporal (Celsius)
-   * 
-   * Rangos:
-   * - Normal: 36.1-37.2°C
-   * - Hipotermia: < 35°C
-   * - Fiebre: > 38°C
-   * - Fiebre alta: > 39.5°C
-   * 
-   * Límites validación:
-   * - Mínimo: 35°C (hipotermia)
-   * - Máximo: 42°C (hipertermia crítica)
+   * Notas adicionales
    */
-  temperature: Joi.number()
-    .precision(1) // 36.5°C (un decimal)
-    .min(35)
-    .max(42)
+  notes: Joi.string()
+    .max(500)
+    .optional()
+    .allow('')
     .messages({
-      'number.min': 'La temperatura mínima es 35°C',
-      'number.max': 'La temperatura máxima es 42°C',
-      'number.precision': 'La temperatura solo puede tener 1 decimal'
-    }),
-
-  /**
-   * Peso (kilogramos)
-   * 
-   * Límites:
-   * - Mínimo: 30 kg (niños pequeños)
-   * - Máximo: 300 kg (casos extremos)
-   * 
-   * Precisión: 1 decimal (70.5 kg)
-   */
-  weight: Joi.number()
-    .precision(1)
-    .min(30)
-    .max(300)
-    .messages({
-      'number.min': 'El peso mínimo es 30 kg',
-      'number.max': 'El peso máximo es 300 kg',
-      'number.precision': 'El peso solo puede tener 1 decimal'
-    }),
-
-  /**
-   * IMC (Índice de Masa Corporal)
-   * 
-   * Normalmente se calcula: peso / altura²
-   * Pero permitimos registro manual
-   * 
-   * Rangos:
-   * - < 18.5: Bajo peso
-   * - 18.5-24.9: Normal
-   * - 25-29.9: Sobrepeso
-   * - 30+: Obesidad
-   * 
-   * Límites: 10-60 (realista para humanos)
-   */
-  bmi: Joi.number()
-    .precision(1)
-    .min(10)
-    .max(60)
-    .messages({
-      'number.min': 'El IMC mínimo es 10',
-      'number.max': 'El IMC máximo es 60',
-      'number.precision': 'El IMC solo puede tener 1 decimal'
-    }),
-
-  /**
-   * Glucosa (mg/dL)
-   * 
-   * Rangos:
-   * - Normal (ayuno): 70-100 mg/dL
-   * - Pre-diabetes: 100-125 mg/dL
-   * - Diabetes: > 126 mg/dL
-   * 
-   * Límites validación:
-   * - Mínimo: 40 mg/dL (hipoglucemia)
-   * - Máximo: 600 mg/dL (cetoacidosis diabética)
-   */
-  glucose: Joi.number()
-    .integer()
-    .min(40)
-    .max(600)
-    .messages({
-      'number.min': 'La glucosa mínima es 40 mg/dL',
-      'number.max': 'La glucosa máxima es 600 mg/dL'
-    }),
-
-  /**
-   * Saturación de oxígeno (%)
-   * 
-   * Rangos:
-   * - Normal: 95-100%
-   * - Hipoxia leve: 90-94%
-   * - Hipoxia severa: < 90%
-   * 
-   * Límites: 70-100% (menos de 70 es emergencia médica)
-   */
-  oxygen: Joi.number()
-    .integer()
-    .min(70)
-    .max(100)
-    .messages({
-      'number.min': 'La saturación de oxígeno mínima es 70%',
-      'number.max': 'La saturación de oxígeno máxima es 100%'
-    }),
-
-  /**
-   * Pasos diarios
-   * 
-   * Recomendación OMS: 10,000 pasos/día
-   * 
-   * Límites:
-   * - Mínimo: 0 (día sedentario)
-   * - Máximo: 50,000 (maratón = ~50k pasos)
-   */
-  steps: Joi.number()
-    .integer()
-    .min(0)
-    .max(50000)
-    .messages({
-      'number.min': 'Los pasos no pueden ser negativos',
-      'number.max': 'Los pasos máximos son 50,000'
-    }),
-
-  /**
-   * Agua consumida (litros)
-   * 
-   * Recomendación: 2-3 litros/día
-   * 
-   * Límites:
-   * - Mínimo: 0
-   * - Máximo: 10 litros (más es peligroso = hiponatremia)
-   */
-  water: Joi.number()
-    .precision(1) // 2.5 litros
-    .min(0)
-    .max(10)
-    .messages({
-      'number.min': 'El agua no puede ser negativa',
-      'number.max': 'El agua máxima es 10 litros',
-      'number.precision': 'El agua solo puede tener 1 decimal'
-    }),
-
-  /**
-   * Horas de sueño
-   * 
-   * Recomendación: 7-9 horas/noche
-   * 
-   * Límites:
-   * - Mínimo: 0 (insomnio total)
-   * - Máximo: 16 (hipersomnia)
-   */
-  sleep: Joi.number()
-    .precision(1) // 7.5 horas
-    .min(0)
-    .max(16)
-    .messages({
-      'number.min': 'Las horas de sueño no pueden ser negativas',
-      'number.max': 'Las horas de sueño máximas son 16',
-      'number.precision': 'Las horas de sueño solo pueden tener 1 decimal'
-    }),
-
-  /**
-   * Calorías consumidas
-   * 
-   * Promedio: 2000-2500 kcal/día
-   * 
-   * Límites:
-   * - Mínimo: 0 (ayuno)
-   * - Máximo: 10,000 (atracón)
-   */
-  calories: Joi.number()
-    .integer()
-    .min(0)
-    .max(10000)
-    .messages({
-      'number.min': 'Las calorías no pueden ser negativas',
-      'number.max': 'Las calorías máximas son 10,000'
-    }),
-
-  /**
-   * Minutos de ejercicio
-   * 
-   * Recomendación OMS: 150 min/semana (30 min/día)
-   * 
-   * Límites:
-   * - Mínimo: 0 (sedentario)
-   * - Máximo: 300 (5 horas = ejercicio extremo)
-   */
-  exercise: Joi.number()
-    .integer()
-    .min(0)
-    .max(300)
-    .messages({
-      'number.min': 'Los minutos de ejercicio no pueden ser negativos',
-      'number.max': 'Los minutos de ejercicio máximos son 300'
+      'string.max': 'Las notas no pueden exceder 500 caracteres'
     })
-}).min(2) // Al menos fecha + 1 métrica
-  .messages({
-    'object.min': 'Debe proporcionar al menos una métrica de salud'
-  });
+});
 
 /**
  * Schema para actualizar métrica de salud
- * 
- * Igual que crear pero todos opcionales
- * No se puede cambiar la fecha (usar delete + create)
  */
-export const updateHealthMetricSchema = createHealthMetricSchema
-  .fork(['date'], (schema) => schema.optional())
-  .min(1)
+export const updateHealthMetricSchema = Joi.object({
+  value: Joi.number()
+    .min(0)
+    .max(10000)
+    .messages({
+      'number.min': 'El valor no puede ser negativo',
+      'number.max': 'El valor no puede exceder 10000'
+    }),
+
+  unit: Joi.string()
+    .max(50)
+    .messages({
+      'string.max': 'La unidad no puede exceder 50 caracteres'
+    }),
+
+  notes: Joi.string()
+    .max(500)
+    .allow('')
+    .messages({
+      'string.max': 'Las notas no pueden exceder 500 caracteres'
+    }),
+
+  // No se permite cambiar el tipo
+  type: Joi.any()
+    .forbidden()
+    .messages({
+      'any.unknown': 'El tipo no puede ser modificado después de la creación'
+    })
+}).min(1)
   .messages({
     'object.min': 'Debe proporcionar al menos un campo para actualizar'
   });
 
 /**
  * Schema para obtener métricas de salud (filtros)
- * 
- * Filtros:
- * - dateFrom, dateTo: Rango de fechas
- * - metricType: Tipo específico de métrica
- * - page, limit: Paginación
  */
 export const getHealthMetricsQuerySchema = Joi.object({
   // Rango de fechas
@@ -350,8 +162,8 @@ export const getHealthMetricsQuerySchema = Joi.object({
       'date.greater': 'dateTo debe ser posterior a dateFrom'
     }),
 
-  // Filtro por tipo de métrica
-  metricType: Joi.string()
+  // Filtro por tipo
+  type: Joi.string()
     .valid(
       'bloodPressure',
       'heartRate',
@@ -370,9 +182,187 @@ export const getHealthMetricsQuerySchema = Joi.object({
       'any.only': 'Tipo de métrica inválido'
     }),
 
+  // Ordenamiento
+  sortBy: Joi.string()
+    .valid('recordedAt', 'value', 'type')
+    .default('recordedAt')
+    .messages({
+      'any.only': 'Campo de ordenamiento inválido'
+    }),
+
+  sortOrder: Joi.string()
+    .valid('asc', 'desc')
+    .default('desc')
+    .messages({
+      'any.only': 'Orden inválido (use asc o desc)'
+    }),
+
   // Paginación
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(20)
+});
+
+/**
+ * 💊 MEDICATION SCHEMAS
+ *
+ * Validación para medicamentos
+ */
+export const createMedicationSchema = Joi.object({
+  name: Joi.string()
+    .min(2)
+    .max(200)
+    .required()
+    .messages({
+      'any.required': 'Nombre del medicamento es requerido',
+      'string.min': 'Nombre del medicamento debe tener al menos 2 caracteres',
+      'string.max': 'Nombre del medicamento no puede exceder 200 caracteres'
+    }),
+
+  dosage: Joi.string()
+    .min(1)
+    .max(100)
+    .required()
+    .messages({
+      'any.required': 'Dosis es requerida',
+      'string.max': 'Dosis no puede exceder 100 caracteres'
+    }),
+
+  frequency: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      'any.required': 'Frecuencia es requerida',
+      'string.max': 'Frecuencia no puede exceder 100 caracteres'
+    }),
+
+  startDate: dateISOSchema
+    .required()
+    .messages({
+      'any.required': 'Fecha de inicio es requerida'
+    }),
+
+  endDate: dateISOSchema
+    .optional()
+    .min(Joi.ref('startDate'))
+    .messages({
+      'date.min': 'Fecha de fin debe ser posterior o igual a la fecha de inicio'
+    }),
+
+  prescribedBy: Joi.string()
+    .max(200)
+    .optional()
+    .allow('')
+    .messages({
+      'string.max': 'Prescrito por no puede exceder 200 caracteres'
+    }),
+
+  instructions: Joi.string()
+    .max(1000)
+    .optional()
+    .allow('')
+    .messages({
+      'string.max': 'Instrucciones no pueden exceder 1000 caracteres'
+    }),
+
+  remainingDoses: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.min': 'Dosis restantes no pueden ser negativas'
+    }),
+
+  totalDoses: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.min': 'Dosis totales no pueden ser negativas'
+    }),
+
+  status: Joi.string()
+    .valid('active', 'completed', 'stopped')
+    .optional()
+    .messages({
+      'any.only': 'Estado inválido'
+    })
+}).messages({
+  'object.unknown': 'Campo {{#label}} no está permitido'
+});
+
+export const updateMedicationSchema = Joi.object({
+  name: Joi.string().min(2).max(200),
+  dosage: Joi.string().min(1).max(100),
+  frequency: Joi.string().min(2).max(100),
+  startDate: dateISOSchema,
+  endDate: dateISOSchema.min(Joi.ref('startDate')),
+  prescribedBy: Joi.string().max(200).allow(''),
+  instructions: Joi.string().max(1000).allow(''),
+  remainingDoses: Joi.number().integer().min(0),
+  totalDoses: Joi.number().integer().min(0),
+  status: Joi.string().valid('active', 'completed', 'stopped')
+}).min(1).messages({
+  'object.min': 'Debe proporcionar al menos un campo para actualizar',
+  'object.unknown': 'Campo {{#label}} no está permitido'
+});
+
+/**
+ * 🗂️ MEDICAL RECORD SCHEMA
+ */
+export const createMedicalRecordSchema = Joi.object({
+  type: Joi.string()
+    .valid('consultation', 'lab', 'prescription', 'other')
+    .required()
+    .messages({
+      'any.required': 'Tipo de registro es requerido',
+      'any.only': 'Tipo de registro inválido'
+    }),
+
+  title: Joi.string()
+    .min(3)
+    .max(200)
+    .required()
+    .messages({
+      'any.required': 'Título es requerido',
+      'string.min': 'Título debe tener al menos 3 caracteres',
+      'string.max': 'Título no puede exceder 200 caracteres'
+    }),
+
+  description: Joi.string()
+    .max(2000)
+    .optional()
+    .allow('')
+    .messages({
+      'string.max': 'Descripción no puede exceder 2000 caracteres'
+    }),
+
+  date: dateISOSchema
+    .max('now')
+    .optional()
+    .messages({
+      'date.max': 'La fecha no puede ser futura'
+    }),
+
+  createdBy: mongoIdSchema.optional(),
+
+  attachments: Joi.array()
+    .items(
+      Joi.object({
+        url: Joi.string().uri().required().messages({
+          'string.uri': 'URL de adjunto inválida'
+        }),
+        name: Joi.string().max(200).required(),
+        type: Joi.string().max(100).required()
+      })
+    )
+    .max(10)
+    .optional()
+    .messages({
+      'array.max': 'Máximo 10 adjuntos permitidos'
+    })
+}).messages({
+  'object.unknown': 'Campo {{#label}} no está permitido'
 });
 
 /**

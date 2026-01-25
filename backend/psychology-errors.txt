@@ -1,0 +1,92 @@
+
+> psiconepsis-booking@1.0.0 test
+> cross-env NODE_OPTIONS=--experimental-vm-modules jest psychology.schemas.test.js
+
+(node:2768) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/psychology.schemas.test.js
+  Psychology Schemas - createPsychologyPatientSchema
+    ÔêÜ debe aceptar paciente v├ílido completo (4 ms)
+    ÔêÜ debe aceptar paciente sin referringDoctor (1 ms)
+    ÔêÜ debe rechazar referralReason muy corta (1 ms)
+    ÔêÜ debe rechazar referralReason muy larga
+    ÔêÜ debe rechazar riskLevel inv├ílido
+    Ôùï skipped debe usar nivel de riesgo por defecto "low"
+    Ôùï skipped debe rechazar userId inv├ílido
+    Ôùï skipped debe rechazar referringDoctor inv├ílido
+  Psychology Schemas - createAssessmentSchema
+    ├ù debe aceptar evaluaci├│n v├ílida completa (3 ms)
+    ÔêÜ debe rechazar patientId inv├ílido
+    ÔêÜ debe rechazar tipo de evaluaci├│n inv├ílido
+    ÔêÜ debe rechazar findings muy cortos (1 ms)
+    ÔêÜ debe rechazar mentalStatusExam incompleto
+    ÔêÜ debe rechazar riskAssessment sin riskLevel (1 ms)
+  Psychology Schemas - createSessionSchema
+    ├ù debe aceptar sesi├│n v├ílida completa (2 ms)
+    ÔêÜ debe rechazar duraci├│n muy corta (< 30 min) (1 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 4 hrs) (1 ms)
+    ÔêÜ debe rechazar tipo de sesi├│n inv├ílido
+    ÔêÜ debe rechazar lista de intervenciones vac├¡a (1 ms)
+    ÔêÜ debe rechazar progress muy corto (1 ms)
+  Psychology Schemas - createTreatmentPlanSchema
+    ├ù debe aceptar plan de tratamiento v├ílido (1 ms)
+    ÔêÜ debe rechazar diagnosis muy corto
+    ÔêÜ debe rechazar lista de objetivos vac├¡a
+    ÔêÜ debe rechazar lista de intervenciones vac├¡a (1 ms)
+    ÔêÜ debe rechazar duraci├│n muy corta (< 1 mes) (1 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 24 meses)
+    ÔêÜ debe rechazar reviewDate en el pasado (1 ms)
+
+  ÔùÅ Psychology Schemas - createAssessmentSchema ÔÇ║ debe aceptar evaluaci├│n v├ílida completa
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "assessmentType" is not allowed]
+
+      166 |   test('debe aceptar evaluaci├│n v├ílida completa', () => {
+      167 |     const { error } = createAssessmentSchema.validate(validAssessment);
+    > 168 |     expect(error).toBeUndefined();
+          |                   ^
+      169 |   });
+      170 |
+      171 |   test('debe rechazar patientId inv├ílido', () => {
+
+      at Object.toBeUndefined (tests/unit/psychology.schemas.test.js:168:19)
+
+  ÔùÅ Psychology Schemas - createSessionSchema ÔÇ║ debe aceptar sesi├│n v├ílida completa
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "interventions" is not allowed]
+
+      234 |   test('debe aceptar sesi├│n v├ílida completa', () => {
+      235 |     const { error } = createSessionSchema.validate(validSession);
+    > 236 |     expect(error).toBeUndefined();
+          |                   ^
+      237 |   });
+      238 |
+      239 |   test('debe rechazar duraci├│n muy corta (< 30 min)', () => {
+
+      at Object.toBeUndefined (tests/unit/psychology.schemas.test.js:236:19)
+
+  ÔùÅ Psychology Schemas - createTreatmentPlanSchema ÔÇ║ debe aceptar plan de tratamiento v├ílido
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: Solo se permiten letras y espacios]
+
+      329 |   test('debe aceptar plan de tratamiento v├ílido', () => {
+      330 |     const { error } = createTreatmentPlanSchema.validate(validPlan);
+    > 331 |     expect(error).toBeUndefined();
+          |                   ^
+      332 |   });
+      333 |
+      334 |   test('debe rechazar diagnosis muy corto', () => {
+
+      at Object.toBeUndefined (tests/unit/psychology.schemas.test.js:331:19)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 3 skipped, 21 passed, 27 total
+Snapshots:   0 total
+Time:        0.525 s, estimated 1 s
+Ran all test suites matching psychology.schemas.test.js.

@@ -46,10 +46,10 @@ import {
 export const updateDoctorSchema = Joi.object({
   // Información básica
   name: textShortSchema
-    .min(2)
+    .min(3)
     .max(100)
     .messages({
-      'string.min': 'El nombre debe tener al menos 2 caracteres',
+      'string.min': 'El nombre debe tener al menos 3 caracteres',
       'string.max': 'El nombre no puede exceder 100 caracteres'
     }),
 
@@ -64,9 +64,12 @@ export const updateDoctorSchema = Joi.object({
 
   // Información profesional
   specialization: Joi.string()
-    .min(3)
-    .max(100)
+    .valid(
+      'Psicologia', 'Psiquiatria', 'Medicina General', 'Cardiologia',
+      'Neurologia', 'Pediatria', 'Dermatologia', 'Ginecologia'
+    )
     .messages({
+      'any.only': 'La especialización debe ser una de las permitidas',
       'string.min': 'La especialización debe tener al menos 3 caracteres',
       'string.max': 'La especialización no puede exceder 100 caracteres'
     }),
@@ -255,6 +258,20 @@ export const updateDoctorSchema = Joi.object({
     .min(100)
     .messages({
       'string.min': 'La descripción debe tener al menos 100 caracteres'
+    }),
+
+  // Experiencias laborales
+  experiences: Joi.array()
+    .items(
+      Joi.object({
+        position: Joi.string().required(),
+        hospital: Joi.string().required(),
+        startDate: Joi.date().required(),
+        endDate: Joi.date().greater(Joi.ref('startDate')).allow(null)
+      })
+    )
+    .messages({
+      'array.base': 'Experiencias debe ser un arreglo'
     })
 }).min(1) // Al menos un campo debe ser enviado
   .messages({
@@ -290,7 +307,24 @@ export const getDoctorByIdSchema = Joi.object({
  */
 export const getDoctorsQuerySchema = Joi.object({
   // Paginación
-  ...paginationSchema.extract(['page', 'limit']),
+  page: Joi.number()
+    .integer()
+    .min(1)
+    .default(1)
+    .messages({
+      'number.base': 'La página debe ser un número',
+      'number.min': 'La página debe ser mayor o igual a 1'
+    }),
+  
+  limit: Joi.number()
+    .integer()
+    .min(1)
+    .max(100)
+    .default(20)
+    .messages({
+      'number.base': 'El límite debe ser un número',
+      'number.max': 'El límite máximo es 100 registros por página'
+    }),
 
   // Búsqueda de texto
   search: Joi.string()
@@ -345,6 +379,27 @@ export const getDoctorsQuerySchema = Joi.object({
   availability: Joi.boolean()
     .messages({
       'boolean.base': 'availability debe ser true o false'
+    }),
+
+  // Filtrar por estado de aprobación
+  isApproved: Joi.boolean()
+    .messages({
+      'boolean.base': 'isApproved debe ser true o false'
+    }),
+
+  // Ordenamiento
+  sortBy: Joi.string()
+    .valid('name', 'ticketPrice', 'experience', 'createdAt')
+    .default('createdAt')
+    .messages({
+      'any.only': 'sortBy debe ser: name, ticketPrice, experience o createdAt'
+    }),
+
+  sortOrder: Joi.string()
+    .valid('asc', 'desc')
+    .default('desc')
+    .messages({
+      'any.only': 'sortOrder debe ser: asc o desc'
     })
 });
 

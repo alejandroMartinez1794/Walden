@@ -6,33 +6,19 @@ import { deleteCalendarEvent } from './calendarController.js';
 import { google } from 'googleapis';
 import { getOAuthClientWithUserTokens } from '../utils/getOAuthClientWithUserTokens.js';
 import sendEmail from '../utils/emailService.js';
+import { auditPHI } from '../middleware/auditLogger.js';
+import { sanitizeForCalendar } from '../utils/phiMinimization.js';
+import logger from '../utils/logger.js';
 
-const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, description, start, end, attendees = [] }) => {
+const tryCreateCalendarEvent = async ({ ownerId, bookingData }) => {
   try {
     if (!ownerId) return null;
     const authClient = await getOAuthClientWithUserTokens(ownerId);
     if (!authClient) return null;
     const calendar = google.calendar({ version: 'v3', auth: authClient });
-    const event = {
-      summary: summary || `Sesión con ${doctorName || 'terapeuta'}`,
-      description,
-      start: { dateTime: start, timeZone: 'America/Bogota' },
-      end: { dateTime: end, timeZone: 'America/Bogota' },
-      attendees,
-      conferenceData: {
-        createRequest: {
-          requestId: `meet-${Date.now()}`,
-          conferenceSolutionKey: { type: 'hangoutsMeet' },
-        },
-      },
-      reminders: {
-        useDefault: false,
-        overrides: [
-          { method: 'email', minutes: 24 * 60 },
-          { method: 'popup', minutes: 30 },
-        ],
-      },
-    };
+    
+    // ✅ HIPAA-compliant: Usar sanitización de PHI
+    const event = sanitizeForCalendar(bookingData);
     
     // sendUpdates: 'all' envía notificaciones a los invitados (paciente)
     const response = await calendar.events.insert({ 
@@ -42,10 +28,19 @@ const tryCreateCalendarEvent = async ({ ownerId, doctorName, summary, descriptio
       conferenceDataVersion: 1,
     });
     
-    console.log('📅 Evento de Google Calendar creado:', response.data.htmlLink);
+    // Audit log de creación de evento
+    logger.info('Calendar event created', {
+      bookingId: bookingData._id,
+      calendarEventId: response.data.id,
+      phiExposed: 'minimal'
+    });
+    
     return response.data.id || null;
   } catch (err) {
-    console.error('⚠️ No se pudo sincronizar con Google Calendar:', err.message);
+    logger.error('Failed to sync with Google Calendar', {
+      error: err.message,
+      bookingId: bookingData._id
+    });
     return null;
   }
 };
@@ -149,25 +144,31 @@ export const createBooking = async (req, res) => {
       attendees.push({ email: patientProfile.email, displayName: patientProfile.name });
     }
 
-    const calendarEventId = await tryCreateCalendarEvent({
-      ownerId: doctorProfile._id,
-      doctorName: doctorProfile.name,
-      summary: 'Sesión terapéutica',
-      description: motivoConsulta || 'Consulta clínica',
-      start: startDateTime.toISOString(),
-      end: endDateTime.toISOString(),
-      attendees,
-    });
-
+    // Crear booking primero (necesitamos el ID para auditoría)
     const nuevaCita = await Booking.create({
       user: userId,
       doctor: doctorId,
       appointmentDate: startDateTime,
       reason: motivoConsulta,
-      calendarEventId,
       status: 'approved',
       durationMinutes,
     });
+
+    // Crear evento de Google Calendar con PHI mínimo
+    const calendarEventId = await tryCreateCalendarEvent({
+      ownerId: doctorProfile._id,
+      bookingData: {
+        _id: nuevaCita._id,
+        appointmentDate: startDateTime,
+        duration: durationMinutes
+      }
+    });
+
+    // Actualizar booking con calendarEventId
+    if (calendarEventId) {
+      nuevaCita.calendarEventId = calendarEventId;
+      await nuevaCita.save();
+    }
 
     // Enviar notificaciones por correo (sin await para no bloquear)
     try {
@@ -196,8 +197,27 @@ export const createBooking = async (req, res) => {
             </div>
           `
         })
-        .then(() => console.log('✅ Correo enviado al paciente'))
-        .catch(err => console.error('⚠️ Error enviando correo al paciente:', err.message));
+        await sendEmail({
+          email: patientProfile.email,
+          subject: 'Cita Confirmada - Psiconepsis',
+          message: `Hola ${patientProfile.name},\n\nTu cita ha sido confirmada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #059669;">¡Cita Confirmada!</h2>
+              <p>Hola <strong>${patientProfile.name}</strong>,</p>
+              <p>Tu cita ha sido confirmada exitosamente.</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>👨‍⚕️ Doctor:</strong> ${doctorProfile.name}</p>
+                <p style="margin: 5px 0;"><strong>📅 Fecha:</strong> ${startDateTime.toLocaleDateString()}</p>
+                <p style="margin: 5px 0;"><strong>⏰ Hora:</strong> ${startDateTime.toLocaleTimeString()}</p>
+                <p style="margin: 5px 0;"><strong>📝 Motivo:</strong> ${motivoConsulta}</p>
+              </div>
+              <p>Si necesitas reprogramar, por favor contáctanos.</p>
+            </div>
+          `
+        })
+          .then(() => console.log('✅ Correo enviado al paciente'))
+          .catch(err => console.error('⚠️ Error enviando correo al paciente:', err.message));
       } else {
         console.warn('⚠️ No se envió correo al paciente porque no tiene email registrado.');
       }
@@ -205,7 +225,7 @@ export const createBooking = async (req, res) => {
       // Correo al doctor
       if (doctorProfile?.email) {
         console.log('📨 Enviando correo al doctor...');
-        sendEmail({
+        await sendEmail({
           email: doctorProfile.email,
           subject: 'Nueva Cita Programada - Psiconepsis',
           message: `Hola Dr. ${doctorProfile.name},\n\nSe ha programado una nueva cita con el paciente ${patientProfile.name} para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
@@ -223,8 +243,8 @@ export const createBooking = async (req, res) => {
             </div>
           `
         })
-        .then(() => console.log('✅ Correo enviado al doctor'))
-        .catch(err => console.error('⚠️ Error enviando correo al doctor:', err.message));
+          .then(() => console.log('✅ Correo enviado al doctor'))
+          .catch(err => console.error('⚠️ Error enviando correo al doctor:', err.message));
       }
     } catch (emailError) {
       console.error('⚠️ Error preparando correos:', emailError.message);
@@ -252,7 +272,7 @@ export const createBooking = async (req, res) => {
 export const cancelBooking = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { bookingId } = req.params;
+    const { id: bookingId } = req.params; // Cambio: ruta usa /:id
 
     const booking = await Booking.findById(bookingId)
       .populate('user', 'name email')

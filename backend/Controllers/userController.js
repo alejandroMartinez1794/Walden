@@ -42,6 +42,11 @@ export const updateUser = async (req, res) => {
             { $set: req.body },
             { new: true }
         );
+
+        if (!updatedUser) {
+             return res.status(404).json({ success: false, message: "User not found" });
+        }
+
         res
             .status(200)
             .json({
@@ -64,9 +69,13 @@ export const deleteUser = async (req, res) => {
     const id = req.params.id;
 
     try {
-        await User.findByIdAndDelete (
+        const deletedUser = await User.findByIdAndDelete (
             id,
         );
+
+        if (!deletedUser) {
+             return res.status(404).json({ success: false, message: "User not found" });
+        }
 
         res
             .status(200)
@@ -87,6 +96,11 @@ export const getSingleUser = async (req, res) => {
     try {
         const user = await User.findById (id)
             .select("-password");
+        
+        if (!user) {
+             return res.status(404).json({ success: false, message: "No user found" });
+        }
+
         res
             .status(200)
             .json({

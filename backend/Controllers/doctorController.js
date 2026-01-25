@@ -11,6 +11,11 @@ export const updateDoctor = async (req, res) => {
             { $set: req.body },
             { new: true }
         );
+        
+        if (!updatedDoctor) {
+            return res.status(404).json({ success: false, message: "Doctor not found" });
+        }
+
         res
             .status(200)
             .json({
@@ -28,9 +33,14 @@ export const deleteDoctor = async (req, res) => {
     const id= req.params.id;
 
     try {
-        await Doctor.findByIdAndDelete (
+        const deletedDoctor = await Doctor.findByIdAndDelete (
             id,
         );
+        
+        if (!deletedDoctor) {
+             return res.status(404).json({ success: false, message: "Doctor not found" });
+        }
+
         res
             .status(200)
             .json({
@@ -51,6 +61,10 @@ export const getSingleDoctor = async (req, res) => {
         const doctor = await Doctor.findById(id)
             .populate("reviews")
             .select("-password");
+
+        if (!doctor) {
+             return res.status(404).json({ success: false, message: "No Doctor found" });
+        }
 
         res
             .status(200)

@@ -34,10 +34,16 @@ export const createReview = async (req, res) => {
     try {
         const savedReview = await newReview.save()
         // push the review id to the doctor's reviews array
-        await Doctor.findByIdAndUpdate(req.body.doctor, {
+        const updatedDoctor = await Doctor.findByIdAndUpdate(req.body.doctor, {
             // is a mongoDB method that adds an item to an array
             $push: { reviews: savedReview._id }
-        })    
+        })
+
+        if (!updatedDoctor) {
+            await Review.findByIdAndDelete(savedReview._id);
+            return res.status(404).json({ success: false, message: "Doctor not found" });
+        }
+
         res
             .status(200)
             .json({ success: true, 

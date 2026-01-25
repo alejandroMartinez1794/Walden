@@ -1,0 +1,388 @@
+
+> psiconepsis-booking@1.0.0 test
+> cross-env NODE_OPTIONS=--experimental-vm-modules jest
+
+(node:2992) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/unit/common.schemas.test.js
+  Common Schemas - mongoIdSchema
+    ÔêÜ debe aceptar MongoDB ObjectId v├ílido (16 ms)
+    ÔêÜ debe rechazar IDs inv├ílidos (5 ms)
+  Common Schemas - emailSchema
+    ÔêÜ debe aceptar emails v├ílidos (4 ms)
+    ÔêÜ debe normalizar emails a min├║sculas (2 ms)
+    ÔêÜ debe eliminar espacios al inicio/final (1 ms)
+    ÔêÜ debe rechazar emails inv├ílidos (4 ms)
+  Common Schemas - passwordSchema
+    ÔêÜ debe aceptar contrase├▒as v├ílidas (4 ms)
+    ÔêÜ debe rechazar contrase├▒as sin may├║scula (2 ms)
+    ÔêÜ debe rechazar contrase├▒as sin min├║scula (1 ms)
+    ÔêÜ debe rechazar contrase├▒as sin n├║mero (2 ms)
+    ÔêÜ debe rechazar contrase├▒as sin s├¡mbolo especial (1 ms)
+    ÔêÜ debe rechazar contrase├▒as muy cortas (< 8) (2 ms)
+    ÔêÜ debe rechazar contrase├▒as muy largas (> 128) (1 ms)
+  Common Schemas - phoneSchema
+    ÔêÜ debe aceptar formatos de tel├®fono v├ílidos (2 ms)
+    ÔêÜ debe rechazar tel├®fonos inv├ílidos (2 ms)
+  Common Schemas - dateISOSchema
+    ÔêÜ debe aceptar fechas ISO 8601 v├ílidas (3 ms)
+    ÔêÜ debe rechazar formatos de fecha inv├ílidos (2 ms)
+  Common Schemas - paginationSchema
+    ÔêÜ debe usar valores por defecto (2 ms)
+    ÔêÜ debe aceptar valores v├ílidos (1 ms)
+    ÔêÜ debe rechazar page < 1 (1 ms)
+    ÔêÜ debe rechazar limit > 100 (1 ms)
+    ÔêÜ debe convertir strings a n├║meros (2 ms)
+  Common Schemas - roleSchema
+    ÔêÜ debe aceptar roles v├ílidos (2 ms)
+    ÔêÜ debe rechazar roles inv├ílidos (2 ms)
+  Common Schemas - urlSchema
+    ÔêÜ debe aceptar URLs v├ílidas (113 ms)
+    ÔêÜ debe rechazar URLs sin protocolo http/https (4 ms)
+  Common Schemas - textSchemas
+    ÔêÜ textShortSchema debe aceptar texto corto v├ílido (2 ms)
+    ÔêÜ textShortSchema debe rechazar texto muy largo (1 ms)
+    ÔêÜ textLongSchema debe aceptar texto largo v├ílido (2 ms)
+    ÔêÜ textLongSchema debe rechazar texto muy corto (1 ms)
+    ÔêÜ textLongSchema debe rechazar texto extremadamente largo (1 ms)
+
+(node:17508) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/unit/review.schemas.test.js
+  Review Schemas - createReviewSchema
+    ÔêÜ debe aceptar rese├▒a v├ílida completa (28 ms)
+    ÔêÜ debe rechazar rese├▒a sin doctor (8 ms)
+    ÔêÜ debe rechazar doctorId inv├ílido (16 ms)
+    ÔêÜ debe rechazar rese├▒a sin rating (4 ms)
+    ÔêÜ debe rechazar rating < 1 (9 ms)
+    ÔêÜ debe rechazar rating > 5 (7 ms)
+    ÔêÜ debe rechazar rating decimal (23 ms)
+    ÔêÜ debe rechazar texto muy corto (< 10 caracteres) (4 ms)
+    ÔêÜ debe limpiar espacios del texto (2 ms)
+    Ôùï skipped debe aceptar rese├▒a sin texto (solo rating)
+    Ôùï skipped debe rechazar texto muy largo (> 500 caracteres)
+  Review Schemas - updateReviewSchema
+    ÔêÜ debe aceptar actualizaci├│n de rating (3 ms)
+    ÔêÜ debe aceptar actualizaci├│n de texto (2 ms)
+    ÔêÜ debe aceptar actualizaci├│n de ambos campos (3 ms)
+    ÔêÜ debe rechazar actualizaci├│n vac├¡a (3 ms)
+    ÔêÜ debe rechazar rating inv├ílido (1 ms)
+    ÔêÜ debe rechazar texto muy corto (1 ms)
+    ÔêÜ debe limpiar espacios del texto (1 ms)
+  Review Schemas - getDoctorReviewsQuerySchema
+    ÔêÜ debe usar valores por defecto para paginaci├│n (1 ms)
+    ÔêÜ debe rechazar doctorId inv├ílido (2 ms)
+    ÔêÜ debe rechazar userId inv├ílido (1 ms)
+    ÔêÜ debe aceptar filtro por rating m├¡nimo (1 ms)
+    ÔêÜ debe rechazar minRating < 1 (1 ms)
+    ÔêÜ debe rechazar maxRating > 5 (1 ms)
+    ÔêÜ debe aceptar ordenamiento por fecha (1 ms)
+    ÔêÜ debe aceptar ordenamiento por rating (1 ms)
+    ÔêÜ debe rechazar sortBy inv├ílido (2 ms)
+    ÔêÜ debe rechazar sortOrder inv├ílido (1 ms)
+    ÔêÜ debe convertir strings a n├║meros en paginaci├│n (8 ms)
+    ÔêÜ debe rechazar limit > 100 (protecci├│n DoS) (2 ms)
+    Ôùï skipped debe aceptar filtro por doctor
+    Ôùï skipped debe aceptar filtro por usuario
+    Ôùï skipped debe aceptar filtro por rating m├íximo
+    Ôùï skipped debe rechazar maxRating < minRating
+
+(node:19864) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/psychology.schemas.test.js
+  Psychology Schemas - createPsychologyPatientSchema
+    ÔêÜ debe aceptar paciente v├ílido completo (15 ms)
+    ÔêÜ debe aceptar paciente sin referringDoctor (4 ms)
+    ÔêÜ debe rechazar referralReason muy corta (4 ms)
+    ÔêÜ debe rechazar referralReason muy larga (1 ms)
+    ÔêÜ debe rechazar riskLevel inv├ílido (2 ms)
+    Ôùï skipped debe usar nivel de riesgo por defecto "low"
+    Ôùï skipped debe rechazar userId inv├ílido
+    Ôùï skipped debe rechazar referringDoctor inv├ílido
+  Psychology Schemas - createAssessmentSchema
+    ├ù debe aceptar evaluaci├│n v├ílida completa (5 ms)
+    ÔêÜ debe rechazar patientId inv├ílido (1 ms)
+    ÔêÜ debe rechazar tipo de evaluaci├│n inv├ílido (1 ms)
+    ÔêÜ debe rechazar findings muy cortos (8 ms)
+    ÔêÜ debe rechazar mentalStatusExam incompleto (3 ms)
+    ÔêÜ debe rechazar riskAssessment sin riskLevel (1 ms)
+  Psychology Schemas - createSessionSchema
+    ├ù debe aceptar sesi├│n v├ílida completa (4 ms)
+    ÔêÜ debe rechazar duraci├│n muy corta (< 30 min) (2 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 4 hrs) (1 ms)
+    ÔêÜ debe rechazar tipo de sesi├│n inv├ílido (1 ms)
+    ÔêÜ debe rechazar lista de intervenciones vac├¡a (1 ms)
+    ÔêÜ debe rechazar progress muy corto (2 ms)
+  Psychology Schemas - createTreatmentPlanSchema
+    ├ù debe aceptar plan de tratamiento v├ílido (2 ms)
+    ÔêÜ debe rechazar diagnosis muy corto (45 ms)
+    ÔêÜ debe rechazar lista de objetivos vac├¡a (2 ms)
+    ÔêÜ debe rechazar lista de intervenciones vac├¡a (2 ms)
+    ÔêÜ debe rechazar duraci├│n muy corta (< 1 mes) (2 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 24 meses) (2 ms)
+    ÔêÜ debe rechazar reviewDate en el pasado (2 ms)
+
+  ÔùÅ Psychology Schemas - createAssessmentSchema ÔÇ║ debe aceptar evaluaci├│n v├ílida completa
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: La puntuaci├│n total es obligatoria]
+
+      164 |   test('debe aceptar evaluaci├│n v├ílida completa', () => {
+      165 |     const { error } = createAssessmentSchema.validate(validAssessment);
+    > 166 |     expect(error).toBeUndefined();
+          |                   ^
+      167 |   });
+      168 |
+      169 |   test('debe rechazar patientId inv├ílido', () => {
+
+      at Object.toBeUndefined (tests/unit/psychology.schemas.test.js:166:19)
+
+  ÔùÅ Psychology Schemas - createSessionSchema ÔÇ║ debe aceptar sesi├│n v├ílida completa
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "sessionType" is not allowed]
+
+      232 |   test('debe aceptar sesi├│n v├ílida completa', () => {
+      233 |     const { error } = createSessionSchema.validate(validSession);
+    > 234 |     expect(error).toBeUndefined();
+          |                   ^
+      235 |   });
+      236 |
+      237 |   test('debe rechazar duraci├│n muy corta (< 30 min)', () => {
+
+      at Object.toBeUndefined (tests/unit/psychology.schemas.test.js:234:19)
+
+  ÔùÅ Psychology Schemas - createTreatmentPlanSchema ÔÇ║ debe aceptar plan de tratamiento v├ílido
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: Solo se permiten letras y espacios]
+
+      327 |   test('debe aceptar plan de tratamiento v├ílido', () => {
+      328 |     const { error } = createTreatmentPlanSchema.validate(validPlan);
+    > 329 |     expect(error).toBeUndefined();
+          |                   ^
+      330 |   });
+      331 |
+      332 |   test('debe rechazar diagnosis muy corto', () => {
+
+      at Object.toBeUndefined (tests/unit/psychology.schemas.test.js:329:19)
+
+(node:17180) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/unit/doctor.schemas.test.js
+  Doctor Schemas - updateDoctorSchema
+    ÔêÜ debe aceptar actualizaci├│n parcial (16 ms)
+    ÔêÜ debe rechazar tel├®fono inv├ílido (4 ms)
+    ÔêÜ debe rechazar bio muy corta (3 ms)
+    ÔêÜ debe rechazar precio negativo (2 ms)
+    ÔêÜ debe rechazar precio muy alto (11 ms)
+    ÔêÜ debe rechazar calificaci├│n sin campos requeridos (3 ms)
+    ÔêÜ debe rechazar a├▒o de graduaci├│n futuro (23 ms)
+    ÔêÜ debe rechazar d├¡a de horario inv├ílido (3 ms)
+    ÔêÜ debe rechazar hora de inicio inv├ílida (2 ms)
+    ÔêÜ debe rechazar endTime < startTime (5 ms)
+    ÔêÜ debe rechazar foto inv├ílida (no URL) (56 ms)
+    Ôùï skipped debe aceptar actualizaci├│n completa de perfil
+    Ôùï skipped debe rechazar nombre muy corto
+    Ôùï skipped debe rechazar especializaci├│n inv├ílida
+    Ôùï skipped debe rechazar experiencia sin campos requeridos
+    Ôùï skipped debe rechazar endDate < startDate
+    Ôùï skipped debe aceptar experiencia sin endDate (trabajo actual)
+    Ôùï skipped debe aceptar foto con URL v├ílida
+  Doctor Schemas - approveDoctorSchema
+    ÔêÜ debe aceptar aprobaci├│n de doctor (7 ms)
+    ÔêÜ debe aceptar rechazo de doctor (2 ms)
+    ÔêÜ debe rechazar estado inv├ílido (2 ms)
+    ÔêÜ debe requerir isApproved (7 ms)
+  Doctor Schemas - getDoctorsQuerySchema
+    ÔêÜ debe usar valores por defecto (1 ms)
+    ÔêÜ debe aceptar b├║squeda por nombre (2 ms)
+    ÔêÜ debe aceptar filtro por especializaci├│n (1 ms)
+    ÔêÜ debe aceptar filtro de rango de precios (2 ms)
+    ÔêÜ debe rechazar maxPrice < minPrice (3 ms)
+    ÔêÜ debe rechazar sortBy inv├ílido (2 ms)
+    ÔêÜ debe rechazar sortOrder inv├ílido (1 ms)
+    Ôùï skipped debe aceptar filtro por isApproved
+    Ôùï skipped debe aceptar ordenamiento v├ílido
+
+(node:24232) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:764) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/booking.schemas.test.js
+  Booking Schemas - createBookingSchema
+    ÔêÜ debe rechazar cita sin doctor (67 ms)
+    ÔêÜ debe rechazar doctor con ID inv├ílido (3 ms)
+    ÔêÜ debe rechazar fecha en el pasado (5 ms)
+    ÔêÜ debe rechazar cita muy adelante (> 3 meses) (7 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 4hrs) (2 ms)
+    ÔêÜ debe rechazar precio negativo (2 ms)
+    ÔêÜ debe rechazar precio muy alto (> 1000) (1 ms)
+    Ôùï skipped debe aceptar cita v├ílida
+    Ôùï skipped debe rechazar cita antes de 8am
+    Ôùï skipped debe rechazar cita despu├®s de 8pm
+    Ôùï skipped debe rechazar citas en fin de semana
+    Ôùï skipped debe rechazar duraci├│n muy corta (< 30min)
+  Booking Schemas - updateBookingSchema
+    ÔêÜ debe aceptar actualizaci├│n parcial (1 ms)
+    ÔêÜ debe rechazar status inv├ílido (10 ms)
+    ÔêÜ debe rechazar actualizaci├│n sin campos (5 ms)
+    ├ù debe aceptar m├║ltiples campos (15 ms)
+  Booking Schemas - cancelBookingSchema
+    ÔêÜ debe aceptar cancelaci├│n con raz├│n v├ílida (2 ms)
+    ÔêÜ debe rechazar raz├│n muy corta (< 10 caracteres) (1 ms)
+    ÔêÜ debe rechazar raz├│n muy larga (> 500 caracteres) (2 ms)
+    ÔêÜ debe requerir raz├│n de cancelaci├│n (1 ms)
+  Booking Schemas - getBookingsQuerySchema
+    ÔêÜ debe usar valores por defecto para paginaci├│n (2 ms)
+    ├ù debe aceptar filtros v├ílidos (6 ms)
+    ÔêÜ debe rechazar dateTo < dateFrom (2 ms)
+    ÔêÜ debe rechazar doctorId inv├ílido (1 ms)
+    Ôùï skipped debe rechazar status inv├ílido
+  Booking Schemas - rateBookingSchema
+    ÔêÜ debe aceptar calificaci├│n v├ílida (1 ms)
+    ÔêÜ debe aceptar calificaci├│n sin comentario (1 ms)
+    ÔêÜ debe rechazar rating < 1 (2 ms)
+    ÔêÜ debe rechazar rating > 5 (2 ms)
+    ÔêÜ debe rechazar rating decimal (2 ms)
+    ÔêÜ debe rechazar comentario muy corto (1 ms)
+    Ôùï skipped debe rechazar comentario muy largo
+
+  ÔùÅ Booking Schemas - updateBookingSchema ÔÇ║ debe aceptar m├║ltiples campos
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: Estado inv├ílido]
+
+      174 |       duration: 90
+      175 |     });
+    > 176 |     expect(error).toBeUndefined();
+          |                   ^
+      177 |   });
+      178 | });
+      179 |
+
+      at Object.toBeUndefined (tests/unit/booking.schemas.test.js:176:19)
+
+  ÔùÅ Booking Schemas - getBookingsQuerySchema ÔÇ║ debe aceptar filtros v├ílidos
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: Estado debe ser: pending, confirmed, cancelled, completed o all]
+
+      225 |       limit: 50
+      226 |     });
+    > 227 |     expect(error).toBeUndefined();
+          |                   ^
+      228 |   });
+      229 |
+      230 |   test.skip('debe rechazar status inv├ílido', () => {
+
+      at Object.toBeUndefined (tests/unit/booking.schemas.test.js:227:19)
+
+PASS tests/unit/health.schemas.test.js
+  Health Schemas - createHealthMetricSchema
+    ÔêÜ debe aceptar m├®trica v├ílida completa (6 ms)
+    Ôùï skipped debe aceptar m├®trica sin notas
+    Ôùï skipped debe rechazar tipo inv├ílido
+    Ôùï skipped debe rechazar valor negativo
+    Ôùï skipped debe rechazar valor muy alto (> 10000)
+    Ôùï skipped debe rechazar unidad muy larga
+    Ôùï skipped debe rechazar fecha futura
+    Ôùï skipped debe rechazar notas muy largas
+  Health Schemas - updateHealthMetricSchema
+    Ôùï skipped debe aceptar actualizaci├│n de valor
+    Ôùï skipped debe aceptar actualizaci├│n de notas
+    Ôùï skipped debe rechazar actualizaci├│n vac├¡a
+    Ôùï skipped debe rechazar cambio de tipo
+  Health Schemas - getHealthMetricsQuerySchema
+    ÔêÜ debe usar valores por defecto (19 ms)
+    ÔêÜ debe aceptar filtro por rango de fechas (6 ms)
+    ÔêÜ debe rechazar dateTo < dateFrom (2 ms)
+    Ôùï skipped debe aceptar filtro por tipo
+    Ôùï skipped debe aceptar ordenamiento por fecha
+
+PASS tests/unit/user.schemas.test.js
+  User Schemas - updateUserSchema
+    ÔêÜ debe aceptar actualizaci├│n parcial (12 ms)
+    ÔêÜ debe rechazar nombre muy largo (3 ms)
+    ÔêÜ debe rechazar tel├®fono inv├ílido (3 ms)
+    ÔêÜ debe rechazar g├®nero inv├ílido (3 ms)
+    ÔêÜ debe rechazar tipo de sangre inv├ílido (2 ms)
+    ÔêÜ debe rechazar contacto de emergencia sin nombre (4 ms)
+    ÔêÜ debe rechazar contacto de emergencia sin tel├®fono (2 ms)
+    ÔêÜ debe rechazar contacto de emergencia sin relaci├│n (27 ms)
+    ÔêÜ debe aceptar foto con URL v├ílida (90 ms)
+    ÔêÜ debe rechazar foto con URL inv├ílida (10 ms)
+    ÔêÜ debe rechazar email inv├ílido (2 ms)
+    ÔêÜ debe normalizar email a min├║sculas (2 ms)
+    Ôùï skipped debe aceptar actualizaci├│n completa de perfil
+    Ôùï skipped debe rechazar nombre muy corto
+    Ôùï skipped debe prohibir cambio de role
+  User Schemas - getUsersQuerySchema
+    ÔêÜ debe usar valores por defecto para paginaci├│n (1 ms)
+    ÔêÜ debe aceptar b├║squeda por nombre (1 ms)
+    ÔêÜ debe rechazar g├®nero inv├ílido (3 ms)
+    ÔêÜ debe aceptar filtro por role (1 ms)
+    ÔêÜ debe rechazar role inv├ílido (1 ms)
+    ÔêÜ debe rechazar sortBy inv├ílido (14 ms)
+    ÔêÜ debe rechazar sortOrder inv├ílido (1 ms)
+    ÔêÜ debe rechazar limit > 100 (protecci├│n DoS) (1 ms)
+    ÔêÜ debe convertir string a number en paginaci├│n (2 ms)
+    Ôùï skipped debe aceptar b├║squeda por email
+    Ôùï skipped debe aceptar filtro por g├®nero
+    Ôùï skipped debe aceptar filtro por tipo de sangre
+    Ôùï skipped debe rechazar tipo de sangre inv├ílido
+    Ôùï skipped debe aceptar ordenamiento v├ílido
+
+(node:1308) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/unit/auth.schemas.test.js
+  Auth Schemas - registerSchema
+    ÔêÜ debe aceptar registro de paciente v├ílido (33 ms)
+    ÔêÜ debe aceptar registro de doctor v├ílido (3 ms)
+    ÔêÜ debe usar role "paciente" por defecto (2 ms)
+    ÔêÜ debe rechazar role "admin" (2 ms)
+    ÔêÜ debe prohibir specialization para pacientes (2 ms)
+    ÔêÜ debe rechazar campos obligatorios faltantes (2 ms)
+    ÔêÜ debe rechazar email inv├ílido (1 ms)
+    ÔêÜ debe rechazar contrase├▒a d├®bil (1 ms)
+    Ôùï skipped debe requerir specialization para doctores
+    Ôùï skipped debe eliminar campos no permitidos (stripUnknown)
+  Auth Schemas - loginSchema
+    ÔêÜ debe aceptar credenciales v├ílidas (2 ms)
+    ÔêÜ debe rechazar email inv├ílido (1 ms)
+    ÔêÜ debe rechazar password vac├¡o (1 ms)
+    ÔêÜ debe requerir hCaptcha en producci├│n (2 ms)
+    ÔêÜ NO debe requerir hCaptcha en desarrollo (2 ms)
+  Auth Schemas - passwordResetRequestSchema
+    ÔêÜ debe aceptar email v├ílido (4 ms)
+    ÔêÜ debe rechazar email inv├ílido (1 ms)
+    ÔêÜ debe normalizar email a min├║sculas (24 ms)
+  Auth Schemas - passwordResetConfirmSchema
+    ÔêÜ debe aceptar reset v├ílido (1 ms)
+    ÔêÜ debe rechazar contrase├▒as que no coinciden (7 ms)
+    ÔêÜ debe rechazar contrase├▒a d├®bil
+    Ôùï skipped debe rechazar token muy corto
+  Auth Schemas - changePasswordSchema
+    ÔêÜ debe aceptar cambio v├ílido (1 ms)
+    ÔêÜ debe rechazar si newPassword === currentPassword (2 ms)
+    ÔêÜ debe rechazar si newPassword !== confirmPassword (1 ms)
+  Auth Schemas - emailVerificationSchema
+    ÔêÜ debe aceptar token v├ílido de 64 caracteres hex (3 ms)
+    ÔêÜ debe rechazar token muy corto (1 ms)
+    ÔêÜ debe rechazar token no hex (1 ms)
+  Auth Schemas - twoFactorSchemas
+    ÔêÜ twoFactorSetupSchema debe aceptar c├│digo de 6 d├¡gitos (1 ms)
+    ÔêÜ twoFactorSetupSchema debe rechazar c├│digo no num├®rico (1 ms)
+    ÔêÜ twoFactorSetupSchema debe rechazar c├│digo de longitud incorrecta (1 ms)
+    ÔêÜ twoFactorLoginSchema debe requerir c├│digo y token (1 ms)
+
+Test Suites: 2 failed, 1 skipped, 6 passed, 8 of 9 total
+Tests:       5 failed, 50 skipped, 179 passed, 234 total
+Snapshots:   0 total
+Time:        3.332 s
+Ran all test suites.

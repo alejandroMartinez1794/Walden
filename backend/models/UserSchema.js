@@ -80,7 +80,7 @@ const UserSchema = new mongoose.Schema({
     enum: ["paciente", "admin", "doctor"],
     default: "paciente",
   },
-  gender: { type: String, enum: ["Male", "female", "other"] },
+  gender: { type: String, enum: ["male", "female", "other"] },
   bloodType: { type: String },
   appointments: [{ type: mongoose.Types.ObjectId, ref: "Appointment" }],
 

@@ -41,7 +41,7 @@ import { mongoIdSchema, textLongSchema } from './common.schemas.js';
 export const createReviewSchema = Joi.object({
   // Doctor siendo reseñado
   doctor: mongoIdSchema
-    .required()
+    .optional() // Controller asigna esto desde req.params si no está en body
     .messages({
       'any.required': 'El ID del doctor es obligatorio'
     }),

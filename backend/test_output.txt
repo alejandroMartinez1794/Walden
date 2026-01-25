@@ -1,0 +1,1223 @@
+
+> psiconepsis-booking@1.0.0 test
+> cross-env NODE_OPTIONS=--experimental-vm-modules jest
+
+(node:11980) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/review.schemas.test.js
+  Review Schemas - createReviewSchema
+    ÔêÜ debe aceptar rese├▒a v├ílida completa (15 ms)
+    ├ù debe aceptar rese├▒a sin texto (solo rating) (5 ms)
+    ÔêÜ debe permitir rese├▒a sin doctor (viene de params) (3 ms)
+    ÔêÜ debe rechazar doctorId inv├ílido (2 ms)
+    ÔêÜ debe rechazar rese├▒a sin rating (2 ms)
+    ÔêÜ debe rechazar rating < 1 (1 ms)
+    ÔêÜ debe rechazar rating > 5 (1 ms)
+    ÔêÜ debe rechazar rating decimal (2 ms)
+    ÔêÜ debe rechazar texto muy corto (< 10 caracteres) (2 ms)
+    ├ù debe rechazar texto muy largo (> 500 caracteres) (2 ms)
+    ÔêÜ debe limpiar espacios del texto (10 ms)
+  Review Schemas - updateReviewSchema
+    ÔêÜ debe aceptar actualizaci├│n de rating (11 ms)
+    ÔêÜ debe aceptar actualizaci├│n de texto (2 ms)
+    ÔêÜ debe aceptar actualizaci├│n de ambos campos (1 ms)
+    ÔêÜ debe rechazar actualizaci├│n vac├¡a (2 ms)
+    ÔêÜ debe rechazar rating inv├ílido (1 ms)
+    ÔêÜ debe rechazar texto muy corto (1 ms)
+    ÔêÜ debe limpiar espacios del texto (2 ms)
+  Review Schemas - getDoctorReviewsQuerySchema
+    ÔêÜ debe usar valores por defecto para paginaci├│n (1 ms)
+    ├ù debe aceptar filtro por doctor (5 ms)
+    ÔêÜ debe rechazar doctorId inv├ílido (1 ms)
+    ├ù debe aceptar filtro por usuario (1 ms)
+    ÔêÜ debe rechazar userId inv├ílido (1 ms)
+    ÔêÜ debe aceptar filtro por rating m├¡nimo (1 ms)
+    ÔêÜ debe rechazar minRating < 1 (1 ms)
+    ├ù debe aceptar filtro por rating m├íximo (2 ms)
+    ÔêÜ debe rechazar maxRating > 5
+    ├ù debe rechazar maxRating < minRating (1 ms)
+    ÔêÜ debe aceptar ordenamiento por fecha (1 ms)
+    ÔêÜ debe aceptar ordenamiento por rating (1 ms)
+    ÔêÜ debe rechazar sortBy inv├ílido (1 ms)
+    ÔêÜ debe rechazar sortOrder inv├ílido (1 ms)
+    ÔêÜ debe convertir strings a n├║meros en paginaci├│n (3 ms)
+    ÔêÜ debe rechazar limit > 100 (protecci├│n DoS) (1 ms)
+
+  ÔùÅ Review Schemas - createReviewSchema ÔÇ║ debe aceptar rese├▒a sin texto (solo rating)
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: El texto de la rese├▒a es obligatorio]
+
+      34 |       rating: 4
+      35 |     });
+    > 36 |     expect(error).toBeUndefined();
+         |                   ^
+      37 |   });
+      38 |
+      39 |   test('debe permitir rese├▒a sin doctor (viene de params)', () => {
+
+      at Object.toBeUndefined (tests/unit/review.schemas.test.js:36:19)
+
+  ÔùÅ Review Schemas - createReviewSchema ÔÇ║ debe rechazar texto muy largo (> 500 caracteres)
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      107 |       reviewText: longText
+      108 |     });
+    > 109 |     expect(error).toBeDefined();
+          |                   ^
+      110 |     expect(error.message).toContain('500');
+      111 |   });
+      112 |
+
+      at Object.toBeDefined (tests/unit/review.schemas.test.js:109:19)
+
+  ÔùÅ Review Schemas - getDoctorReviewsQuerySchema ÔÇ║ debe aceptar filtro por doctor
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "doctor" is not allowed]
+
+      184 |       doctor: '507f1f77bcf86cd799439011'
+      185 |     });
+    > 186 |     expect(error).toBeUndefined();
+          |                   ^
+      187 |   });
+      188 |
+      189 |   test('debe rechazar doctorId inv├ílido', () => {
+
+      at Object.toBeUndefined (tests/unit/review.schemas.test.js:186:19)
+
+  ÔùÅ Review Schemas - getDoctorReviewsQuerySchema ÔÇ║ debe aceptar filtro por usuario
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "userId" is not allowed]
+
+      199 |       userId: '507f1f77bcf86cd799439011'
+      200 |     });
+    > 201 |     expect(error).toBeUndefined();
+          |                   ^
+      202 |   });
+      203 |
+      204 |   test('debe rechazar userId inv├ílido', () => {
+
+      at Object.toBeUndefined (tests/unit/review.schemas.test.js:201:19)
+
+  ÔùÅ Review Schemas - getDoctorReviewsQuerySchema ÔÇ║ debe aceptar filtro por rating m├íximo
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "maxRating" is not allowed]
+
+      228 |       maxRating: 4
+      229 |     });
+    > 230 |     expect(error).toBeUndefined();
+          |                   ^
+      231 |   });
+      232 |
+      233 |   test('debe rechazar maxRating > 5', () => {
+
+      at Object.toBeUndefined (tests/unit/review.schemas.test.js:230:19)
+
+  ÔùÅ Review Schemas - getDoctorReviewsQuerySchema ÔÇ║ debe rechazar maxRating < minRating
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "mayor o igual"
+    Received string:    "\"maxRating\" is not allowed"
+
+      245 |     });
+      246 |     expect(error).toBeDefined();
+    > 247 |     expect(error.message).toContain('mayor o igual');
+          |                           ^
+      248 |   });
+      249 |
+      250 |   test('debe aceptar ordenamiento por fecha', () => {
+
+      at Object.toContain (tests/unit/review.schemas.test.js:247:27)
+
+(node:20304) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/psychology.schemas.test.js
+  Psychology Schemas - createPsychologyPatientSchema
+    ÔêÜ debe aceptar paciente v├ílido completo (17 ms)
+    ÔêÜ debe aceptar paciente sin referringDoctor (2 ms)
+    ├ù debe usar nivel de riesgo por defecto "low" (16 ms)
+    ÔêÜ debe rechazar userId inv├ílido (1 ms)
+    ÔêÜ debe rechazar referringDoctor inv├ílido (2 ms)
+    ÔêÜ debe rechazar referralReason muy corta (2 ms)
+    ÔêÜ debe rechazar referralReason muy larga (1 ms)
+    ÔêÜ debe rechazar riskLevel inv├ílido (1 ms)
+  Psychology Schemas - createAssessmentSchema
+    ÔêÜ debe aceptar evaluaci├│n v├ílida completa (2 ms)
+    ÔêÜ debe rechazar patientId inv├ílido (1 ms)
+    ÔêÜ debe rechazar tipo de evaluaci├│n inv├ílido (2 ms)
+    ÔêÜ debe rechazar findings muy cortos (2 ms)
+    ÔêÜ debe rechazar mentalStatusExam incompleto (1 ms)
+    ÔêÜ debe rechazar riskAssessment sin riskLevel (2 ms)
+  Psychology Schemas - createSessionSchema
+    ÔêÜ debe aceptar sesi├│n v├ílida completa (13 ms)
+    ÔêÜ debe rechazar duraci├│n muy corta (< 30 min) (4 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 4 hrs) (1 ms)
+    ÔêÜ debe rechazar tipo de sesi├│n inv├ílido (2 ms)
+    ÔêÜ debe rechazar lista de intervenciones vac├¡a (1 ms)
+    ÔêÜ debe rechazar progress muy corto (1 ms)
+  Psychology Schemas - createTreatmentPlanSchema
+    ÔêÜ debe aceptar plan de tratamiento v├ílido (3 ms)
+    ÔêÜ debe rechazar diagnosis muy corto (1 ms)
+    ÔêÜ debe rechazar lista de objetivos vac├¡a (2 ms)
+    ÔêÜ debe rechazar lista de intervenciones vac├¡a (1 ms)
+    ÔêÜ debe rechazar duraci├│n muy corta (< 1 mes) (3 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 24 meses) (2 ms)
+    ÔêÜ debe rechazar reviewDate en el pasado (2 ms)
+
+  ÔùÅ Psychology Schemas - createPsychologyPatientSchema ÔÇ║ debe usar nivel de riesgo por defecto "low"
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "low"
+    Received: undefined
+
+      53 |       referralReason: 'Consulta inicial'
+      54 |     });
+    > 55 |     expect(value.riskLevel).toBe('low');
+         |                             ^
+      56 |   });
+      57 |
+      58 |   test('debe rechazar userId inv├ílido', () => {
+
+      at Object.toBe (tests/unit/psychology.schemas.test.js:55:29)
+
+(node:14948) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/health.schemas.test.js
+  Health Schemas - createHealthMetricSchema
+    ├ù debe aceptar m├®trica v├ílida completa (22 ms)
+    ÔêÜ debe aceptar m├®trica sin notas (12 ms)
+    ÔêÜ debe rechazar tipo inv├ílido (2 ms)
+    ÔêÜ debe rechazar valor negativo (1 ms)
+    ÔêÜ debe rechazar valor muy alto (> 10000) (2 ms)
+    ÔêÜ debe rechazar unidad muy larga (2 ms)
+    ├ù debe rechazar fecha futura (24 ms)
+    ÔêÜ debe rechazar notas muy largas (1 ms)
+  Health Schemas - updateHealthMetricSchema
+    ÔêÜ debe aceptar actualizaci├│n de valor (2 ms)
+    ÔêÜ debe aceptar actualizaci├│n de notas (2 ms)
+    ÔêÜ debe rechazar actualizaci├│n vac├¡a (3 ms)
+    ÔêÜ debe rechazar cambio de tipo (2 ms)
+  Health Schemas - getHealthMetricsQuerySchema
+    ÔêÜ debe usar valores por defecto (5 ms)
+    ÔêÜ debe aceptar filtro por tipo (3 ms)
+    ÔêÜ debe aceptar filtro por rango de fechas (3 ms)
+    ÔêÜ debe rechazar dateTo < dateFrom (27 ms)
+    ÔêÜ debe aceptar ordenamiento por fecha (1 ms)
+
+  ÔùÅ Health Schemas - createHealthMetricSchema ÔÇ║ debe aceptar m├®trica v├ílida completa
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: El tipo de m├®trica es requerido]
+
+      37 |   test('debe aceptar m├®trica v├ílida completa', () => {
+      38 |     const { error } = createHealthMetricSchema.validate(validMetric);
+    > 39 |     expect(error).toBeUndefined();
+         |                   ^
+      40 |   });
+      41 |
+      42 |   test('debe aceptar m├®trica sin notas', () => {
+
+      at Object.toBeUndefined (tests/unit/health.schemas.test.js:39:19)
+
+  ÔùÅ Health Schemas - createHealthMetricSchema ÔÇ║ debe rechazar fecha futura
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "futuro"
+    Received string:    "No se pueden registrar mediciones futuras"
+
+      103 |     });
+      104 |     expect(error).toBeDefined();
+    > 105 |     expect(error.message).toContain('futuro');
+          |                           ^
+      106 |   });
+      107 |
+      108 |   test('debe rechazar notas muy largas', () => {
+
+      at Object.toContain (tests/unit/health.schemas.test.js:105:27)
+
+(node:13540) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/unit/common.schemas.test.js
+  Common Schemas - mongoIdSchema
+    ÔêÜ debe aceptar MongoDB ObjectId v├ílido (13 ms)
+    ÔêÜ debe rechazar IDs inv├ílidos (4 ms)
+  Common Schemas - emailSchema
+    ÔêÜ debe aceptar emails v├ílidos (4 ms)
+    ÔêÜ debe normalizar emails a min├║sculas (1 ms)
+    ÔêÜ debe eliminar espacios al inicio/final (2 ms)
+    ÔêÜ debe rechazar emails inv├ílidos (3 ms)
+  Common Schemas - passwordSchema
+    ÔêÜ debe aceptar contrase├▒as v├ílidas (3 ms)
+    ÔêÜ debe rechazar contrase├▒as sin may├║scula (2 ms)
+    ÔêÜ debe rechazar contrase├▒as sin min├║scula (3 ms)
+    ÔêÜ debe rechazar contrase├▒as sin n├║mero (2 ms)
+    ÔêÜ debe rechazar contrase├▒as sin s├¡mbolo especial (9 ms)
+    ÔêÜ debe rechazar contrase├▒as muy cortas (< 8) (2 ms)
+    ÔêÜ debe rechazar contrase├▒as muy largas (> 128) (2 ms)
+  Common Schemas - phoneSchema
+    ÔêÜ debe aceptar formatos de tel├®fono v├ílidos (2 ms)
+    ÔêÜ debe rechazar tel├®fonos inv├ílidos (2 ms)
+  Common Schemas - dateISOSchema
+    ÔêÜ debe aceptar fechas ISO 8601 v├ílidas (11 ms)
+    ÔêÜ debe rechazar formatos de fecha inv├ílidos (2 ms)
+  Common Schemas - paginationSchema
+    ÔêÜ debe usar valores por defecto (1 ms)
+    ÔêÜ debe aceptar valores v├ílidos (14 ms)
+    ÔêÜ debe rechazar page < 1 (1 ms)
+    ÔêÜ debe rechazar limit > 100 (1 ms)
+    ÔêÜ debe convertir strings a n├║meros (2 ms)
+  Common Schemas - roleSchema
+    ÔêÜ debe aceptar roles v├ílidos (2 ms)
+    ÔêÜ debe rechazar roles inv├ílidos (6 ms)
+  Common Schemas - urlSchema
+    ÔêÜ debe aceptar URLs v├ílidas (36 ms)
+    ÔêÜ debe rechazar URLs sin protocolo http/https (1 ms)
+  Common Schemas - textSchemas
+    ÔêÜ textShortSchema debe aceptar texto corto v├ílido (1 ms)
+    ÔêÜ textShortSchema debe rechazar texto muy largo (1 ms)
+    ÔêÜ textLongSchema debe aceptar texto largo v├ílido (1 ms)
+    ÔêÜ textLongSchema debe rechazar texto muy corto (1 ms)
+    ÔêÜ textLongSchema debe rechazar texto extremadamente largo (2 ms)
+
+(node:9820) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/booking.schemas.test.js
+  Booking Schemas - createBookingSchema
+    ├ù debe aceptar cita v├ílida (18 ms)
+    ÔêÜ debe rechazar cita sin doctor (2 ms)
+    ÔêÜ debe rechazar doctor con ID inv├ílido (1 ms)
+    ÔêÜ debe rechazar fecha en el pasado (3 ms)
+    ÔêÜ debe rechazar cita muy adelante (> 3 meses) (2 ms)
+    ├ù debe rechazar cita antes de 8am (4 ms)
+    ├ù debe rechazar cita despu├®s de 8pm (3 ms)
+    ├ù debe rechazar citas en fin de semana (7 ms)
+    ├ù debe rechazar duraci├│n muy corta (< 30min) (3 ms)
+    ÔêÜ debe rechazar duraci├│n muy larga (> 4hrs) (2 ms)
+    ÔêÜ debe rechazar precio negativo (1 ms)
+    ÔêÜ debe rechazar precio muy alto (> 1000) (2 ms)
+  Booking Schemas - updateBookingSchema
+    ÔêÜ debe aceptar actualizaci├│n parcial (1 ms)
+    ÔêÜ debe rechazar status inv├ílido (2 ms)
+    ÔêÜ debe rechazar actualizaci├│n sin campos (1 ms)
+    ÔêÜ debe aceptar m├║ltiples campos (7 ms)
+  Booking Schemas - cancelBookingSchema
+    ÔêÜ debe aceptar cancelaci├│n con raz├│n v├ílida (1 ms)
+    ÔêÜ debe rechazar raz├│n muy corta (< 10 caracteres) (3 ms)
+    ÔêÜ debe rechazar raz├│n muy larga (> 500 caracteres) (1 ms)
+    ÔêÜ debe permitir cancelaci├│n sin raz├│n (opcional)
+  Booking Schemas - getBookingsQuerySchema
+    ÔêÜ debe usar valores por defecto para paginaci├│n (1 ms)
+    ÔêÜ debe aceptar filtros v├ílidos (1 ms)
+    ÔêÜ debe rechazar status inv├ílido (1 ms)
+    ÔêÜ debe rechazar dateTo < dateFrom (1 ms)
+    ÔêÜ debe rechazar doctorId inv├ílido (1 ms)
+  Booking Schemas - rateBookingSchema
+    ÔêÜ debe aceptar calificaci├│n v├ílida (2 ms)
+    ÔêÜ debe aceptar calificaci├│n sin comentario (1 ms)
+    ÔêÜ debe rechazar rating < 1 (1 ms)
+    ÔêÜ debe rechazar rating > 5 (1 ms)
+    ÔêÜ debe rechazar rating decimal (1 ms)
+    ÔêÜ debe rechazar comentario muy corto (1 ms)
+    ├ù debe rechazar comentario muy largo (5 ms)
+
+  ÔùÅ Booking Schemas - createBookingSchema ÔÇ║ debe aceptar cita v├ílida
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: "appointmentDate" date references "ref:global:maxDate" which must have a valid date format]
+
+      43 |     // TODO: Las validaciones custom de horarios no funcionan sin contexto de Joi
+      44 |     const { error } = createBookingSchema.validate(validBookingData);
+    > 45 |     expect(error).toBeUndefined();
+         |                   ^
+      46 |   });
+      47 |
+      48 |   test('debe rechazar cita sin doctor', () => {
+
+      at Object.toBeUndefined (tests/unit/booking.schemas.test.js:45:19)
+
+  ÔùÅ Booking Schemas - createBookingSchema ÔÇ║ debe rechazar cita antes de 8am
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "8am"
+    Received string:    "\"appointmentDate\" date references \"ref:global:maxDate\" which must have a valid date format"
+
+      86 |     const { error } = createBookingSchema.validate(data);
+      87 |     expect(error).toBeDefined();
+    > 88 |     expect(error.message).toContain('8am');
+         |                           ^
+      89 |   });
+      90 |
+      91 |   test('debe rechazar cita despu├®s de 8pm', () => {
+
+      at Object.toContain (tests/unit/booking.schemas.test.js:88:27)
+
+  ÔùÅ Booking Schemas - createBookingSchema ÔÇ║ debe rechazar cita despu├®s de 8pm
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "8pm"
+    Received string:    "\"appointmentDate\" date references \"ref:global:maxDate\" which must have a valid date format"
+
+       97 |     const { error } = createBookingSchema.validate(data);
+       98 |     expect(error).toBeDefined();
+    >  99 |     expect(error.message).toContain('8pm');
+          |                           ^
+      100 |   });
+      101 |
+      102 |   test('debe rechazar citas en fin de semana', () => {
+
+      at Object.toContain (tests/unit/booking.schemas.test.js:99:27)
+
+  ÔùÅ Booking Schemas - createBookingSchema ÔÇ║ debe rechazar citas en fin de semana
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "fin de semana"
+    Received string:    "\"appointmentDate\" date references \"ref:global:maxDate\" which must have a valid date format"
+
+      110 |     const { error } = createBookingSchema.validate(data);
+      111 |     expect(error).toBeDefined();
+    > 112 |     expect(error.message).toContain('fin de semana');
+          |                           ^
+      113 |   });
+      114 |
+      115 |   test('debe rechazar duraci├│n muy corta (< 30min)', () => {
+
+      at Object.toContain (tests/unit/booking.schemas.test.js:112:27)
+
+  ÔùÅ Booking Schemas - createBookingSchema ÔÇ║ debe rechazar duraci├│n muy corta (< 30min)
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "30"
+    Received string:    "\"appointmentDate\" date references \"ref:global:maxDate\" which must have a valid date format"
+
+      118 |     const { error } = createBookingSchema.validate(data);
+      119 |     expect(error).toBeDefined();
+    > 120 |     expect(error.message).toContain('30');
+          |                           ^
+      121 |   });
+      122 |
+      123 |   test('debe rechazar duraci├│n muy larga (> 4hrs)', () => {
+
+      at Object.toContain (tests/unit/booking.schemas.test.js:120:27)
+
+  ÔùÅ Booking Schemas - rateBookingSchema ÔÇ║ debe rechazar comentario muy largo
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      306 |       comment: longComment
+      307 |     });
+    > 308 |     expect(error).toBeDefined();
+          |                   ^
+      309 |   });
+      310 | });
+      311 |
+
+      at Object.toBeDefined (tests/unit/booking.schemas.test.js:308:19)
+
+(node:13936) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/unit/auth.schemas.test.js
+  Auth Schemas - registerSchema
+    ÔêÜ debe aceptar registro de paciente v├ílido (37 ms)
+    ÔêÜ debe aceptar registro de doctor v├ílido (8 ms)
+    ÔêÜ debe usar role "paciente" por defecto (6 ms)
+    ÔêÜ debe rechazar role "admin" (3 ms)
+    ÔêÜ debe requerir specialization para doctores (3 ms)
+    ÔêÜ debe prohibir specialization para pacientes (3 ms)
+    ÔêÜ debe rechazar campos obligatorios faltantes (2 ms)
+    ÔêÜ debe rechazar email inv├ílido (2 ms)
+    ÔêÜ debe rechazar contrase├▒a d├®bil (2 ms)
+    ÔêÜ debe eliminar campos no permitidos (stripUnknown) (3 ms)
+  Auth Schemas - loginSchema
+    ÔêÜ debe aceptar credenciales v├ílidas (2 ms)
+    ÔêÜ debe rechazar email inv├ílido (2 ms)
+    ÔêÜ debe rechazar password vac├¡o (1 ms)
+    ÔêÜ debe requerir hCaptcha en producci├│n (2 ms)
+    ÔêÜ NO debe requerir hCaptcha en desarrollo (1 ms)
+  Auth Schemas - passwordResetRequestSchema
+    ÔêÜ debe aceptar email v├ílido (1 ms)
+    ÔêÜ debe rechazar email inv├ílido (1 ms)
+    ÔêÜ debe normalizar email a min├║sculas (1 ms)
+  Auth Schemas - passwordResetConfirmSchema
+    ÔêÜ debe aceptar reset v├ílido (1 ms)
+    ÔêÜ debe rechazar token muy corto (1 ms)
+    ÔêÜ debe rechazar contrase├▒as que no coinciden (1 ms)
+    ÔêÜ debe rechazar contrase├▒a d├®bil
+  Auth Schemas - changePasswordSchema
+    ÔêÜ debe aceptar cambio v├ílido (1 ms)
+    ÔêÜ debe rechazar si newPassword === currentPassword (1 ms)
+    ÔêÜ debe rechazar si newPassword !== confirmPassword (1 ms)
+  Auth Schemas - emailVerificationSchema
+    ÔêÜ debe aceptar token v├ílido de 64 caracteres hex (1 ms)
+    ÔêÜ debe rechazar token muy corto
+    ÔêÜ debe rechazar token no hex (2 ms)
+  Auth Schemas - twoFactorSchemas
+    ÔêÜ twoFactorSetupSchema debe aceptar c├│digo de 6 d├¡gitos (1 ms)
+    ÔêÜ twoFactorSetupSchema debe rechazar c├│digo no num├®rico (1 ms)
+    ÔêÜ twoFactorSetupSchema debe rechazar c├│digo de longitud incorrecta (1 ms)
+    ÔêÜ twoFactorLoginSchema debe requerir c├│digo y token (1 ms)
+
+(node:13376) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/unit/doctor.schemas.test.js
+  Doctor Schemas - updateDoctorSchema
+    ├ù debe aceptar actualizaci├│n completa de perfil (29 ms)
+    ÔêÜ debe aceptar actualizaci├│n parcial (2 ms)
+    ÔêÜ debe rechazar nombre muy corto (2 ms)
+    ÔêÜ debe rechazar tel├®fono inv├ílido (2 ms)
+    ÔêÜ debe rechazar bio muy corta (2 ms)
+    ÔêÜ debe rechazar especializaci├│n inv├ílida (2 ms)
+    ÔêÜ debe rechazar precio negativo (4 ms)
+    ÔêÜ debe rechazar precio muy alto (1 ms)
+    ÔêÜ debe rechazar calificaci├│n sin campos requeridos (3 ms)
+    ÔêÜ debe rechazar a├▒o de graduaci├│n futuro (2 ms)
+    ÔêÜ debe rechazar experiencia sin campos requeridos (2 ms)
+    ÔêÜ debe rechazar endDate < startDate (6 ms)
+    ÔêÜ debe aceptar experiencia sin endDate (trabajo actual) (2 ms)
+    ÔêÜ debe rechazar d├¡a de horario inv├ílido (4 ms)
+    ÔêÜ debe rechazar hora de inicio inv├ílida (2 ms)
+    ÔêÜ debe rechazar endTime < startTime (1 ms)
+    ÔêÜ debe rechazar foto inv├ílida (no URL) (62 ms)
+    ÔêÜ debe aceptar foto con URL v├ílida (18 ms)
+  Doctor Schemas - approveDoctorSchema
+    ÔêÜ debe aceptar aprobaci├│n de doctor (26 ms)
+    ÔêÜ debe aceptar rechazo de doctor (2 ms)
+    ÔêÜ debe rechazar estado inv├ílido (1 ms)
+    ÔêÜ debe requerir isApproved (1 ms)
+  Doctor Schemas - getDoctorsQuerySchema
+    ÔêÜ debe usar valores por defecto (2 ms)
+    ÔêÜ debe aceptar b├║squeda por nombre (1 ms)
+    ÔêÜ debe aceptar filtro por especializaci├│n (26 ms)
+    ÔêÜ debe aceptar filtro de rango de precios (2 ms)
+    ÔêÜ debe rechazar maxPrice < minPrice (1 ms)
+    ÔêÜ debe aceptar filtro por isApproved (1 ms)
+    ÔêÜ debe aceptar ordenamiento v├ílido (1 ms)
+    ÔêÜ debe rechazar sortBy inv├ílido (1 ms)
+    ÔêÜ debe rechazar sortOrder inv├ílido (1 ms)
+
+  ÔùÅ Doctor Schemas - updateDoctorSchema ÔÇ║ debe aceptar actualizaci├│n completa de perfil
+
+    expect(received).toBeUndefined()
+
+    Received: [ValidationError: La especializaci├│n debe ser una de las permitidas]
+
+      40 |     // TODO: validDoctorUpdate incluye experiences que no existe en schema
+      41 |     const { error } = updateDoctorSchema.validate(validDoctorUpdate);
+    > 42 |     expect(error).toBeUndefined();
+         |                   ^
+      43 |   });
+      44 |
+      45 |   test('debe aceptar actualizaci├│n parcial', () => {
+
+      at Object.toBeUndefined (tests/unit/doctor.schemas.test.js:42:19)
+
+PASS tests/unit/clinical.schemas.test.js
+  Clinical Schemas Validation
+    ÔêÜ placeholder - suite debe contener al menos un test (4 ms)
+
+FAIL tests/unit/user.schemas.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/user.test.js.
+FAIL tests/integration/user.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/security-logout.test.js.
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/security-password.test.js.
+FAIL tests/integration/security-logout.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+FAIL tests/integration/security-password.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/security.test.js.
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/review.test.js.
+FAIL tests/integration/security.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/security-audit.test.js.
+FAIL tests/integration/review.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+FAIL tests/integration/security-audit.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/doctor.test.js.
+FAIL tests/integration/doctor.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:37:40
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/booking.test.js.
+FAIL tests/integration/booking.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:37:40
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/integration/auth.test.js.
+FAIL tests/integration/auth.test.js
+  ÔùÅ Test suite failed to run
+
+    SyntaxError: C:\Users\Alejandro\Documents\Github\Medicare-Booking-main\backend\validators\schemas\user.schemas.js: Unexpected token, expected "," (165:7)
+
+      163 |
+      164 |   // Filtro por email
+    > 165 |   email: Joi.string()
+          |        ^
+      166 |     .email()
+      167 |     .messages({
+      168 |       'string.email': 'El email debe ser v├ílido'
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at Parser.raise [as unexpected] (node_modules/@babel/parser/src/tokenizer/index.ts:1544:16)
+      at Parser.unexpected [as expect] (node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at Parser.expect [as parseCallExpressionArguments] (node_modules/@babel/parser/src/parser/expression.ts:1031:14)
+      at Parser.parseCallExpressionArguments [as parseCoverCallAndAsyncArrowHead] (node_modules/@babel/parser/src/parser/expression.ts:922:29)
+      at Parser.parseCoverCallAndAsyncArrowHead [as parseSubscript] (node_modules/@babel/parser/src/parser/expression.ts:804:19)
+      at Parser.parseSubscript [as parseSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:763:19)
+      at Parser.parseSubscripts [as parseExprSubscripts] (node_modules/@babel/parser/src/parser/expression.ts:748:17)
+      at Parser.parseExprSubscripts [as parseUpdate] (node_modules/@babel/parser/src/parser/expression.ts:721:21)
+      at Parser.parseUpdate [as parseMaybeUnary] (node_modules/@babel/parser/src/parser/expression.ts:683:23)
+      at Parser.parseMaybeUnary [as parseMaybeUnaryOrPrivate] (node_modules/@babel/parser/src/parser/expression.ts:417:14)
+      at Parser.parseMaybeUnaryOrPrivate [as parseExprOps] (node_modules/@babel/parser/src/parser/expression.ts:429:23)
+      at Parser.parseExprOps [as parseMaybeConditional] (node_modules/@babel/parser/src/parser/expression.ts:384:23)
+      at Parser.parseMaybeConditional [as parseMaybeAssign] (node_modules/@babel/parser/src/parser/expression.ts:301:21)
+      at parseMaybeAssign (node_modules/@babel/parser/src/parser/expression.ts:257:12)
+      at Parser.callback [as allowInAnd] (node_modules/@babel/parser/src/parser/expression.ts:3189:16)
+      at Parser.allowInAnd [as parseMaybeAssignAllowIn] (node_modules/@babel/parser/src/parser/expression.ts:256:17)
+      at Parser.parseMaybeAssignAllowIn [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1587:18)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseStatementListItem] (node_modules/@babel/parser/src/parser/statement.ts:431:17)
+      at Parser.parseStatementListItem (node_modules/@babel/parser/src/parser/statement.ts:2635:17)
+      at Parser.parseExportDeclaration [as maybeParseExportDeclaration] (node_modules/@babel/parser/src/parser/statement.ts:2551:31)
+      at Parser.maybeParseExportDeclaration [as parseExport] (node_modules/@babel/parser/src/parser/statement.ts:2432:29)
+      at Parser.parseExport [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:649:25)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at step (node_modules/gensync/index.js:261:32)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:189:28
+      at cb (node_modules/@babel/core/src/gensync-utils/async.ts:90:7)
+      at node_modules/gensync/index.js:113:33
+      at step (node_modules/gensync/index.js:287:14)
+      at node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/gensync/index.js:223:11)
+      at node_modules/gensync/index.js:37:40
+
+Test Suites: 15 failed, 3 passed, 18 total
+Tests:       16 failed, 189 passed, 205 total
+Snapshots:   0 total
+Time:        12.97 s
+Ran all test suites.

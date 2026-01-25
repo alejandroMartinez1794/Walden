@@ -205,10 +205,10 @@ export const textShortSchema = Joi.string()
   .min(2)
   .max(100)
   .trim()
-  .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/) // Solo letras y espacios
+  .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s.]+$/) // Solo letras, espacios y puntos
   .messages({
     'string.min': 'Debe tener al menos 2 caracteres',
     'string.max': 'No puede exceder 100 caracteres',
-    'string.pattern.base': 'Solo se permiten letras y espacios',
+    'string.pattern.base': 'Solo se permiten letras, espacios y puntos',
     'any.required': 'Este campo es requerido'
   });

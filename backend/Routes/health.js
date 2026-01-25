@@ -15,8 +15,11 @@ import {
 // ✅ IMPORTAR VALIDACIÓN
 import { validate, validateId } from '../validators/middleware/validate.js';
 import { 
-    createHealthMetricSchema,
-    getHealthMetricsQuerySchema 
+  createHealthMetricSchema,
+  getHealthMetricsQuerySchema,
+  createMedicationSchema,
+  updateMedicationSchema,
+  createMedicalRecordSchema
 } from '../validators/schemas/health.schemas.js';
 
 const router = express.Router();
@@ -48,8 +51,8 @@ router.use(authenticate, restrict(['paciente']));
  * - Seguimiento de adherencia
  */
 router.get('/medications', getMyMedications);
-router.post('/medications', createMedication);
-router.put('/medications/:id', validateId, updateMedication);
+router.post('/medications', validate(createMedicationSchema), createMedication);
+router.put('/medications/:id', validateId, validate(updateMedicationSchema), updateMedication);
 router.delete('/medications/:id', validateId, deleteMedication);
 router.post('/medications/:id/take-dose', validateId, takeMedicationDose);
 
@@ -87,6 +90,6 @@ router.post('/metrics', validate(createHealthMetricSchema), addMetric);
  * - Validar formato de archivos (PDF, JPEG, PNG)
  */
 router.get('/records', getMyRecords);
-router.post('/records', createRecord);
+router.post('/records', validate(createMedicalRecordSchema), createRecord);
 
 export default router;

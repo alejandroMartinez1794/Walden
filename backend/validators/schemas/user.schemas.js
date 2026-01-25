@@ -45,10 +45,10 @@ import {
 export const updateUserSchema = Joi.object({
   // Información básica
   name: textShortSchema
-    .min(2)
+    .min(3)
     .max(100)
     .messages({
-      'string.min': 'El nombre debe tener al menos 2 caracteres',
+      'string.min': 'El nombre debe tener al menos 3 caracteres',
       'string.max': 'El nombre no puede exceder 100 caracteres'
     }),
 
@@ -74,6 +74,12 @@ export const updateUserSchema = Joi.object({
     .valid('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')
     .messages({
       'any.only': 'Tipo de sangre inválido. Valores permitidos: A+, A-, B+, B-, AB+, AB-, O+, O-'
+    })
+  , // No permitir cambio de role
+  role: Joi.any()
+    .forbidden()
+    .messages({
+      'any.unknown': 'El rol no puede ser modificado'
     })
 }).min(1) // Al menos un campo debe ser enviado
   .messages({
@@ -112,7 +118,25 @@ export const getUserByIdSchema = Joi.object({
  */
 export const getUsersQuerySchema = Joi.object({
   // Paginación (heredada de common.schemas.js)
-  ...paginationSchema.extract(['page', 'limit']),
+  page: Joi.number()
+    .integer()
+    .min(1)
+    .default(1)
+    .messages({
+      'number.base': 'Página debe ser un número',
+      'number.min': 'Página debe ser al menos 1'
+    }),
+  
+  limit: Joi.number()
+    .integer()
+    .min(1)
+    .max(100)
+    .default(10)
+    .messages({
+      'number.base': 'Límite debe ser un número',
+      'number.min': 'Límite debe ser al menos 1',
+      'number.max': 'Límite máximo es 100'
+    }),
 
   // Filtro por rol
   role: Joi.string()
@@ -134,6 +158,42 @@ export const getUsersQuerySchema = Joi.object({
   isApproved: Joi.boolean()
     .messages({
       'boolean.base': 'isApproved debe ser true o false'
+    })
+  ,
+
+  // Filtro por email
+  email: Joi.string()
+    .email()
+    .messages({
+      'string.email': 'El email debe ser válido'
+    }),
+
+  // Filtro por género
+  gender: Joi.string()
+    .valid('male', 'female', 'other', 'prefer-not-to-say')
+    .messages({
+      'any.only': 'Género inválido'
+    }),
+
+  // Filtro por tipo de sangre
+  bloodType: Joi.string()
+    .valid('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')
+    .messages({
+      'any.only': 'Tipo de sangre inválido'
+    }),
+
+  // Ordenamiento
+  sortBy: Joi.string()
+    .valid('name', 'email', 'createdAt', 'updatedAt')
+    .messages({
+      'any.only': 'Campo de ordenamiento inválido'
+    }),
+
+  sortOrder: Joi.string()
+    .valid('asc', 'desc')
+    .default('asc')
+    .messages({
+      'any.only': 'Orden inválido (use asc o desc)'
     })
 });
 

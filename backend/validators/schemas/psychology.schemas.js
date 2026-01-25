@@ -87,6 +87,14 @@ export const createPsychologyPatientSchema = Joi.object({
     .max(100)
     .messages({
       'string.max': 'La referencia no puede exceder 100 caracteres'
+    }),
+
+  // Nivel de riesgo inicial
+  riskLevel: Joi.string()
+    .valid('low', 'medium', 'high', 'critical')
+    .default('low')
+    .messages({
+      'any.only': 'Nivel de riesgo inválido'
     })
 });
 
@@ -129,11 +137,11 @@ export const createSessionSchema = Joi.object({
    */
   duration: Joi.number()
     .integer()
-    .min(15)
+    .min(30)
     .max(180)
     .default(50)
     .messages({
-      'number.min': 'La duración mínima es 15 minutos',
+      'number.min': 'La duración mínima es 30 minutos',
       'number.max': 'La duración máxima es 180 minutos'
     }),
 
@@ -329,8 +337,10 @@ export const createTreatmentPlanSchema = Joi.object({
    * - Puede agregarse después
    */
   diagnosis: textShortSchema
+    .min(5)
     .max(200)
     .messages({
+      'string.min': 'El diagnóstico debe tener al menos 5 caracteres',
       'string.max': 'El diagnóstico no puede exceder 200 caracteres'
     }),
 

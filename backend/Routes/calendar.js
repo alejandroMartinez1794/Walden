@@ -14,6 +14,11 @@ import { authenticate, restrict } from '../auth/verifyToken.js';
 
 // ✅ IMPORTAR VALIDACIÓN
 import { validate, validateId } from '../validators/middleware/validate.js';
+import {
+  createCalendarEventSchema,
+  getCalendarEventsQuerySchema,
+  updateCalendarEventSchema
+} from '../validators/schemas/calendar.schemas.js';
 
 const router = express.Router();
 
@@ -81,7 +86,7 @@ router.get('/google/callback', handleGoogleCallback);
  * - End > Start
  * - No en el pasado
  */
-router.post('/create', authenticate, createCalendarEvent);
+router.post('/create', authenticate, validate(createCalendarEventSchema), createCalendarEvent);
 
 /**
  * GET /api/v1/calendar/events
@@ -95,7 +100,7 @@ router.post('/create', authenticate, createCalendarEvent);
  * 
  * TODO: Crear schema de validación para query params
  */
-router.get('/events', authenticate, getCalendarEvents);
+router.get('/events', authenticate, validate(getCalendarEventsQuerySchema, 'query'), getCalendarEvents);
 
 /**
  * PUT /api/v1/calendar/update

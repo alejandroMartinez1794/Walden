@@ -1,11 +1,13 @@
 import User from '../models/UserSchema.js';
 import Doctor from '../models/DoctorSchema.js';
 import SecurityLog from '../models/SecurityLogSchema.js'; // Nuevo log de auditoría
+import AuditLog from '../models/AuditLogSchema.js'; // HIPAA compliance
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import sendEmail from '../utils/emailService.js';
 import { createCsrfToken, setCsrfCookie, getCookieOptions } from '../utils/csrf.js';
+import { blacklistToken, blacklistAllUserTokens } from '../services/tokenBlacklist.js';
 
 const logSecurityEvent = async ({ user, event, status, req, meta = {} }) => {
     try {
@@ -73,14 +75,30 @@ const generateToken = user => {
 const normalizeEmail = (email = '') => email.trim().toLowerCase();
 const isValidEmail = (email = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// Seguridad Nivel Dios: Contraseñas robustas obligatorias
+// 🔒 SEGURIDAD NIVEL PRODUCCIÓN: Contraseñas robustas obligatorias
+// Cumple con NIST SP 800-63B y HIPAA Security Rule
 const isStrongPassword = (password = '') => {
-    const minLength = 8;
+    // Mínimo 12 caracteres (aumentado de 8 para mayor seguridad)
+    const minLength = 12;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+    
+    // Prevenir contraseñas comunes
+    const commonPasswords = ['password', 'Password123!', 'Admin123!', '12345678', 'qwerty'];
+    const isCommon = commonPasswords.some(common => password.toLowerCase().includes(common.toLowerCase()));
+    
+    return password.length >= minLength && 
+           hasUpperCase && 
+           hasLowerCase && 
+           hasNumbers && 
+           hasSpecialChar &&
+           !isCommon;
+};
+
+const getPasswordStrengthMessage = () => {
+    return 'Contraseña débil. Debe tener mínimo 12 caracteres, incluir mayúsculas, minúsculas, números y símbolos. No usar contraseñas comunes.';
 };
 
 const MAX_FAILED_ATTEMPTS = Number(process.env.AUTH_MAX_FAILED_ATTEMPTS) || 5;
@@ -193,7 +211,7 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: 'Nombre es requerido' });
         }
         if (!isStrongPassword(password)) {
-            return res.status(400).json({ message: 'Contraseña débil. Debe tener min. 8 caracteres, mes, mayúscula, número y símbolo.' });
+            return res.status(400).json({ message: getPasswordStrengthMessage() });
         }
 
         const captchaOk = await verifyCaptchaToken(req.body.captchaToken, req.ip);
@@ -335,6 +353,14 @@ export const login = async (req, res) => {
             .json({ status:false, message: 'Invalid credentials' });
         }
 
+        // Verificar si el doctor está aprobado
+        if (user.role === 'doctor' && user.isApproved !== 'approved') {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Tu cuenta de doctor aún no ha sido aprobado por el administrador' 
+            });
+        }
+
         await resetFailedLogins(user);
         
         // 🔒 Verificar 2FA
@@ -401,10 +427,57 @@ export const getCsrfToken = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-    const cookieOptions = getCookieOptions();
-    res.clearCookie('access_token', cookieOptions);
-    res.clearCookie('csrf_token', { ...cookieOptions, httpOnly: false });
-    return res.status(200).json({ message: 'Logout exitoso' });
+    try {
+        // 🔒 SEGURIDAD: Invalidar token JWT agregándolo a blacklist
+        const token = req.token; // Viene del middleware authenticate
+        const userId = req.userId;
+        
+        if (token && userId) {
+            // Decodificar el token para obtener expiration
+            const decoded = jwt.decode(token);
+            const expiresAt = decoded.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+            
+            // Agregar a blacklist
+            await blacklistToken(token, userId, expiresAt, 'LOGOUT');
+            
+            // 📋 Audit Log para HIPAA compliance
+            await AuditLog.log({
+                userId,
+                userRole: req.role,
+                userEmail: req.user?.email || 'unknown',
+                action: 'LOGOUT',
+                resourceType: 'User',
+                resourceId: userId,
+                timestamp: new Date(),
+                ipAddress: req.ip || req.connection.remoteAddress,
+                userAgent: req.get('user-agent') || 'unknown',
+                result: 'SUCCESS',
+                containsPHI: false,
+                severity: 'LOW'
+            });
+        }
+        
+        // Limpiar cookies
+        const cookieOptions = getCookieOptions();
+        res.clearCookie('access_token', cookieOptions);
+        res.clearCookie('csrf_token', { ...cookieOptions, httpOnly: false });
+        
+        return res.status(200).json({ 
+            success: true,
+            message: 'Logout exitoso. Token invalidado.' 
+        });
+    } catch (error) {
+        console.error('❌ Error en logout:', error);
+        // Aunque falle el blacklisting, limpiar cookies igual
+        const cookieOptions = getCookieOptions();
+        res.clearCookie('access_token', cookieOptions);
+        res.clearCookie('csrf_token', { ...cookieOptions, httpOnly: false });
+        
+        return res.status(200).json({ 
+            success: true,
+            message: 'Logout exitoso' 
+        });
+    }
 };
 
 export const verifyEmail = async (req, res) => {

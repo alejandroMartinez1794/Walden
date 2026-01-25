@@ -35,11 +35,16 @@ import { mongoIdSchema, textLongSchema } from './common.schemas.js';
 export const createBookingSchema = Joi.object({
   doctorId: mongoIdSchema.required(),
   
+  // Soportar ambos formatos: appointmentDate (nuevo) o date+time (legacy del controller)
   appointmentDate: Joi.date()
     .iso()
     .min('now') // No se puede agendar en el pasado
     .max(Joi.ref('$maxDate')) // Máximo 3 meses (se pasa desde middleware)
-    .required()
+    .when('date', {
+      is: Joi.exist(),
+      then: Joi.optional(),
+      otherwise: Joi.required()
+    })
     .custom((value, helpers) => {
       const date = new Date(value);
       const hour = date.getHours();
@@ -72,14 +77,53 @@ export const createBookingSchema = Joi.object({
       'date.weekend': 'No se agendan citas los fines de semana',
       'any.required': 'Fecha de cita es requerida'
     }),
+
+  // Formato legacy del controller actual  
+  date: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .messages({
+      'string.pattern.base': 'Fecha debe estar en formato YYYY-MM-DD'
+    }),
   
+  time: Joi.string()
+    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .when('date', {
+      is: Joi.exist(),
+      then: Joi.required(),
+      otherwise: Joi.optional()
+    })
+    .messages({
+      'string.pattern.base': 'Hora debe estar en formato HH:mm (24 horas)',
+      'any.required': 'Hora es requerida cuando se especifica fecha'
+    }),
+  
+  // Soportar ambos nombres para motivo de consulta
   reason: textLongSchema
     .min(20) // Mínimo 20 caracteres para razón
-    .required()
+    .when('motivoConsulta', {
+      is: Joi.exist(),
+      then: Joi.optional(),
+      otherwise: Joi.required()
+    })
     .messages({
       'string.min': 'Motivo de consulta debe tener al menos 20 caracteres',
       'any.required': 'Motivo de consulta es requerido'
     }),
+  
+  motivoConsulta: textLongSchema
+    .min(20)
+    .optional()
+    .messages({
+      'string.min': 'Motivo de consulta debe tener al menos 20 caracteres'
+    }),
+
+  // Campos opcionales del controller legacy
+  patientId: mongoIdSchema.optional(),
+  patientEmail: Joi.string().email().optional(),
+  patientName: Joi.string().max(100).optional(),
+  durationMinutes: Joi.number().integer().min(15).max(480).optional(),
+  ticketPrice: Joi.number().min(0).optional(),
   
   // Campos opcionales
   notes: Joi.string()
@@ -101,6 +145,7 @@ export const createBookingSchema = Joi.object({
       'number.max': 'Duración máxima: 4 horas (240 minutos)'
     })
 });
+
 
 /**
  * 🔄 UPDATE BOOKING
@@ -174,11 +219,10 @@ export const cancelBookingSchema = Joi.object({
   cancellationReason: Joi.string()
     .min(10)
     .max(500)
-    .required()
+    .optional() // Controller no lo usa actualmente, hacerlo opcional
     .messages({
       'string.min': 'Razón de cancelación debe tener al menos 10 caracteres',
-      'string.max': 'Razón de cancelación no puede exceder 500 caracteres',
-      'any.required': 'Razón de cancelación es requerida'
+      'string.max': 'Razón de cancelación no puede exceder 500 caracteres'
     })
 });
 

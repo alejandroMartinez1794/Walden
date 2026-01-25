@@ -2,6 +2,7 @@
 import jwt from 'jsonwebtoken';
 import Doctor from '../models/DoctorSchema.js';
 import User from '../models/UserSchema.js';
+import { isTokenBlacklisted } from '../services/tokenBlacklist.js';
 
 const normalizeRole = (role = '') => {
   const map = {
@@ -29,6 +30,16 @@ export const authenticate = async (req, res, next) => {
   try {
     const token = authToken?.startsWith('Bearer ') ? authToken.split(' ')[1] : cookieToken;
     const secretKey = process.env.JWT_SECRET_KEY;
+    
+    // 🔒 SEGURIDAD: Verificar si el token está en blacklist (logout, password change, etc.)
+    const blacklisted = await isTokenBlacklisted(token);
+    if (blacklisted) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Token has been revoked. Please login again.' 
+      });
+    }
+    
     const decoded = jwt.verify(token, secretKey);
 
     // Seguridad Nivel Dios: Verificar que el usuario sigue existiendo en la DB
@@ -39,10 +50,16 @@ export const authenticate = async (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Usuario ya no existe. Acceso denegado.' });
     }
 
-    // Persistir información del usuario
-    req.user = decoded; // Mantener payload del token para eficiencia
+    // Persistir información del usuario (enriquecer con email de DB)
+    req.user = {
+      ...decoded,
+      email: userExists.email  // ✅ Agregar email para audit logs
+    };
     req.userId = decoded.id;
     req.role = decoded.role;
+    
+    // Guardar el token para posible blacklisting posterior
+    req.token = token;
     
     // Opcional: Pasar el objeto de usuario actualizado si se requiere información fresca
     // req.currentUser = userExists; 
