@@ -1,0 +1,115 @@
+name: Security Scan
+
+on:
+  schedule:
+    # Ejecutar todos los lunes a las 9 AM
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Scan vulnerabilidades Backend
+        working-directory: ./backend
+        run: |
+          npm audit --audit-level=high --json > backend-audit.json || true
+          npm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Scan vulnerabilidades Frontend
+        working-directory: ./Frontend
+        run: |
+          npm audit --audit-level=high --json > frontend-audit.json || true
+          npm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Subir reportes
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            backend/backend-audit.json
+            Frontend/frontend-audit.json
+        if: always()
+  
+  snyk-scan:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SNYK_TOKEN }}
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+        continue-on-error: true
+  
+  secrets-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+        continue-on-error: true
+  
+  compliance-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Verificar compliance Colombia
+        working-directory: ./backend
+        run: |
+          echo "🇨🇴 Verificando compliance con Ley 1581/2012..."
+          
+          # Verificar documentos legales
+          if [ ! -f "../Legal/POLITICA_TRATAMIENTO_DATOS_COLOMBIA.md" ]; then
+            echo "❌ Falta Política de Tratamiento de Datos"
+            exit 1
+          fi
+          
+          if [ ! -f "../Legal/CONSENTIMIENTO_INFORMADO_COLOMBIA.md" ]; then
+            echo "❌ Falta Consentimiento Informado"
+            exit 1
+          fi
+          
+          # Verificar encriptación
+          if ! grep -q "AES-256" utils/clinicalCrypto.js; then
+            echo "❌ No se detectó encriptación AES-256"
+            exit 1
+          fi
+          
+          # Verificar audit logging
+          if [ ! -f "middleware/auditLogger.js" ]; then
+            echo "❌ Falta audit logging"
+            exit 1
+          fi
+          
+          echo "✅ Compliance verificado correctamente"

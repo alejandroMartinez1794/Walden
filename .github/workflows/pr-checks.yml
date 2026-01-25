@@ -1,0 +1,123 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-info:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Info del PR
+        run: |
+          echo "📝 PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
+          echo "👤 Autor: ${{ github.event.pull_request.user.login }}"
+          echo "🌿 Branch: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}"
+  
+  tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Instalar y testear Backend
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm test -- --forceExit
+        env:
+          NODE_ENV: test
+      
+      - name: Build check Frontend
+        working-directory: ./Frontend
+        run: |
+          npm ci
+          npm run build
+  
+  lint-commit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Verificar commits
+        run: |
+          echo "Verificando mensajes de commits..."
+          git log --format=%s origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }} | while read msg; do
+            if [ ${#msg} -lt 10 ]; then
+              echo "⚠️ Commit message muy corto: '$msg'"
+            fi
+          done
+  
+  size-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+      
+      - name: Medir tamaño base
+        id: base
+        run: |
+          BASE_SIZE=$(du -sb . | cut -f1)
+          echo "size=$BASE_SIZE" >> $GITHUB_OUTPUT
+      
+      - name: Checkout código PR
+        uses: actions/checkout@v4
+      
+      - name: Medir tamaño PR
+        id: pr
+        run: |
+          PR_SIZE=$(du -sb . | cut -f1)
+          echo "size=$PR_SIZE" >> $GITHUB_OUTPUT
+          
+          DIFF=$((PR_SIZE - ${{ steps.base.outputs.size }}))
+          echo "Cambio de tamaño: $DIFF bytes"
+          
+          if [ $DIFF -gt 10000000 ]; then
+            echo "⚠️ El PR aumenta el tamaño del repo en más de 10MB"
+          fi
+  
+  pr-summary:
+    needs: [tests, lint-commit, size-check]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Crear comentario resumen
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tests = '${{ needs.tests.result }}';
+            const lint = '${{ needs.lint-commit.result }}';
+            const size = '${{ needs.size-check.result }}';
+            
+            let body = '## 📊 Resumen de Checks\n\n';
+            body += `- Tests: ${tests === 'success' ? '✅' : '❌'} ${tests}\n`;
+            body += `- Lint: ${lint === 'success' ? '✅' : '⚠️'} ${lint}\n`;
+            body += `- Size: ${size === 'success' ? '✅' : '⚠️'} ${size}\n`;
+            
+            if (tests === 'success' && lint === 'success') {
+              body += '\n✅ **Este PR está listo para revisión**';
+            } else {
+              body += '\n⚠️ **Este PR necesita correcciones antes de merge**';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
