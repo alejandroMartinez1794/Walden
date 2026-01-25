@@ -1,6 +1,15 @@
 import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
+  // En modo test, solo logear y retornar sin enviar
+  if (process.env.NODE_ENV === 'test') {
+    console.log('📧 [TEST MODE] Email would be sent:', {
+      to: options.email,
+      subject: options.subject
+    });
+    return Promise.resolve({ messageId: 'test-message-id' });
+  }
+
   // 1) Create a transporter
   // Support for predefined services (Gmail, Outlook) or custom SMTP
   const transportConfig = process.env.EMAIL_SERVICE
