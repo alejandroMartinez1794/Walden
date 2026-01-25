@@ -37,8 +37,8 @@ jobs:
         env:
           NODE_ENV: test
           MONGO_URL: ${{ secrets.MONGO_URL_TEST || 'mongodb://localhost:27017/psiconepsis-test' }}
-          JWT_SECRET: test-secret-key-for-ci
-          ENCRYPTION_KEY: test-encryption-key-32-bytes-long!!
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-key-for-ci' }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
       
       - name: Generar reporte de cobertura
         run: npm run test:coverage || npm test -- --coverage --forceExit
