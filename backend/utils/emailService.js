@@ -1,13 +1,17 @@
 import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
-  // En modo test, solo logear y retornar sin enviar
+  // En modo test, usar transporter de prueba sin conexión real
   if (process.env.NODE_ENV === 'test') {
     console.log('📧 [TEST MODE] Email would be sent:', {
       to: options.email,
       subject: options.subject
     });
-    return Promise.resolve({ messageId: 'test-message-id' });
+    // Retornar sin intentar enviar
+    return Promise.resolve({
+      accepted: [options.email],
+      messageId: 'test-message-id'
+    });
   }
 
   // 1) Create a transporter
@@ -32,13 +36,6 @@ const sendEmail = async (options) => {
 
   const transporter = nodemailer.createTransport(transportConfig);
 
-  // Debug: Log config (masked)
-  console.log('📧 Email Config:', {
-    service: process.env.EMAIL_SERVICE || 'Custom',
-    user: process.env.EMAIL_USERNAME,
-    from: process.env.EMAIL_FROM
-  });
-
   // 2) Define the email options
   const mailOptions = {
     from: `Psiconepsis <${process.env.EMAIL_FROM}>`,
@@ -50,7 +47,7 @@ const sendEmail = async (options) => {
   };
 
   // 3) Actually send the email
-  await transporter.sendMail(mailOptions);
+  return await transporter.sendMail(mailOptions);
 };
 
 export default sendEmail;
