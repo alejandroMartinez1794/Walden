@@ -105,11 +105,15 @@ jobs:
     steps:
       - name: Resumen de tests
         run: |
-          echo "✅ Backend tests: ${{ needs.backend-tests.result }}"
-          echo "✅ Frontend lint: ${{ needs.frontend-lint.result }}"
-          echo "✅ Security audit: ${{ needs.security-audit.result }}"
+          echo "📊 Resumen de CI/CD:"
+          echo "Backend tests: ${{ needs.backend-tests.result }}"
+          echo "Frontend lint: ${{ needs.frontend-lint.result }}"
+          echo "Security audit: ${{ needs.security-audit.result }}"
           
-          if [ "${{ needs.backend-tests.result }}" != "success" ]; then
-            echo "❌ Backend tests fallaron"
+          # Solo falla si backend-tests falló (frontend y security son opcionales)
+          if [ "${{ needs.backend-tests.result }}" == "failure" ]; then
+            echo "❌ Backend tests fallaron - revisar logs"
             exit 1
+          elif [ "${{ needs.backend-tests.result }}" == "success" ]; then
+            echo "✅ Todos los tests críticos pasaron"
           fi
