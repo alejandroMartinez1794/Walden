@@ -50,15 +50,19 @@ try {
     dotenv.config({ path: '.env', override: true });
 }
 
-// Validar secretos requeridos al iniciar
-const secretsValidation = await validateSecrets();
-if (!secretsValidation.valid) {
-    logger.error('❌ Missing required secrets:', secretsValidation.missing);
-    logger.error('Application cannot start without required secrets');
-    logger.info('See backend/SECRETS_MANAGEMENT.md for setup instructions');
-    process.exit(1);
+// Validar secretos requeridos al iniciar (skip en entorno de test)
+if (process.env.NODE_ENV !== 'test') {
+    const secretsValidation = await validateSecrets();
+    if (!secretsValidation.valid) {
+        logger.error('❌ Missing required secrets:', secretsValidation.missing);
+        logger.error('Application cannot start without required secrets');
+        logger.info('See backend/SECRETS_MANAGEMENT.md for setup instructions');
+        process.exit(1);
+    }
+    logger.info('✅ Secrets validated', getSecretsStats());
+} else {
+    logger.info('⏭️  Skipping secrets validation in test environment');
 }
-logger.info('✅ Secrets validated', getSecretsStats());
 
 const app = express();
 const PORT = process.env.PORT || 8000;
