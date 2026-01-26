@@ -10,6 +10,10 @@ jobs:
   backend-tests:
     runs-on: ubuntu-latest
     
+    # Set NODE_ENV at job level so it's available in ALL steps
+    env:
+      NODE_ENV: test
+    
     strategy:
       matrix:
         node-version: [20.x]
@@ -36,7 +40,6 @@ jobs:
       - name: Ejecutar tests
         run: npm test -- --forceExit --detectOpenHandles
         env:
-          NODE_ENV: test
           MONGO_URL: ${{ secrets.MONGO_URL_TEST || 'mongodb://localhost:27017/psiconepsis-test' }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-key-for-ci' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
