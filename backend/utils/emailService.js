@@ -1,53 +1,144 @@
-import nodemailer from 'nodemailer';
+/**
+ * Brevo Email Service (formerly Sendinblue)
+ * 
+ * Student Pack: 300 emails/día GRATIS PERMANENTE
+ * Mejor deliverability que SMTP directo
+ * Docs: https://developers.brevo.com/docs
+ */
 
+import * as brevo from '@getbrevo/brevo';
+
+/**
+ * Send email via Brevo API
+ * @param {Object} options - Email options
+ * @param {string} options.email - Recipient email
+ * @param {string} options.subject - Email subject
+ * @param {string} options.message - Plain text message
+ * @param {string} options.html - HTML message (optional)
+ * @returns {Promise<Object>} Brevo response
+ */
 const sendEmail = async (options) => {
-  // En modo test, usar transporter de prueba sin conexión real
+  // En modo test, mock sin conexión real
   if (process.env.NODE_ENV === 'test') {
     console.log('📧 [TEST MODE] Email would be sent:', {
       to: options.email,
       subject: options.subject
     });
-    // Retornar sin intentar enviar
     return Promise.resolve({
+      messageId: 'test-message-id',
       accepted: [options.email],
-      messageId: 'test-message-id'
     });
   }
 
-  // 1) Create a transporter
-  // Support for predefined services (Gmail, Outlook) or custom SMTP
-  const transportConfig = process.env.EMAIL_SERVICE
-    ? {
-        service: process.env.EMAIL_SERVICE, // e.g., 'gmail', 'hotmail'
-        auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD,
+  // Validar que exista API key
+  if (!process.env.BREVO_API_KEY) {
+    console.error('❌ BREVO_API_KEY not configured');
+    throw new Error('Email service not configured. Contact system administrator.');
+  }
+
+  try {
+    // 1) Configure Brevo API client
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(
+      brevo.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY
+    );
+
+    // 2) Prepare email data
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    
+    sendSmtpEmail.subject = options.subject;
+    sendSmtpEmail.sender = {
+      name: 'Psiconepsis',
+      email: process.env.EMAIL_FROM || 'noreply@psiconepsis.app',
+    };
+    sendSmtpEmail.to = [
+      {
+        email: options.email,
+        name: options.name || options.email.split('@')[0], // Use name if provided
+      },
+    ];
+    
+    // BCC para administración (opcional)
+    if (process.env.EMAIL_BCC) {
+      sendSmtpEmail.bcc = [
+        {
+          email: process.env.EMAIL_BCC,
+          name: 'Admin Psiconepsis',
         },
-      }
-    : {
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        secure: process.env.EMAIL_PORT == 465, // true for 465, false for other ports
-        auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      };
+      ];
+    }
+    
+    // 3) Set email content (HTML takes precedence)
+    if (options.html) {
+      sendSmtpEmail.htmlContent = options.html;
+    } else if (options.message) {
+      sendSmtpEmail.textContent = options.message;
+    } else {
+      throw new Error('Email must have either html or message content');
+    }
 
-  const transporter = nodemailer.createTransport(transportConfig);
-
-  // 2) Define the email options
-  const mailOptions = {
-    from: `Psiconepsis <${process.env.EMAIL_FROM}>`,
-    to: options.email,
-    bcc: 'psiconepsis@gmail.com', // Copia oculta para administración
-    subject: options.subject,
-    text: options.message,
-    html: options.html,
-  };
-
-  // 3) Actually send the email
-  return await transporter.sendMail(mailOptions);
+    // 4) Send email via Brevo
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    
+    console.log(`✅ Email sent to ${options.email} (ID: ${response.messageId})`);
+    
+    return {
+      messageId: response.messageId,
+      accepted: [options.email],
+    };
+    
+  } catch (error) {
+    console.error('❌ Brevo email error:', error.message);
+    
+    // Log detailed error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Full error:', error);
+    }
+    
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
 };
 
 export default sendEmail;
+
+/**
+ * SETUP INSTRUCTIONS:
+ * 
+ * 1. Create Brevo account:
+ *    - Go to: https://app.brevo.com/account/register
+ *    - Verify email
+ *    - Free plan: 300 emails/day PERMANENTE
+ * 
+ * 2. Get API key:
+ *    - Settings → SMTP & API → API Keys
+ *    - Create new key with permissions: Send transactional emails
+ *    - Copy the key (starts with xkeysib-)
+ * 
+ * 3. Add to .env:
+ *    BREVO_API_KEY=xkeysib-your_key_here
+ *    EMAIL_FROM=noreply@psiconepsis.app
+ *    EMAIL_BCC=admin@psiconepsis.app (optional)
+ * 
+ * 4. Verify sender email:
+ *    - Senders & IP → Add a Sender
+ *    - Use your domain email (e.g., noreply@psiconepsis.app)
+ *    - Verify via email confirmation
+ * 
+ * 5. Advantages over SMTP:
+ *    ✅ Better deliverability (dedicated IPs)
+ *    ✅ No ECONNREFUSED errors
+ *    ✅ Email analytics dashboard
+ *    ✅ Built-in spam protection
+ *    ✅ Template management (optional)
+ *    ✅ 300 emails/day free FOREVER
+ * 
+ * 6. Usage examples:
+ *    - Registration: sendEmail({ email: 'user@example.com', subject: 'Welcome', html: '<h1>Welcome!</h1>' })
+ *    - Booking: sendEmail({ email: 'patient@example.com', subject: 'Appointment Confirmed', message: 'Your appointment...' })
+ *    - Security: sendEmail({ email: 'user@example.com', subject: 'Security Alert', html: '<p>We detected...</p>' })
+ * 
+ * 7. Monitor usage:
+ *    - Dashboard shows: sent, delivered, opened, clicked, bounced
+ *    - Alerts when approaching daily limit
+ */

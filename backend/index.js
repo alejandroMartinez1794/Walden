@@ -1,3 +1,7 @@
+// ============= MONITORING & OBSERVABILITY =============
+// CRITICAL: New Relic MUST be loaded FIRST before any other modules
+import './newrelic.js';
+
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -6,6 +10,15 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { createHTTPSServer, createHTTPRedirectServer, forceHTTPS, additionalSecurityHeaders } from './config/https.js';
+
+// Sentry error tracking
+import { 
+  initSentry, 
+  sentryRequestHandler, 
+  sentryTracingHandler, 
+  sentryErrorHandler 
+} from './config/sentry.js';
+
 import authRoute from './Routes/auth.js';
 import userRoute from './Routes/user.js';
 import doctorRoute from './Routes/doctor.js';
@@ -65,6 +78,15 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 const app = express();
+
+// ============= SENTRY INITIALIZATION =============
+// MUST be called BEFORE any middleware or routes
+initSentry(app);
+
+// Sentry request tracking (BEFORE routes)
+app.use(sentryRequestHandler());
+app.use(sentryTracingHandler());
+
 const PORT = process.env.PORT || 8000;
 
 app.disable('x-powered-by');
@@ -213,10 +235,10 @@ app.use((req, res, next) => {
     if (!hasCookieAuth || hasAuthHeader) return next();
     return verifyCsrf(req, res, next);
 });
-    
 
-
-
+// ============= SENTRY ERROR HANDLER =============
+// MUST be added AFTER all routes but BEFORE other error handlers
+app.use(sentryErrorHandler());
 
 // Exportar app para testing
 export default app;
