@@ -4,12 +4,23 @@ import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
 import Doctor from '../models/DoctorSchema.js';
 import sendEmail from '../utils/emailService.js';
+import logger from '../utils/logger.js';
 
-// Constantes de Wompi (Deberían estar en .env)
-const WOMPI_PUB_KEY = process.env.WOMPI_PUB_KEY || 'pub_test_QmO3mF0123456789ABCDEFGHIJKLMN'; // Reemplazar con tu llave pública real
-const WOMPI_PRV_KEY = process.env.WOMPI_PRV_KEY || 'prv_test_Hj54s20123456789ABCDEFGHIJKLMN'; // Reemplazar con tu llave privada real
-const WOMPI_INTEGRITY_SECRET = process.env.WOMPI_INTEGRITY_SECRET || 'test_integrity_secret'; // Secreto de integridad
-const WOMPI_EVENTS_SECRET = process.env.WOMPI_EVENTS_SECRET || 'test_events_secret'; // Secreto para webhooks
+// Wompi Payment Gateway Configuration (Colombia)
+const WOMPI_PUBLIC_KEY = process.env.WOMPI_PUBLIC_KEY;
+const WOMPI_PRIVATE_KEY = process.env.WOMPI_PRIVATE_KEY;
+const WOMPI_INTEGRITY_SECRET = process.env.WOMPI_INTEGRITY_SECRET;
+const WOMPI_EVENT_SECRET = process.env.WOMPI_EVENT_SECRET;
+
+// Validation: Log warning if Wompi not configured
+if (!WOMPI_PUBLIC_KEY || !WOMPI_PRIVATE_KEY || !WOMPI_INTEGRITY_SECRET || !WOMPI_EVENT_SECRET) {
+    logger.warn('Wompi payment gateway not fully configured. Payment features may not work.', {
+        hasPublicKey: !!WOMPI_PUBLIC_KEY,
+        hasPrivateKey: !!WOMPI_PRIVATE_KEY,
+        hasIntegritySecret: !!WOMPI_INTEGRITY_SECRET,
+        hasEventSecret: !!WOMPI_EVENT_SECRET
+    });
+}
 
 // 1. Generar Firma de Integridad (NIVEL DIOS: Seguridad CRÍTICA)
 // Wompi requiere: SHA256(reference + amountInCents + currency + integritySecret)
@@ -55,12 +66,16 @@ export const generatePaymentSignature = async (req, res) => {
                 integritySignature, // Wompi necesita esto en el frontend
                 currency,
                 amountInCents,
-                publicKey: WOMPI_PUB_KEY
+                publicKey: WOMPI_PUBLIC_KEY
             }
         });
 
     } catch (error) {
-        console.error('Error generando firma Wompi:', error);
+        logger.error('Error generating Wompi payment signature', { 
+            error: error.message, 
+            stack: error.stack,
+            userId: req.user?.id 
+        });
         res.status(500).json({ message: 'Error interno generando pago' });
     }
 };
@@ -70,7 +85,7 @@ export const wompiWebhook = async (req, res) => {
     try {
         const { event, data, signature, timestamp, environment } = req.body;
         
-        console.log('🔔 Wompi Webhook Recibido:', event);
+        logger.info('Wompi webhook received', { event, transactionId: data?.transaction?.id });
 
         // 🛡️ 1. Validación de Seguridad (Verificar que Wompi es quien dice ser)
         // Firma del evento: SHA256(timestamp + events_secret) (Simplificado, revisar doc oficial para checksum exacto)
@@ -78,11 +93,15 @@ export const wompiWebhook = async (req, res) => {
         // checksum = SHA256(transaction.id + transaction.status + transaction.amount_in_cents + timestamp + events_secret)
         
         const transactionData = data.transaction;
-        const localChecksumString = `${transactionData.id}${transactionData.status}${transactionData.amount_in_cents}${timestamp}${WOMPI_EVENTS_SECRET}`;
+        const localChecksumString = `${transactionData.id}${transactionData.status}${transactionData.amount_in_cents}${timestamp}${WOMPI_EVENT_SECRET}`;
         const localChecksum = crypto.createHash('sha256').update(localChecksumString).digest('hex');
 
         if (signature.checksum !== localChecksum) {
-             console.error('🚨 ALERTA DE SEGURIDAD: Firma de webhook inválida. Posible ataque.');
+             logger.error('Wompi webhook signature validation failed - Possible attack', {
+                 expectedChecksum: localChecksum,
+                 receivedChecksum: signature.checksum,
+                 transactionId: transactionData.id
+             });
              return res.status(400).json({ message: 'Invalid signature' });
         }
 
@@ -90,7 +109,7 @@ export const wompiWebhook = async (req, res) => {
         const transaction = await Transaction.findOne({ reference });
 
         if (!transaction) {
-            console.error(`Transacción no encontrada: ${reference}`);
+            logger.error('Transaction not found for webhook', { reference });
             return res.status(404).json({ message: 'Transaction not found' });
         }
 
@@ -153,7 +172,10 @@ export const wompiWebhook = async (req, res) => {
         res.status(200).send('Webhook processed');
 
     } catch (error) {
-        console.error('Error en Wompi Webhook:', error);
+        logger.error('Error processing Wompi webhook', { 
+            error: error.message, 
+            stack: error.stack 
+        });
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };

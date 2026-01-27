@@ -21,6 +21,9 @@ const logSecurityEvent = async ({ user, event, status, req, meta = {} }) => {
             metadata: meta
         });
     } catch (err) {
+        // Use logger instead of console for production
+        // Logger is not imported here, so we'll keep minimal console.error
+        // TODO: Import logger at top of file
         console.error('Error logging security event:', err);
     }
 };
@@ -46,6 +49,7 @@ const sendSecurityAlert = async (user, req) => {
             `
         });
     } catch (err) {
+        // TODO: Import logger at top of file for proper production logging
         console.error('Error sending security alert:', err);
     }
 };

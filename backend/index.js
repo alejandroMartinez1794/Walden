@@ -125,6 +125,33 @@ app.get('/', (req, res) => {
     res.send('La gente, la gente!');
 });
 
+// ============= HEALTH CHECK ENDPOINTS =============
+// Used by Railway, Vercel, UptimeRobot for monitoring
+app.get('/health', async (req, res) => {
+    const healthCheck = {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        services: {
+            mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+            redis: isConnected ? 'connected' : 'not-configured',
+        }
+    };
+    
+    // Return 503 if MongoDB is down (critical service)
+    if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json(healthCheck);
+    }
+    
+    res.status(200).json(healthCheck);
+});
+
+// Simple ping endpoint (no DB check, fastest response)
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 // ============= PHASE 6: API DOCUMENTATION =============
 // Swagger/OpenAPI documentation at /api-docs
 if (process.env.NODE_ENV !== 'production') {
