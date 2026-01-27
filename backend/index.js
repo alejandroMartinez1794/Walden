@@ -33,6 +33,11 @@ import paymentRoutes from './Routes/payment.js';
 import logger from './utils/logger.js';
 import { validateSecrets, getSecretsStats } from './utils/secretsManager.js';
 
+// Performance & Scalability (Phase 5)
+import { initRedis, closeRedis } from './utils/cache.js';
+import compression from 'compression';
+import { createOptimizedIndexes } from './scripts/optimizeIndexes.js';
+
 // ============= NEW: CLINICAL ARCHITECTURE ROUTES =============
 import clinicalTreatmentRoutes from './Routes/clinical/treatment.js';
 import clinicalAlertRoutes from './Routes/clinical/alerts.js';
@@ -115,16 +120,25 @@ app.get('/', (req, res) => {
 mongoose.set('strictQuery', false);
 const connectDB = async () => {
     try {
+        // ============= PHASE 5: OPTIMIZED CONNECTION POOL =============
         await mongoose.connect(process.env.MONGO_URL, {
             serverSelectionTimeoutMS: 5000,
             connectTimeoutMS: 10000,
-            maxPoolSize: 10,
-            minPoolSize: 2,
+            maxPoolSize: 20, // Increased from 10 (better concurrency)
+            minPoolSize: 5,  // Increased from 2 (faster cold starts)
+            maxIdleTimeMS: 30000, // Close idle connections after 30s
+            socketTimeoutMS: 45000, // Socket timeout
         });
 
-        logger.info('MongoDB connected');
+        logger.info('MongoDB connected with optimized pool (max: 20, min: 5)');
         
-        // 🚀 Verificar índices en background (no bloquea)
+        // ============= PHASE 5: OPTIMIZED DATABASE INDEXES =============
+        // Create compound indexes for faster queries
+        createOptimizedIndexes().catch((err) => {
+            logger.warn('Index optimization failed (non-critical)', { error: err.message });
+        });
+        
+        // 🚀 Verificar índices críticos en background (no bloquea)
         ensureCriticalIndexes().catch(() => {});
         
         // 🚀 LAZY LOADING: Servicios se inician 5 segundos DESPUÉS (reducido de 10s)
@@ -147,6 +161,19 @@ const connectDB = async () => {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
+
+// 1.5 PHASE 5: Compression middleware (gzip/deflate)
+// Compresses all responses > 1KB (improves load times by 60-80%)
+app.use(compression({
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) {
+            return false; // Don't compress if client requests no compression
+        }
+        return compression.filter(req, res);
+    },
+    level: 6, // Compression level (0-9, 6 is balanced)
+    threshold: 1024, // Only compress responses > 1KB
+}));
 
 // 1.5 HTTPS/TLS middleware (solo en producción)
 if (process.env.USE_HTTPS === 'true') {
@@ -245,6 +272,10 @@ export default app;
 
 // Función para iniciar el servidor (solo cuando no sea test)
 export const startServer = async () => {
+    // ============= PHASE 5: INITIALIZE REDIS =============
+    // Redis is optional - app works without it (graceful degradation)
+    await initRedis();
+    
     const useHTTPS = process.env.USE_HTTPS === 'true';
     
     if (useHTTPS) {
@@ -276,6 +307,28 @@ export const startServer = async () => {
 
 // Iniciar servidor solo si no estamos en modo test
 if (process.env.NODE_ENV !== 'test') {
-    startServer();
+    startServer().catch((error) => {
+        logger.error('Failed to start server', { error: error.message });
+        process.exit(1);
+    });
+    
+    // ============= PHASE 5: GRACEFUL SHUTDOWN =============
+    // Properly close Redis and MongoDB connections on shutdown
+    const gracefulShutdown = async (signal) => {
+        logger.info(`${signal} received. Starting graceful shutdown...`);
+        
+        try {
+            await closeRedis();
+            await mongoose.disconnect();
+            logger.info('Graceful shutdown complete');
+            process.exit(0);
+        } catch (error) {
+            logger.error('Error during shutdown', { error: error.message });
+            process.exit(1);
+        }
+    };
+    
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 

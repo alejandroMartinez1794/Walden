@@ -1,5 +1,6 @@
 import Booking from '../models/BookingSchema.js';
 import Doctor from '../models/DoctorSchema.js';
+import { getCache, setCache, delCachePattern } from '../utils/cache.js';
 
 export const updateDoctor = async (req, res) => {
 
@@ -15,6 +16,10 @@ export const updateDoctor = async (req, res) => {
         if (!updatedDoctor) {
             return res.status(404).json({ success: false, message: "Doctor not found" });
         }
+
+        // PHASE 5: Invalidate doctor caches on update
+        await delCachePattern(`doctor:${id}*`);
+        await delCachePattern('doctors:*');
 
         res
             .status(200)
@@ -58,13 +63,29 @@ export const getSingleDoctor = async (req, res) => {
     const id = req.params.id;
 
     try {
+        // PHASE 5: Try cache first (10 min TTL)
+        const cacheKey = `doctor:${id}`;
+        const cached = await getCache(cacheKey);
+        
+        if (cached) {
+            return res.status(200).json({
+                success: true,
+                message: "Doctor found (cached)",
+                data: cached,
+            });
+        }
+
         const doctor = await Doctor.findById(id)
             .populate("reviews")
-            .select("-password");
+            .select("-password")
+            .lean(); // Use lean() for better performance (plain JS object)
 
         if (!doctor) {
              return res.status(404).json({ success: false, message: "No Doctor found" });
         }
+
+        // Cache for 10 minutes
+        await setCache(cacheKey, doctor, 600);
 
         res
             .status(200)
@@ -87,17 +108,35 @@ export const getAllDoctor = async (req, res) => {
         let doctors;
 
         if (query) {
+            // Don't cache search queries (too many variations)
             doctors = await Doctor.find({
                 isApproved:'approved',
                 $or: [
                     {name: { $regex: query, $options: "i" }},
                     {specialization: { $regex: query, $options: "i" }},
                 ],
-            }).select("-password");
+            })
+            .select("-password")
+            .lean(); // Use lean() for better performance
         } else {
-            doctors = await Doctor.find ({ isApproved: "approved"}).select(
-                "-password"
-            );
+            // PHASE 5: Cache approved doctors list (5 min TTL)
+            const cacheKey = 'doctors:approved';
+            const cached = await getCache(cacheKey);
+            
+            if (cached) {
+                return res.status(200).json({
+                    success: true,
+                    message: "Doctors found (cached)",
+                    data: cached,
+                });
+            }
+
+            doctors = await Doctor.find ({ isApproved: "approved"})
+                .select("-password")
+                .lean();
+            
+            // Cache for 5 minutes (frequently accessed, low TTL for freshness)
+            await setCache(cacheKey, doctors, 300);
         }
         res
             .status(200)
