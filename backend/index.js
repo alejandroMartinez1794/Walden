@@ -38,6 +38,16 @@ import { initRedis, closeRedis } from './utils/cache.js';
 import compression from 'compression';
 import { createOptimizedIndexes } from './scripts/optimizeIndexes.js';
 
+// Advanced Security & Documentation (Phase 6)
+import { 
+  authRateLimiter, 
+  passwordResetRateLimiter,
+  apiRateLimiter,
+  strictRateLimiter,
+  closeRateLimitRedis 
+} from './utils/rateLimiter.js';
+import { setupSwagger } from './config/swagger.js';
+
 // ============= NEW: CLINICAL ARCHITECTURE ROUTES =============
 import clinicalTreatmentRoutes from './Routes/clinical/treatment.js';
 import clinicalAlertRoutes from './Routes/clinical/alerts.js';
@@ -114,6 +124,12 @@ const corsOptions = {
 app.get('/', (req, res) => {
     res.send('La gente, la gente!');
 });
+
+// ============= PHASE 6: API DOCUMENTATION =============
+// Swagger/OpenAPI documentation at /api-docs
+if (process.env.NODE_ENV !== 'production') {
+    setupSwagger(app);
+}
 
 // database connection
 
@@ -212,26 +228,20 @@ if (process.env.NODE_ENV !== 'test') {
 // 4. Rate Limiting (Protección contra fuerza bruta y abuso de API)
 // Solo activado en producción - deshabilitado en tests
 if (process.env.NODE_ENV !== 'test') {
-    // Limiter General
-    const limiter = rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 minutos
-        max: 100, // Límite de 100 peticiones por IP
-        message: 'Demasiadas peticiones desde esta IP, por favor intente nuevamente en 15 minutos.',
-        standardHeaders: true,
-        legacyHeaders: false,
-    });
-    app.use('/api', limiter); 
-
-    // 4.1. Auth Limiter (Más estricto para Login/Register)
-    const authLimiter = rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 minutos
-        max: 10, // Máximo 10 intentos de login/registro por IP
-        message: { status: false, message: 'Demasiados intentos de autenticación. Bloqueo temporal por seguridad.' },
-        standardHeaders: true,
-        legacyHeaders: false,
-    });
-    app.use('/api/v1/auth/login', authLimiter);
-    app.use('/api/v1/auth/register', authLimiter);
+    // ============= PHASE 6: ADVANCED RATE LIMITING WITH REDIS =============
+    // Uses Redis if available, falls back to in-memory
+    
+    // General API rate limiter
+    app.use('/api', apiRateLimiter);
+    
+    // Strict authentication rate limiting
+    app.use('/api/v1/auth/login', authRateLimiter);
+    app.use('/api/v1/auth/register', authRateLimiter);
+    app.use('/api/v1/auth/forgot-password', passwordResetRateLimiter);
+    app.use('/api/v1/auth/reset-password', passwordResetRateLimiter);
+    
+    // Strict rate limiting for expensive operations
+    app.use('/api/v1/bookings', strictRateLimiter);
 }
 
 // ------------------------------------------------
@@ -312,12 +322,13 @@ if (process.env.NODE_ENV !== 'test') {
         process.exit(1);
     });
     
-    // ============= PHASE 5: GRACEFUL SHUTDOWN =============
-    // Properly close Redis and MongoDB connections on shutdown
+    // ============= PHASE 5-6: GRACEFUL SHUTDOWN =============
+    // Properly close Redis, rate limiter Redis, and MongoDB connections on shutdown
     const gracefulShutdown = async (signal) => {
         logger.info(`${signal} received. Starting graceful shutdown...`);
         
         try {
+            await closeRateLimitRedis();
             await closeRedis();
             await mongoose.disconnect();
             logger.info('Graceful shutdown complete');
