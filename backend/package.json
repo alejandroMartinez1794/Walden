@@ -28,6 +28,7 @@
     "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -48,6 +49,7 @@
     "nodemailer": "^7.0.12",
     "otplib": "^13.1.1",
     "qrcode": "^1.5.4",
+    "redis": "^5.10.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "xss-clean": "^0.1.4"
