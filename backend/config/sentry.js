@@ -22,7 +22,7 @@ if (process.env.NODE_ENV !== 'test') {
 export function initSentry(app) {
   // Skip if no DSN provided or in test environment
   if (!process.env.SENTRY_DSN || process.env.NODE_ENV === 'test') {
-    console.log('Sentry: Disabled (test environment or no DSN)');
+    // Sentry disabled (test environment or no DSN configured)
     return;
   }
 
@@ -116,7 +116,7 @@ export function initSentry(app) {
     ],
   });
 
-  console.log(`Sentry: Initialized (environment: ${process.env.NODE_ENV})`);
+  // Sentry initialized (check Sentry dashboard for events)
 }
 
 /**

@@ -16,7 +16,8 @@
     "start-https-dev": "cross-env USE_HTTPS=true nodemon index.js",
     "generate-certs": "node scripts/generateCerts.js",
     "check-compliance": "node scripts/checkColombiaCompliance.js",
-    "optimize-db": "node scripts/optimizeIndexes.js"
+    "optimize-db": "node scripts/optimizeIndexes.js",
+    "validate-production": "node scripts/validateProduction.js"
   },
   "author": "Bogobyte",
   "license": "ISC",

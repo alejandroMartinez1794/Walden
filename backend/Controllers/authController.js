@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import sendEmail from '../utils/emailService.js';
+import logger from '../utils/logger.js';
 import { createCsrfToken, setCsrfCookie, getCookieOptions } from '../utils/csrf.js';
 import { blacklistToken, blacklistAllUserTokens } from '../services/tokenBlacklist.js';
 
@@ -21,10 +22,7 @@ const logSecurityEvent = async ({ user, event, status, req, meta = {} }) => {
             metadata: meta
         });
     } catch (err) {
-        // Use logger instead of console for production
-        // Logger is not imported here, so we'll keep minimal console.error
-        // TODO: Import logger at top of file
-        console.error('Error logging security event:', err);
+        logger.error('Error logging security event', { error: err.message });
     }
 };
 
@@ -49,8 +47,7 @@ const sendSecurityAlert = async (user, req) => {
             `
         });
     } catch (err) {
-        // TODO: Import logger at top of file for proper production logging
-        console.error('Error sending security alert:', err);
+        logger.error('Error sending security alert', { error: err.message, userId: user?._id });
     }
 };
 

@@ -10,11 +10,11 @@
 
 // Skip New Relic initialization in test environment
 if (process.env.NODE_ENV === 'test') {
-  console.log('New Relic: Disabled (test environment)');
+  // New Relic disabled in test environment
 } else {
   // Only import and configure New Relic in non-test environments
   const newrelic = await import('newrelic');
-  console.log(`New Relic: Initialized (environment: ${process.env.NODE_ENV || 'development'})`);
+  // New Relic initialized (check logs/newrelic_agent.log for details)
 }
 
 export default {};
