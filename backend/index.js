@@ -34,7 +34,7 @@ import logger from './utils/logger.js';
 import { validateSecrets, getSecretsStats } from './utils/secretsManager.js';
 
 // Performance & Scalability (Phase 5)
-import { initRedis, closeRedis } from './utils/cache.js';
+import { initRedis, closeRedis, isRedisAvailable } from './utils/cache.js';
 import compression from 'compression';
 import { createOptimizedIndexes } from './scripts/optimizeIndexes.js';
 
@@ -135,7 +135,7 @@ app.get('/health', async (req, res) => {
         environment: process.env.NODE_ENV || 'development',
         services: {
             mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-            redis: isConnected ? 'connected' : 'not-configured',
+            redis: isRedisAvailable() ? 'connected' : 'not-configured',
         }
     };
     

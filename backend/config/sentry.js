@@ -15,6 +15,9 @@ if (process.env.NODE_ENV !== 'test') {
   ProfilingIntegration = profilingModule.ProfilingIntegration;
 }
 
+// Track if Sentry was successfully initialized
+let sentryEnabled = false;
+
 /**
  * Initialize Sentry SDK
  * MUST be called before any other code
@@ -23,6 +26,7 @@ export function initSentry(app) {
   // Skip if no DSN provided or in test environment
   if (!process.env.SENTRY_DSN || process.env.NODE_ENV === 'test') {
     // Sentry disabled (test environment or no DSN configured)
+    sentryEnabled = false;
     return;
   }
 
@@ -116,6 +120,9 @@ export function initSentry(app) {
     ],
   });
 
+  // Mark Sentry as successfully initialized
+  sentryEnabled = true;
+
   // Sentry initialized (check Sentry dashboard for events)
 }
 
@@ -124,8 +131,8 @@ export function initSentry(app) {
  * Must be added BEFORE all routes
  */
 export const sentryRequestHandler = () => {
-  if (process.env.NODE_ENV === 'test') {
-    return (req, res, next) => next(); // No-op in tests
+  if (process.env.NODE_ENV === 'test' || !sentryEnabled) {
+    return (req, res, next) => next(); // No-op if not enabled
   }
   return Sentry.Handlers.requestHandler();
 };
@@ -135,8 +142,8 @@ export const sentryRequestHandler = () => {
  * Must be added BEFORE all routes but AFTER request handler
  */
 export const sentryTracingHandler = () => {
-  if (process.env.NODE_ENV === 'test') {
-    return (req, res, next) => next(); // No-op in tests
+  if (process.env.NODE_ENV === 'test' || !sentryEnabled) {
+    return (req, res, next) => next(); // No-op if not enabled
   }
   return Sentry.Handlers.tracingHandler();
 };
@@ -146,8 +153,8 @@ export const sentryTracingHandler = () => {
  * Must be added AFTER all routes
  */
 export const sentryErrorHandler = () => {
-  if (process.env.NODE_ENV === 'test') {
-    return (err, req, res, next) => next(err); // No-op in tests
+  if (process.env.NODE_ENV === 'test' || !sentryEnabled) {
+    return (err, req, res, next) => next(err); // No-op if not enabled
   }
   return Sentry.Handlers.errorHandler({
     shouldHandleError(error) {
