@@ -24,8 +24,8 @@ const About = () => {
                             <p className= "text_para mt-[30px]">Mi práctica profesional se centra en aplicar este enfoque de manera personalizada, utilizando técnicas validadas como la reestructuración cognitiva, la exposición gradual y el entrenamiento en habilidades de afrontamiento. Cada intervención se fundamenta en evidencia empírica, con el propósito de que cada paciente logre comprender sus procesos internos, reducir su malestar y recuperar su capacidad de vivir con equilibrio, claridad y propósito.</p>
 
                             <div className="flex justify-center mt-6">
-                                <Link to='/' >
-                                    <button className="btn">Learn More</button>
+                                <Link to='/services' >
+                                    <button className="btn">Conoce más</button>
                                 </Link>
                             </div>
                     </div>                        

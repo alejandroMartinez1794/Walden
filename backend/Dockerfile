@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Metadata
-LABEL maintainer="Psiconepsis <dev@psiconepsis.com>"
+LABEL maintainer="Basileiás <dev@Basileiás.com>"
 LABEL description="Backend API para plataforma de telemedicina"
 
 # Instalar dependencias de sistema necesarias

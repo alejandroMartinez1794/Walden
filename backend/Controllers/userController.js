@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 import User from "../models/UserSchema.js"
 import Booking from "../models/BookingSchema.js" 
 import Doctor from "../models/DoctorSchema.js"
@@ -27,7 +28,7 @@ export const getActivePatientsForDoctor = async (req, res) => {
             data: patients,
         });
     } catch (error) {
-        console.error("❌ Error en getActivePatientsForDoctor:", error);
+        logger.error("❌ Error en getActivePatientsForDoctor:", error);
         res.status(500).json({ success: false, message: "Error al obtener pacientes" });
     }
 };
@@ -147,7 +148,7 @@ export const getUserProfile = async (req, res) => {
         data: user
       });
     } catch (error) {
-      console.error("❌ Error en getUserProfile:", error);
+      logger.error("❌ Error en getUserProfile:", error);
       res.status(500).json({ success: false, message: "Server error" });
     }
   };
@@ -169,7 +170,7 @@ export const getMyAppointments = async (req, res) => {
         data: doctors,
       });
     } catch (err) {
-      console.error("❌ Error en getMyAppointments:", err);
+      logger.error("❌ Error en getMyAppointments:", err);
       res.status(500).json({ success: false, message: "Server error" });
     }
   };

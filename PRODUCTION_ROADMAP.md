@@ -1,4 +1,4 @@
-# 🚀 ROADMAP COMPLETO HACIA PRODUCCIÓN - Psiconepsis
+# 🚀 ROADMAP COMPLETO HACIA PRODUCCIÓN - Basileiás
 
 **Análisis exhaustivo realizado:** 25 de enero, 2026  
 **Ubicación:** Bogotá, Colombia 🇨🇴  
@@ -381,7 +381,7 @@ npm install --save-dev artillery k6
 ```yaml
 # load-test.yml (Artillery)
 config:
-  target: "https://api.psiconepsis.com"
+  target: "https://api.Basileiás.com"
   phases:
     - duration: 60
       arrivalRate: 10
@@ -445,7 +445,7 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'psiconepsis-api' },
+  defaultMeta: { service: 'Basileiás-api' },
   transports: [
     new winston.transports.DailyRotateFile({
       filename: 'logs/error-%DATE%.log',
@@ -568,7 +568,7 @@ export const healthCheck = async (req, res) => {
 3. [ ] Monitorear uso de CPU, memoria, disco
 4. [ ] Configurar alertas de umbral (>80% memory = alerta)
 5. [ ] Integrar con UptimeRobot o Pingdom
-6. [ ] Configurar status page público (status.psiconepsis.com)
+6. [ ] Configurar status page público (status.Basileiás.com)
 7. [ ] Implementar circuit breakers para servicios externos
 
 ---
@@ -764,13 +764,13 @@ jobs:
       
       - name: Build Docker images
         run: |
-          docker build -t psiconepsis-backend:${{ github.sha }} ./backend
-          docker build -t psiconepsis-frontend:${{ github.sha }} ./Frontend
+          docker build -t Basileiás-backend:${{ github.sha }} ./backend
+          docker build -t Basileiás-frontend:${{ github.sha }} ./Frontend
       
       - name: Push to registry
         run: |
-          docker push psiconepsis-backend:${{ github.sha }}
-          docker push psiconepsis-frontend:${{ github.sha }}
+          docker push Basileiás-backend:${{ github.sha }}
+          docker push Basileiás-frontend:${{ github.sha }}
 
   deploy:
     needs: build
@@ -1021,13 +1021,13 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'PsicoNepsis API',
+      title: 'Basileiás API',
       version: '1.0.0',
-      description: 'API documentation for PsicoNepsis platform',
+      description: 'API documentation for Basileiás platform',
     },
     servers: [
       { url: 'http://localhost:8000', description: 'Development' },
-      { url: 'https://api.psiconepsis.com', description: 'Production' }
+      { url: 'https://api.Basileiás.com', description: 'Production' }
     ],
     components: {
       securitySchemes: {
@@ -1077,7 +1077,7 @@ export const createBooking = async (req, res) => { ... };
 2. [ ] Documentar TODOS los endpoints
 3. [ ] Agregar ejemplos de request/response
 4. [ ] Documentar códigos de error
-5. [ ] Publicar docs en subdomain (docs.psiconepsis.com)
+5. [ ] Publicar docs en subdomain (docs.Basileiás.com)
 6. [ ] Crear guía de autenticación
 7. [ ] Documentar rate limits
 
@@ -1112,13 +1112,13 @@ const envs = {
     logLevel: 'debug'
   },
   staging: {
-    apiUrl: 'https://api-staging.psiconepsis.com',
-    frontendUrl: 'https://staging.psiconepsis.com',
+    apiUrl: 'https://api-staging.Basileiás.com',
+    frontendUrl: 'https://staging.Basileiás.com',
     logLevel: 'info'
   },
   production: {
-    apiUrl: 'https://api.psiconepsis.com',
-    frontendUrl: 'https://psiconepsis.com',
+    apiUrl: 'https://api.Basileiás.com',
+    frontendUrl: 'https://Basileiás.com',
     logLevel: 'warn'
   }
 };

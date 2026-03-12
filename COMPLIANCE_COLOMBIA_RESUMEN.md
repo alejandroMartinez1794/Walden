@@ -1,5 +1,5 @@
 # COMPLIANCE COLOMBIA - RESUMEN
-## Psiconepsis
+## Basileiás
 
 **Fecha de configuración:** 24 de enero de 2026  
 **Jurisdicción:** Colombia 🇨🇴  

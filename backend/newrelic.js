@@ -36,7 +36,7 @@ export default {};
 'use strict'
 
 exports.config = {
-  app_name: [process.env.NEW_RELIC_APP_NAME || 'Psiconepsis API'],
+  app_name: [process.env.NEW_RELIC_APP_NAME || 'Basileiás API'],
   license_key: process.env.NEW_RELIC_LICENSE_KEY || 'your_license_key_here',
   
   logging: {
@@ -86,7 +86,7 @@ exports.config = {
 /**
  * 4. License key should be set in .env file:
  *    NEW_RELIC_LICENSE_KEY=your_key_here
- *    NEW_RELIC_APP_NAME=Psiconepsis API
+ *    NEW_RELIC_APP_NAME=Basileiás API
  * 
  * 5. To activate Student Pack:
  *    - Go to: https://newrelic.com/students

@@ -6,6 +6,7 @@ import ActivityLog from '../models/ActivityLogSchema.js';
 import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../utils/clinicalRules.js';
 
 import sendEmail from '../utils/emailService.js';
+import logger from '../utils/logger.js';
 
 export const sendConsentEmail = async (req, res) => {
   try {
@@ -27,7 +28,7 @@ export const sendConsentEmail = async (req, res) => {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background-color: #0f172a; padding: 20px; text-align: center;">
-          <h2 style="color: white; margin: 0;">Psiconepsis</h2>
+          <h2 style="color: white; margin: 0;">Basileiás</h2>
           <p style="color: #94a3b8; margin: 5px 0 0 0;">Salud Mental Integral</p>
         </div>
         
@@ -51,14 +52,14 @@ export const sendConsentEmail = async (req, res) => {
         </div>
         
         <div style="text-align: center; padding: 20px; font-size: 12px; color: #94a3b8;">
-          <p>Este es un mensaje automático de la plataforma Psiconepsis.</p>
+          <p>Este es un mensaje automático de la plataforma Basileiás.</p>
         </div>
       </div>
     `;
 
     await sendEmail({
       email: email,
-      subject: 'Documento Pendiente: Consentimiento Informado - Psiconepsis',
+      subject: 'Documento Pendiente: Consentimiento Informado - Basileiás',
       message: `Hola ${name || ''}, por favor firma tu consentimiento informado en: ${finalLink}`,
       html: htmlContent
     });
@@ -66,7 +67,7 @@ export const sendConsentEmail = async (req, res) => {
     res.status(200).json({ success: true, message: 'Correo enviado exitosamente' });
 
   } catch (error) {
-    console.error("Error sending consent email:", error);
+    logger.error("Error sending consent email:", error);
     res.status(500).json({ success: false, message: 'Error al enviar el correo' });
   }
 };
@@ -101,7 +102,7 @@ export const createMeasure = async (req, res) => {
 
     res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
   } catch (error) {
-    console.error('Error creating measure:', error);
+    logger.error('Error creating measure:', error);
     res.status(500).json({ success: false, message: 'Error al crear medida' });
   }
 };
@@ -128,7 +129,7 @@ export const generateClinicalSummaryHandler = async (req, res) => {
 
     res.status(201).json({ success: true, data: summary, logId: log._id });
   } catch (error) {
-    console.error('Error generating clinical summary:', error);
+    logger.error('Error generating clinical summary:', error);
     res.status(500).json({ success: false, message: 'Error al generar resumen clínico' });
   }
 };

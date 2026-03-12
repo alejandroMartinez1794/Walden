@@ -1,6 +1,6 @@
 # 🐳 Guía de Despliegue con Docker
 
-Esta guía te ayudará a desplegar Psiconepsis usando Docker.
+Esta guía te ayudará a desplegar Basileiás usando Docker.
 
 ## 📋 Requisitos Previos
 
@@ -128,7 +128,7 @@ docker system prune -a --volumes
 
 ```bash
 # Editar .env para usar MongoDB Atlas
-MONGO_URL=mongodb+srv://user:pass@cluster.mongodb.net/psiconepsis
+MONGO_URL=mongodb+srv://user:pass@cluster.mongodb.net/Basileiás
 
 # Levantar solo servicios necesarios
 docker-compose up backend frontend -d
@@ -219,7 +219,7 @@ railway up
 sudo apt install certbot python3-certbot-nginx
 
 # Obtener certificado
-sudo certbot --nginx -d psiconepsis.com -d www.psiconepsis.com
+sudo certbot --nginx -d Basileiás.com -d www.Basileiás.com
 
 # Auto-renovación
 sudo certbot renew --dry-run
@@ -244,7 +244,7 @@ docker-compose logs > logs-$(date +%Y%m%d).txt
 docker stats
 
 # Inspeccionar container
-docker inspect psiconepsis-backend
+docker inspect Basileiás-backend
 ```
 
 ### Health Checks
@@ -316,10 +316,10 @@ docker-compose ps
 ```bash
 # Crear backup
 docker-compose exec mongo mongodump --out /tmp/backup
-docker cp psiconepsis-mongo:/tmp/backup ./backup-$(date +%Y%m%d)
+docker cp Basileiás-mongo:/tmp/backup ./backup-$(date +%Y%m%d)
 
 # Restaurar backup
-docker cp ./backup psiconepsis-mongo:/tmp/
+docker cp ./backup Basileiás-mongo:/tmp/
 docker-compose exec mongo mongorestore /tmp/backup
 ```
 
@@ -328,7 +328,7 @@ docker-compose exec mongo mongorestore /tmp/backup
 ```bash
 # Crear backup de todos los volumes
 docker run --rm \
-  -v medicare-booking-main_mongo-data:/data \
+  -v Basileiás-booking-main_mongo-data:/data \
   -v $(pwd):/backup \
   alpine tar czf /backup/mongo-backup-$(date +%Y%m%d).tar.gz /data
 ```
@@ -336,5 +336,5 @@ docker run --rm \
 ## 📞 Soporte
 
 - GitHub Issues: https://github.com/alejandroMartinez1794/Walden/issues
-- Email: dev@psiconepsis.com
+- Email: dev@Basileiás.com
 - Documentación: Ver /docs en el repo

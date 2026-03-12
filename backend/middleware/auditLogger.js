@@ -14,6 +14,7 @@
  */
 
 import AuditLog from '../models/AuditLogSchema.js';
+import logger from '../utils/logger.js';
 
 /**
  * Middleware principal de audit logging
@@ -78,7 +79,7 @@ export const auditLog = (action, resourceType, options = {}) => {
           });
         } catch (error) {
           // NO bloquear la respuesta si el logging falla
-          console.error('❌ Audit logging error:', error);
+          logger.error('❌ Audit logging error:', error);
         }
       });
 
@@ -141,12 +142,12 @@ export const auditAuth = (action) => {
           if (result === 'FAILED' && action === 'LOGIN_FAILED') {
             const suspicious = await AuditLog.findSuspiciousActivity(req.body.email, 1);
             if (suspicious.length > 0) {
-              console.warn('⚠️ Suspicious login activity detected:', req.body.email);
+              logger.warn('⚠️ Suspicious login activity detected:', req.body.email);
               // TODO: Bloquear cuenta temporalmente o enviar alerta
             }
           }
         } catch (error) {
-          console.error('❌ Auth audit logging error:', error);
+          logger.error('❌ Auth audit logging error:', error);
         }
       });
 
@@ -193,7 +194,7 @@ export const logAuditEvent = async (req, action, resourceType, details = {}) => 
       sessionId: req.sessionID
     });
   } catch (error) {
-    console.error('❌ Manual audit logging error:', error);
+    logger.error('❌ Manual audit logging error:', error);
     return null;
   }
 };

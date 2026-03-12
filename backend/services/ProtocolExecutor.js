@@ -14,6 +14,7 @@
 import ProtocolLog from '../models/ProtocolLogSchema.js';
 import ClinicalAlert from '../models/ClinicalAlertSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
+import logger from '../utils/logger.js';
 
 class ProtocolExecutor {
   /**
@@ -407,7 +408,7 @@ class ProtocolExecutor {
   static async _requestProtocolCompletion(protocolLogId) {
     // This would trigger a notification to the clinician
     // that all steps are complete and protocol needs finalization
-    console.log(`Protocol ${protocolLogId} ready for finalization`);
+    logger.info(`Protocol ${protocolLogId} ready for finalization`);
     // In production: send email/notification to clinician
   }
 

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 const algorithm = 'aes-256-cbc';
 // En producción, esta clave debe venir de un Secret Manager, nunca hardcoded.
 // Usamos un hash del JWT_SECRET para garantizar consistencia si no hay variable específica.
-const key = crypto.scryptSync(process.env.JWT_SECRET_KEY || 'psiconepsis_fallback_secret', 'salt', 32);
+const key = crypto.scryptSync(process.env.JWT_SECRET_KEY || 'basileias_fallback_secret', 'salt', 32);
 
 /**
  * Cifra un texto plano usando AES-256-CBC.

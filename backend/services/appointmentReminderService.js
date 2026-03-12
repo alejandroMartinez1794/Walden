@@ -5,6 +5,7 @@ import Doctor from '../models/DoctorSchema.js';
 import sendEmail from '../utils/emailService.js';
 import { getAutomationConfig } from './automationConfig.js';
 import { scheduleTask } from './automationScheduler.js';
+import logger from '../utils/logger.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -17,7 +18,7 @@ const sendAppointmentReminder = async (booking, hoursBeforeText) => {
     const doctor = await Doctor.findById(booking.doctor);
 
     if (!patient?.email) {
-      console.log(`⚠️ No se pudo enviar recordatorio: paciente sin email`);
+      logger.info(`⚠️ No se pudo enviar recordatorio: paciente sin email`);
       return;
     }
 
@@ -66,15 +67,15 @@ const sendAppointmentReminder = async (booking, hoursBeforeText) => {
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
           <p style="color: #999; font-size: 12px;">
-            Este es un mensaje automático de Psiconepsis. Por favor no respondas a este correo.
+            Este es un mensaje automático de Basileiás. Por favor no respondas a este correo.
           </p>
         </div>
       `
     });
 
-    console.log(`✅ Recordatorio enviado a ${patient.email} - Cita ${hoursBeforeText}`);
+    logger.info(`✅ Recordatorio enviado a ${patient.email} - Cita ${hoursBeforeText}`);
   } catch (error) {
-    console.error('❌ Error enviando recordatorio:', error.message);
+    logger.error('❌ Error enviando recordatorio:', error.message);
   }
 };
 
@@ -112,7 +113,7 @@ const schedule24HourReminders = () => {
         await sleep(emailThrottleMs);
       }
     } catch (error) {
-      console.error('❌ Error en tarea de recordatorios 24h:', error.message);
+      logger.error('❌ Error en tarea de recordatorios 24h:', error.message);
     }
   });
 };
@@ -150,7 +151,7 @@ const schedule1HourReminders = () => {
         await sleep(emailThrottleMs);
       }
     } catch (error) {
-      console.error('❌ Error en tarea de recordatorios 1h:', error.message);
+      logger.error('❌ Error en tarea de recordatorios 1h:', error.message);
     }
   });
 };

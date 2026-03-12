@@ -40,7 +40,7 @@ jobs:
       - name: Ejecutar tests
         run: npm test -- --forceExit --detectOpenHandles
         env:
-          MONGO_URL: ${{ secrets.MONGO_URL_TEST || 'mongodb://localhost:27017/psiconepsis-test' }}
+          MONGO_URL: ${{ secrets.MONGO_URL_TEST || 'mongodb://localhost:27017/basileias-test' }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-key-for-ci' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
       
@@ -84,7 +84,7 @@ jobs:
       - name: Build check
         run: npm run build
         env:
-          VITE_API_URL: https://api.psiconepsis.com
+          VITE_API_URL: https://api.basileias.com
   
   security-audit:
     runs-on: ubuntu-latest

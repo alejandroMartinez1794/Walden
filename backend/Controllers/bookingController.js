@@ -172,16 +172,16 @@ export const createBooking = async (req, res) => {
 
     // Enviar notificaciones por correo (sin await para no bloquear)
     try {
-      console.log('📧 Intentando enviar correos...');
-      console.log('👤 Paciente:', patientProfile?.email);
-      console.log('👨‍⚕️ Doctor:', doctorProfile?.email);
+      logger.info('📧 Intentando enviar correos...');
+      logger.info('👤 Paciente:', patientProfile?.email);
+      logger.info('👨‍⚕️ Doctor:', doctorProfile?.email);
 
       // Correo al paciente
       if (patientProfile?.email) {
-        console.log('📨 Enviando correo al paciente...');
+        logger.info('📨 Enviando correo al paciente...');
         sendEmail({
           email: patientProfile.email,
-          subject: 'Confirmación de Cita - Psiconepsis',
+          subject: 'Confirmación de Cita - Basileiás',
           message: `Hola ${patientProfile.name},\n\nTu cita con el Dr. ${doctorProfile.name} ha sido programada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}\n\nGracias por confiar en nosotros.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -199,7 +199,7 @@ export const createBooking = async (req, res) => {
         })
         await sendEmail({
           email: patientProfile.email,
-          subject: 'Cita Confirmada - Psiconepsis',
+          subject: 'Cita Confirmada - Basileiás',
           message: `Hola ${patientProfile.name},\n\nTu cita ha sido confirmada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -216,18 +216,18 @@ export const createBooking = async (req, res) => {
             </div>
           `
         })
-          .then(() => console.log('✅ Correo enviado al paciente'))
-          .catch(err => console.error('⚠️ Error enviando correo al paciente:', err.message));
+          .then(() => logger.info('✅ Correo enviado al paciente'))
+          .catch(err => logger.error('⚠️ Error enviando correo al paciente:', err.message));
       } else {
-        console.warn('⚠️ No se envió correo al paciente porque no tiene email registrado.');
+        logger.warn('⚠️ No se envió correo al paciente porque no tiene email registrado.');
       }
 
       // Correo al doctor
       if (doctorProfile?.email) {
-        console.log('📨 Enviando correo al doctor...');
+        logger.info('📨 Enviando correo al doctor...');
         await sendEmail({
           email: doctorProfile.email,
-          subject: 'Nueva Cita Programada - Psiconepsis',
+          subject: 'Nueva Cita Programada - Basileiás',
           message: `Hola Dr. ${doctorProfile.name},\n\nSe ha programado una nueva cita con el paciente ${patientProfile.name} para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -243,11 +243,11 @@ export const createBooking = async (req, res) => {
             </div>
           `
         })
-          .then(() => console.log('✅ Correo enviado al doctor'))
-          .catch(err => console.error('⚠️ Error enviando correo al doctor:', err.message));
+          .then(() => logger.info('✅ Correo enviado al doctor'))
+          .catch(err => logger.error('⚠️ Error enviando correo al doctor:', err.message));
       }
     } catch (emailError) {
-      console.error('⚠️ Error preparando correos:', emailError.message);
+      logger.error('⚠️ Error preparando correos:', emailError.message);
     }
 
     // 4. ✅ Enviar respuesta
@@ -261,7 +261,7 @@ export const createBooking = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al crear cita:', error);
+    logger.error('❌ Error al crear cita:', error);
     res.status(500).json({ success: false, message: 'Error al crear la cita' });
   }
 };
@@ -308,7 +308,7 @@ export const cancelBooking = async (req, res) => {
       if (patient?.email) {
         sendEmail({
           email: patient.email,
-          subject: 'Cita Cancelada - Psiconepsis',
+          subject: 'Cita Cancelada - Basileiás',
           message: `Hola ${patient.name},\n\nTu cita con el Dr. ${doctor.name} programada para el ${dateStr} ha sido cancelada.\n\nSi no fuiste tú quien realizó esta acción, por favor contáctanos.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -318,14 +318,14 @@ export const cancelBooking = async (req, res) => {
               <p>Si deseas reprogramar, visita nuestra plataforma.</p>
             </div>
           `
-        }).catch(err => console.error('⚠️ Error enviando correo cancelación paciente:', err.message));
+        }).catch(err => logger.error('⚠️ Error enviando correo cancelación paciente:', err.message));
       }
 
       // Correo al doctor
       if (doctor?.email) {
         sendEmail({
           email: doctor.email,
-          subject: 'Cita Cancelada - Psiconepsis',
+          subject: 'Cita Cancelada - Basileiás',
           message: `Hola Dr. ${doctor.name},\n\nLa cita con el paciente ${patient.name} programada para el ${dateStr} ha sido cancelada.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -334,10 +334,10 @@ export const cancelBooking = async (req, res) => {
               <p>La cita con el paciente <strong>${patient.name}</strong> programada para el <strong>${dateStr}</strong> ha sido cancelada.</p>
             </div>
           `
-        }).catch(err => console.error('⚠️ Error enviando correo cancelación doctor:', err.message));
+        }).catch(err => logger.error('⚠️ Error enviando correo cancelación doctor:', err.message));
       }
     } catch (emailError) {
-      console.error('⚠️ Error preparando correos de cancelación:', emailError.message);
+      logger.error('⚠️ Error preparando correos de cancelación:', emailError.message);
     }
 
     // Eliminamos la cita de la base de datos
@@ -346,7 +346,7 @@ export const cancelBooking = async (req, res) => {
     res.status(200).json({ message: '✅ Cita cancelada exitosamente' });
 
   } catch (error) {
-    console.error('❌ Error al cancelar la cita:', error);
+    logger.error('❌ Error al cancelar la cita:', error);
     res.status(500).json({ error: 'Error al cancelar la cita' });
   }
 };
@@ -368,7 +368,7 @@ export const getUserBookings = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al obtener citas:', error);
+    logger.error('❌ Error al obtener citas:', error);
     res.status(500).json({ error: 'Error al obtener las citas' });
   }
 };

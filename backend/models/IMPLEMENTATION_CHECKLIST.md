@@ -1,4 +1,4 @@
-# Implementation Checklist - PsicoNepsis Data Models
+# Implementation Checklist - Basileiás Data Models
 
 ## Phase 1: Schema Creation ✅ COMPLETE
 

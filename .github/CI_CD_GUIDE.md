@@ -1,6 +1,6 @@
-# 🚀 CI/CD Pipeline - Psiconepsis
+# 🚀 CI/CD Pipeline - Basileiás
 
-Este documento describe el pipeline de CI/CD implementado para el proyecto Psiconepsis.
+Este documento describe el pipeline de CI/CD implementado para el proyecto Basileiás.
 
 ## 📋 Workflows Implementados
 
@@ -92,11 +92,11 @@ SNYK_TOKEN              # Token de Snyk para security scanning
 ```bash
 # Backend
 cd backend
-docker build -t psiconepsis-backend .
+docker build -t Basileiás-backend .
 
 # Frontend
 cd Frontend
-docker build --build-arg VITE_API_URL=http://localhost:8000 -t psiconepsis-frontend .
+docker build --build-arg VITE_API_URL=http://localhost:8000 -t Basileiás-frontend .
 ```
 
 ### Docker Compose

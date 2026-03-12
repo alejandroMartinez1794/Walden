@@ -1,4 +1,4 @@
-# 🚀 DEPLOYMENT CHECKLIST - Psiconepsis
+# 🚀 DEPLOYMENT CHECKLIST - Basileiás
 
 **Objetivo**: Desplegar backend + frontend en 45 minutos
 
@@ -21,21 +21,21 @@ CSRF_SECRET=3478c228c1c445b5f23c17ab6c9616d4c257a95daf5126db585ccf2cd47396da
 **Link directo**: https://www.mongodb.com/cloud/atlas/register
 
 1. **Sign up**: Click "Sign in with Google" (usa tu cuenta de GitHub email)
-2. **Create Organization**: Nombre: "Psiconepsis"
-3. **Create Project**: Nombre: "Psiconepsis Production"
+2. **Create Organization**: Nombre: "Basileiás"
+3. **Create Project**: Nombre: "Basileiás Production"
 4. **Create Database**:
    - Click "Build a Database"
    - Choose: **M0 FREE** (512MB)
    - Provider: AWS
    - Region: **São Paulo (sa-east-1)** ← Más cerca de Colombia
-   - Cluster Name: `psiconepsis-prod`
+   - Cluster Name: `Basileiás-prod`
    - Click "Create"
 
 5. **Security Setup**:
    - **Database Access** (menú izquierdo):
      - Add New Database User
      - Authentication: Password
-     - Username: `psiconepsis_admin`
+     - Username: `Basileiás_admin`
      - Password: Click "Autogenerate Secure Password" → **COPIA Y GUARDA**
      - Database User Privileges: "Atlas admin"
      - Click "Add User"
@@ -50,12 +50,12 @@ CSRF_SECRET=3478c228c1c445b5f23c17ab6c9616d4c257a95daf5126db585ccf2cd47396da
    - "Connect your application"
    - Copy connection string:
      ```
-     mongodb+srv://psiconepsis_admin:<password>@psiconepsis-prod.xxxxx.mongodb.net/?retryWrites=true&w=majority
+     mongodb+srv://Basileiás_admin:<password>@Basileiás-prod.xxxxx.mongodb.net/?retryWrites=true&w=majority
      ```
    - **REEMPLAZA** `<password>` con tu password real (sin < >)
-   - **AÑADE** `/psiconepsis` antes del `?`:
+   - **AÑADE** `/Basileiás` antes del `?`:
      ```
-     mongodb+srv://psiconepsis_admin:PASSWORD@psiconepsis-prod.xxxxx.mongodb.net/psiconepsis?retryWrites=true&w=majority
+     mongodb+srv://Basileiás_admin:PASSWORD@Basileiás-prod.xxxxx.mongodb.net/Basileiás?retryWrites=true&w=majority
      ```
 
 **→ Copia esto en `MONGO_URL` en `.env.production`**
@@ -67,7 +67,7 @@ CSRF_SECRET=3478c228c1c445b5f23c17ab6c9616d4c257a95daf5126db585ccf2cd47396da
 **Link directo**: https://console.cloud.google.com/projectcreate
 
 1. **Create Project**:
-   - Project name: `Psiconepsis`
+   - Project name: `Basileiás`
    - Click "CREATE"
 
 2. **OAuth Consent Screen**:
@@ -75,7 +75,7 @@ CSRF_SECRET=3478c228c1c445b5f23c17ab6c9616d4c257a95daf5126db585ccf2cd47396da
    - User Type: **External**
    - Click "CREATE"
    - App information:
-     - App name: `Psiconepsis`
+     - App name: `Basileiás`
      - User support email: Tu email
      - Developer contact: Tu email
    - Click "SAVE AND CONTINUE" (skip scopes, test users)
@@ -84,10 +84,10 @@ CSRF_SECRET=3478c228c1c445b5f23c17ab6c9616d4c257a95daf5126db585ccf2cd47396da
    - "Credentials" (menú izquierdo)
    - "+ CREATE CREDENTIALS" → "OAuth client ID"
    - Application type: **Web application**
-   - Name: `Psiconepsis Backend`
+   - Name: `Basileiás Backend`
    - Authorized redirect URIs:
      - Click "+ ADD URI"
-     - `https://psiconepsis-api.herokuapp.com/api/v1/calendar/google-callback`
+     - `https://Basileiás-api.herokuapp.com/api/v1/calendar/google-callback`
    - Click "CREATE"
    - **COPIA**:
      - Client ID: `xxxxx.apps.googleusercontent.com`
@@ -121,7 +121,7 @@ GOOGLE_CLIENT_SECRET=tu_client_secret
    - Login → Click tu nombre (arriba derecha) → "SMTP & API"
    - Tab "API Keys"
    - "Generate a new API key"
-   - Name: `Psiconepsis Production`
+   - Name: `Basileiás Production`
    - Click "Generate"
    - **COPIA el key** (empieza con `xkeysib-`)
 
@@ -133,8 +133,8 @@ BREVO_API_KEY=xkeysib-tu_api_key_aqui
 3. **Add Sender** (para evitar spam):
    - "Senders" (menú izquierdo)
    - "Add a Sender"
-   - Email: `noreply@psiconepsis.com` (o tu dominio real después)
-   - From name: `Psiconepsis`
+   - Email: `noreply@Basileiás.com` (o tu dominio real después)
+   - From name: `Basileiás`
    - Click "Save"
 
 ---
@@ -196,7 +196,7 @@ WOMPI_INTEGRITY_SECRET=tu_integrity_secret
 **Link directo**: https://sentry.io/signup/
 
 1. Sign in with GitHub
-2. Create Organization → Nombre: "Psiconepsis"
+2. Create Organization → Nombre: "Basileiás"
 3. Create Project → Platform: "Node.js" → Alert frequency: "Alert on every issue"
 4. Copy DSN: `https://xxxxx@oxxxxx.ingest.sentry.io/xxxxx`
 5. Copiar en `.env.production`: `SENTRY_DSN=tu_dsn`
@@ -222,7 +222,7 @@ cd backend
 heroku login
 
 # Crear app
-heroku create psiconepsis-api
+heroku create Basileiás-api
 ```
 
 ### C. Configurar variables de entorno
@@ -233,20 +233,20 @@ heroku create psiconepsis-api
 heroku plugins:install heroku-config
 
 # Subir todas las vars desde .env.production
-heroku config:push --file .env.production --app psiconepsis-api
+heroku config:push --file .env.production --app Basileiás-api
 ```
 
 **Opción 2 - Manual** (si plugin falla):
 ```bash
-heroku config:set MONGO_URL="mongodb+srv://..." --app psiconepsis-api
-heroku config:set JWT_SECRET_KEY="n6Xz2NfbgcoQjwoaQR+..." --app psiconepsis-api
+heroku config:set MONGO_URL="mongodb+srv://..." --app Basileiás-api
+heroku config:set JWT_SECRET_KEY="n6Xz2NfbgcoQjwoaQR+..." --app Basileiás-api
 # ... etc para cada variable
 ```
 
 ### D. Añadir Redis addon
 
 ```bash
-heroku addons:create heroku-redis:hobby-dev --app psiconepsis-api
+heroku addons:create heroku-redis:hobby-dev --app Basileiás-api
 ```
 
 ### E. Deploy
@@ -259,13 +259,13 @@ git push heroku Cambios:main
 ### F. Verificar
 
 ```bash
-heroku logs --tail --app psiconepsis-api
-heroku open --app psiconepsis-api
+heroku logs --tail --app Basileiás-api
+heroku open --app Basileiás-api
 ```
 
 **Test health endpoint**:
 ```bash
-curl https://psiconepsis-api.herokuapp.com/health
+curl https://Basileiás-api.herokuapp.com/health
 ```
 
 ---
@@ -293,7 +293,7 @@ vercel
 # Set up and deploy? Y
 # Which scope? Tu cuenta
 # Link to existing project? N
-# Project name? psiconepsis
+# Project name? Basileiás
 # In which directory is your code located? ./
 # Want to override settings? N
 
@@ -306,7 +306,7 @@ vercel --prod
 ```bash
 # Añadir variable de entorno
 vercel env add VITE_BASE_URL production
-# Cuando pregunte el valor: https://psiconepsis-api.herokuapp.com
+# Cuando pregunte el valor: https://Basileiás-api.herokuapp.com
 ```
 
 ### D. Redeploy con nueva variable
@@ -322,11 +322,11 @@ vercel --prod
 **Con Name.com Student Pack** (gratis 1 año):
 
 1. https://www.name.com/partner/github-students
-2. Buscar dominio: `psiconepsis.app` o `psiconepsis.dev`
+2. Buscar dominio: `Basileiás.app` o `Basileiás.dev`
 3. Checkout (usa Student Pack, $0)
 4. Configurar DNS:
-   - Frontend (Vercel): Settings → Domains → Add `psiconepsis.app`
-   - Backend (Heroku): Settings → Domains → Add `api.psiconepsis.app`
+   - Frontend (Vercel): Settings → Domains → Add `Basileiás.app`
+   - Backend (Heroku): Settings → Domains → Add `api.Basileiás.app`
 
 ---
 
@@ -364,12 +364,12 @@ Debe decir: **"🎉 Production environment is ready for deployment!"**
 ```bash
 # Verificar que IP 0.0.0.0/0 está permitida
 # Verificar password sin caracteres especiales
-# Verificar que añadiste /psiconepsis en la URL
+# Verificar que añadiste /Basileiás en la URL
 ```
 
 ### Heroku deploy fails
 ```bash
-heroku logs --tail --app psiconepsis-api
+heroku logs --tail --app Basileiás-api
 # Revisar errores de Node.js/npm
 ```
 

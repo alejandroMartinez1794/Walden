@@ -11,7 +11,7 @@ exports.config = {
   /**
    * Application name in New Relic dashboard
    */
-  app_name: [process.env.NEW_RELIC_APP_NAME || 'Psiconepsis API'],
+  app_name: [process.env.NEW_RELIC_APP_NAME || 'Basileiás API'],
   
   /**
    * License key from New Relic account

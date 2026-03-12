@@ -2,7 +2,7 @@
  * Swagger/OpenAPI Documentation Configuration
  * 
  * Access documentation at: http://localhost:8000/api-docs
- * Production: https://api.psiconepsis.app/api-docs
+ * Production: https://api.basileias.app/api-docs
  * 
  * Benefits:
  * - Interactive API testing
@@ -13,15 +13,16 @@
 
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import logger from '../utils/logger.js';
 
 const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Psiconepsis API Documentation',
+      title: 'basileias API Documentation',
       version: '1.0.0',
       description: `
-        **Psiconepsis** - Plataforma de Telemedicina y Psicología en Colombia
+        **basileias** - Plataforma de Telemedicina y Psicología en Colombia
         
         API RESTful para gestión de citas médicas, historias clínicas, y servicios de psicología.
         
@@ -39,9 +40,9 @@ const options = {
         - Historias clínicas electrónicas (Resolución 1995/1999)
       `,
       contact: {
-        name: 'Psiconepsis Support',
-        email: 'soporte@psiconepsis.app',
-        url: 'https://psiconepsis.app',
+        name: 'basileias Support',
+        email: 'soporte@basileias.app',
+        url: 'https://basileias.app',
       },
       license: {
         name: 'Proprietary',
@@ -53,7 +54,7 @@ const options = {
         description: 'Development server',
       },
       {
-        url: 'https://api.psiconepsis.app',
+        url: 'https://api.basileias.app',
         description: 'Production server (Railway)',
       },
     ],
@@ -320,7 +321,7 @@ export function setupSwagger(app) {
   // Swagger UI options
   const swaggerUiOptions = {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Psiconepsis API Docs',
+    customSiteTitle: 'basileias API Docs',
     customfavIcon: '/favicon.ico',
   };
 
@@ -333,7 +334,7 @@ export function setupSwagger(app) {
     res.send(swaggerSpec);
   });
 
-  console.log('📚 Swagger docs available at /api-docs');
+  logger.info('📚 Swagger docs available at /api-docs');
 }
 
 export default swaggerSpec;

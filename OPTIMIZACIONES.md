@@ -1,4 +1,4 @@
-# 🚀 Optimizaciones de Performance - Backend PsicoNepsis
+# 🚀 Optimizaciones de Performance - Backend Basileiás
 
 ## ✅ Cambios Implementados (Enero 2026)
 
@@ -89,7 +89,7 @@ AUTOMATION_MAX_BATCH=50
 AUTOMATION_EMAIL_THROTTLE_MS=1000
 
 # Seguridad
-CORS_ORIGINS=https://psiconepsis.com,https://app.psiconepsis.com
+CORS_ORIGINS=https://Basileiás.com,https://app.Basileiás.com
 ```
 
 ### Monitoreo Recomendado

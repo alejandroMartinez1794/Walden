@@ -5,6 +5,7 @@ import Doctor from '../models/DoctorSchema.js';
 import sendEmail from '../utils/emailService.js';
 import { getAutomationConfig } from './automationConfig.js';
 import { scheduleTask } from './automationScheduler.js';
+import logger from '../utils/logger.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -17,7 +18,7 @@ const sendFollowUpSurvey = async (booking) => {
     const doctor = await Doctor.findById(booking.doctor);
 
     if (!patient?.email) {
-      console.log(`⚠️ No se pudo enviar seguimiento: paciente sin email`);
+      logger.info(`⚠️ No se pudo enviar seguimiento: paciente sin email`);
       return;
     }
 
@@ -57,15 +58,15 @@ const sendFollowUpSurvey = async (booking) => {
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
           <p style="color: #999; font-size: 12px;">
-            Este es un mensaje automático de Psiconepsis. Tu respuesta es opcional pero muy valiosa.
+            Este es un mensaje automático de Basileiás. Tu respuesta es opcional pero muy valiosa.
           </p>
         </div>
       `
     });
 
-    console.log(`✅ Cuestionario de seguimiento enviado a ${patient.email}`);
+    logger.info(`✅ Cuestionario de seguimiento enviado a ${patient.email}`);
   } catch (error) {
-    console.error('❌ Error enviando seguimiento:', error.message);
+    logger.error('❌ Error enviando seguimiento:', error.message);
   }
 };
 
@@ -114,15 +115,15 @@ const sendHealthMetricsReminder = async (booking) => {
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
           <p style="color: #999; font-size: 12px;">
-            Recordatorio automático de Psiconepsis.
+            Recordatorio automático de Basileiás.
           </p>
         </div>
       `
     });
 
-    console.log(`✅ Recordatorio de métricas enviado a ${patient.email}`);
+    logger.info(`✅ Recordatorio de métricas enviado a ${patient.email}`);
   } catch (error) {
-    console.error('❌ Error enviando recordatorio de métricas:', error.message);
+    logger.error('❌ Error enviando recordatorio de métricas:', error.message);
   }
 };
 
@@ -160,9 +161,9 @@ const schedulePostSessionFollowUp = () => {
         await sleep(Math.max(emailThrottleMs, 2000));
       }
 
-      console.log('✅ Seguimiento post-sesión completado');
+      logger.info('✅ Seguimiento post-sesión completado');
     } catch (error) {
-      console.error('❌ Error en seguimiento post-sesión:', error.message);
+      logger.error('❌ Error en seguimiento post-sesión:', error.message);
     }
   });
 };
@@ -174,7 +175,7 @@ const schedulePostSessionFollowUp = () => {
 const scheduleHealthMetricsReminder = () => {
   return scheduleTask('0 */6 * * *', 'Recordatorio de métricas (48h)', async () => {
     try {
-      console.log('🔄 Enviando recordatorios de métricas de salud...');
+      logger.info('🔄 Enviando recordatorios de métricas de salud...');
 
       const { maxBatch, emailThrottleMs } = getAutomationConfig();
 
@@ -192,7 +193,7 @@ const scheduleHealthMetricsReminder = () => {
         metricsReminderSent: { $ne: true }
       }).limit(maxBatch);
 
-      console.log(`📊 ${bookingsForMetrics.length} pacientes requieren actualizar métricas`);
+      logger.info(`📊 ${bookingsForMetrics.length} pacientes requieren actualizar métricas`);
 
       for (const booking of bookingsForMetrics) {
         await sendHealthMetricsReminder(booking);
@@ -203,9 +204,9 @@ const scheduleHealthMetricsReminder = () => {
         await sleep(Math.max(emailThrottleMs, 2000));
       }
 
-      console.log('✅ Recordatorios de métricas enviados');
+      logger.info('✅ Recordatorios de métricas enviados');
     } catch (error) {
-      console.error('❌ Error enviando recordatorios de métricas:', error.message);
+      logger.error('❌ Error enviando recordatorios de métricas:', error.message);
     }
   });
 };
@@ -217,7 +218,7 @@ const scheduleHealthMetricsReminder = () => {
 const scheduleNextAppointmentReminder = () => {
   return scheduleTask('0 10 * * *', 'Recordatorio próxima cita (7+ días)', async () => {
     try {
-      console.log('🔄 Enviando recordatorios de próxima cita...');
+      logger.info('🔄 Enviando recordatorios de próxima cita...');
 
       const { maxBatch, emailThrottleMs } = getAutomationConfig();
 
@@ -282,7 +283,7 @@ const scheduleNextAppointmentReminder = () => {
 
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
               <p style="color: #999; font-size: 12px;">
-                Este es un recordatorio amistoso de Psiconepsis para apoyar tu bienestar.
+                Este es un recordatorio amistoso de Basileiás para apoyar tu bienestar.
               </p>
             </div>
           `
@@ -292,9 +293,9 @@ const scheduleNextAppointmentReminder = () => {
         await sleep(Math.max(emailThrottleMs, 3000));
       }
 
-      console.log(`✅ ${remindersSent} recordatorios de próxima cita enviados`);
+      logger.info(`✅ ${remindersSent} recordatorios de próxima cita enviados`);
     } catch (error) {
-      console.error('❌ Error enviando recordatorios de próxima cita:', error.message);
+      logger.error('❌ Error enviando recordatorios de próxima cita:', error.message);
     }
   });
 };

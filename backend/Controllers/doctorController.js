@@ -1,6 +1,7 @@
 import Booking from '../models/BookingSchema.js';
 import Doctor from '../models/DoctorSchema.js';
 import { getCache, setCache, delCachePattern } from '../utils/cache.js';
+import logger from '../utils/logger.js';
 
 export const updateDoctor = async (req, res) => {
 
@@ -211,7 +212,7 @@ export const getDoctorAppointments = async (req, res) => {
 
         res.status(200).json(payload);
     } catch (err) {
-        console.error('getDoctorAppointments error:', err);
+        logger.error('getDoctorAppointments error:', err);
         res.status(500).json({ message: 'Failed to fetch appointments' });
     }
 };

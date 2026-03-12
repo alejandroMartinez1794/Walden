@@ -1,7 +1,6 @@
 import React from 'react';
 
 import {Link} from 'react-router-dom';
-import logo from '../../assets/images/PsicoNepsis.png';
 import {RiLinkedinFill} from 'react-icons/ri';
 import {AiFillYoutube, AiFillGithub, AiOutlineInstagram} from 'react-icons/ai';
 
@@ -31,16 +30,8 @@ const quickLinks01 = [
         display: "Inicio",
     },
     {
-        path: "/",
-        display: "Sobre nosotros",
-    },
-    {
         path: "/services",
         display: "Servicios",
-    },
-    {
-        path: "/",
-        display: "Blog",
     },
 ]
 
@@ -50,16 +41,12 @@ const quickLinks02 = [
         display: "Solicita una cita",
     },
     {
-        path: "/",
+        path: "/testimonios",
         display: "Obtener una opinion",
     },
 ]
 
 const quickLinks03 = [
-    {
-        path: "/",
-        display: "Donar",
-    },
     {
         path: "/contact",
         display: "Contactanos",
@@ -82,7 +69,44 @@ const Footer = () => {
             <div className="container">
                 <div className="flex justify-between flex-col md:flex-row flex-wrap gap-[30px]">
                     <div>
-                        <img src={logo} alt="" className="w-40 mb-6 mix-blend-multiply"/>
+                        <div className="mb-8">
+                            <div className="flex flex-col">
+                                <span 
+                                    className="text-[2.25rem] font-normal tracking-tight leading-none text-slate-900"
+                                    style={{ 
+                                        fontFamily: "'Cormorant Garamond', 'Libre Baskerville', 'Crimson Text', Georgia, serif",
+                                        fontWeight: 500,
+                                        letterSpacing: '-0.01em'
+                                    }}
+                                >
+                                    Βασιλειάς
+                                </span>
+                                <span 
+                                    className="text-[0.55rem] font-medium tracking-[0.35em] text-slate-500 uppercase mt-1 ml-0.5"
+                                    style={{ 
+                                        fontFamily: "'Inter', 'SF Pro Display', -apple-system, sans-serif",
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    BASILEIÁS
+                                </span>
+                            </div>
+                            
+                            <div className="mt-4 pl-1 border-l-2 border-slate-200">
+                                <p 
+                                    className="text-[0.8rem] italic text-slate-600 leading-relaxed"
+                                    style={{ fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}
+                                >
+                                    "Όπου η χρεία, εκεί και η διακονία"
+                                </p>
+                                <p 
+                                    className="text-[0.65rem] text-slate-400 font-medium tracking-wide uppercase mt-1"
+                                    style={{ fontFamily: "'Inter', sans-serif" }}
+                                >
+                                    Donde está la necesidad, allí debe estar el servicio
+                                </p>
+                            </div>
+                        </div>
                         <p className="text-[16px] leading-7 font-[400] text-textColor">
                             Copyright {year} desarrollado por Bogobyte. Todos los derechos reservados.
                         </p>

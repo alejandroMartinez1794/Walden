@@ -85,6 +85,11 @@ export const restrict = (roles) => async (req, res, next) => {
     return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
   }
 
+  // 👑 SUPER ADMIN: El rol 'admin' tiene acceso a TODAS las rutas automáticamente
+  if (userRole === 'admin') {
+    return next();
+  }
+
   if (!allowedRoles.includes(userRole)) {
     return res.status(403).json({ success: false, message: 'You are not authorized' });
   }

@@ -25,6 +25,46 @@ import logger from '../utils/logger.js';
 dotenv.config();
 
 /**
+ * Helper function to safely create index with conflict detection
+ * Handles cases where index with same keys already exists with different name/config
+ */
+async function safeCreateIndex(collection, keys, options = {}) {
+  try {
+    // Get existing indexes
+    const existingIndexes = await collection.getIndexes();
+    
+    // Check if an index with these exact keys already exists
+    const keysString = JSON.stringify(keys);
+    let conflictingIndexName = null;
+    
+    for (const [indexName, indexSpec] of Object.entries(existingIndexes)) {
+      const existingKeysString = JSON.stringify(indexSpec.key);
+      if (existingKeysString === keysString && indexName !== options.name) {
+        conflictingIndexName = indexName;
+        break;
+      }
+    }
+    
+    // If conflicting index found, drop it first
+    if (conflictingIndexName && conflictingIndexName !== '_id_') {
+      logger.info(`   → Eliminando índice conflictivo: ${conflictingIndexName}`);
+      await collection.dropIndex(conflictingIndexName);
+    }
+    
+    // Now create the index safely
+    await collection.createIndex(keys, options);
+    return true;
+  } catch (error) {
+    // If index already exists with same name, that's fine
+    if (error.code === 85 || error.codeName === 'IndexOptionsConflict') {
+      logger.warn(`   ⊗ Índice ya existe: ${options.name} (omitido)`);
+      return false;
+    }
+    throw error;
+  }
+}
+
+/**
  * Query patterns analysis and index recommendations
  * 
  * BOOKING QUERIES:
@@ -60,35 +100,40 @@ export async function createOptimizedIndexes() {
     // ==================== BOOKING INDEXES ====================
     
     // Booking calendar view: doctor's appointments on specific date range
-    await Booking.collection.createIndex(
+    await safeCreateIndex(
+      Booking.collection,
       { doctor: 1, appointmentDate: 1 },
       { name: 'doctor_date_idx', background: true }
     );
     logger.info('✅ Booking: doctor + appointmentDate index created');
 
     // Patient booking history
-    await Booking.collection.createIndex(
+    await safeCreateIndex(
+      Booking.collection,
       { user: 1, appointmentDate: -1 },
       { name: 'user_date_idx', background: true }
     );
     logger.info('✅ Booking: user + appointmentDate index created');
 
     // Admin dashboard: filter by status + sort by date
-    await Booking.collection.createIndex(
+    await safeCreateIndex(
+      Booking.collection,
       { status: 1, appointmentDate: -1 },
       { name: 'status_date_idx', background: true }
     );
     logger.info('✅ Booking: status + appointmentDate index created');
 
     // Upcoming appointments query optimization
-    await Booking.collection.createIndex(
+    await safeCreateIndex(
+      Booking.collection,
       { appointmentDate: 1, status: 1 },
       { name: 'upcoming_appointments_idx', background: true }
     );
     logger.info('✅ Booking: appointmentDate + status index created');
 
     // Google Calendar sync: find by calendarEventId
-    await Booking.collection.createIndex(
+    await safeCreateIndex(
+      Booking.collection,
       { calendarEventId: 1 },
       { name: 'calendar_event_idx', sparse: true, background: true }
     );
@@ -97,14 +142,16 @@ export async function createOptimizedIndexes() {
     // ==================== DOCTOR INDEXES ====================
 
     // Public doctor listing: approved doctors sorted by rating
-    await Doctor.collection.createIndex(
+    await safeCreateIndex(
+      Doctor.collection,
       { isApproved: 1, averageRating: -1 },
       { name: 'approved_rating_idx', background: true }
     );
     logger.info('✅ Doctor: isApproved + averageRating index created');
 
     // Doctor search by specialization
-    await Doctor.collection.createIndex(
+    await safeCreateIndex(
+      Doctor.collection,
       { specialization: 1, isApproved: 1 },
       { name: 'specialization_approved_idx', background: true }
     );
@@ -112,14 +159,16 @@ export async function createOptimizedIndexes() {
 
     // Doctor login (email is unique, already indexed by default)
     // But add compound with role for faster auth queries
-    await Doctor.collection.createIndex(
+    await safeCreateIndex(
+      Doctor.collection,
       { email: 1, isApproved: 1 },
       { name: 'email_approved_idx', unique: true, background: true }
     );
     logger.info('✅ Doctor: email + isApproved index created');
 
     // Text search on doctor name and bio
-    await Doctor.collection.createIndex(
+    await safeCreateIndex(
+      Doctor.collection,
       { name: 'text', bio: 'text' },
       { name: 'doctor_text_search', background: true }
     );
@@ -128,21 +177,24 @@ export async function createOptimizedIndexes() {
     // ==================== USER INDEXES ====================
 
     // User login and role filtering
-    await User.collection.createIndex(
+    await safeCreateIndex(
+      User.collection,
       { email: 1, role: 1 },
       { name: 'email_role_idx', unique: true, background: true }
     );
     logger.info('✅ User: email + role index created');
 
     // Email verification flow
-    await User.collection.createIndex(
+    await safeCreateIndex(
+      User.collection,
       { emailVerificationToken: 1 },
       { name: 'email_verification_idx', sparse: true, background: true }
     );
     logger.info('✅ User: emailVerificationToken index created');
 
     // Password reset flow
-    await User.collection.createIndex(
+    await safeCreateIndex(
+      User.collection,
       { passwordResetToken: 1, passwordResetExpires: 1 },
       { name: 'password_reset_idx', sparse: true, background: true }
     );
@@ -151,14 +203,16 @@ export async function createOptimizedIndexes() {
     // ==================== REVIEW INDEXES ====================
 
     // Doctor profile reviews
-    await Review.collection.createIndex(
+    await safeCreateIndex(
+      Review.collection,
       { doctor: 1, createdAt: -1 },
       { name: 'doctor_reviews_idx', background: true }
     );
     logger.info('✅ Review: doctor + createdAt index created');
 
     // User's review history
-    await Review.collection.createIndex(
+    await safeCreateIndex(
+      Review.collection,
       { user: 1, createdAt: -1 },
       { name: 'user_reviews_idx', background: true }
     );
@@ -167,14 +221,16 @@ export async function createOptimizedIndexes() {
     // ==================== HEALTH METRICS INDEXES ====================
 
     // Health dashboard: user's metrics by type
-    await HealthMetric.collection.createIndex(
+    await safeCreateIndex(
+      HealthMetric.collection,
       { user: 1, type: 1, recordedAt: -1 },
       { name: 'user_type_date_idx', background: true }
     );
     logger.info('✅ HealthMetric: user + type + recordedAt index created');
 
     // Date range queries for charts
-    await HealthMetric.collection.createIndex(
+    await safeCreateIndex(
+      HealthMetric.collection,
       { user: 1, recordedAt: -1 },
       { name: 'user_date_idx', background: true }
     );
@@ -183,21 +239,24 @@ export async function createOptimizedIndexes() {
     // ==================== PSYCHOLOGY INDEXES ====================
 
     // Psychology patient lookup by referringDoctor
-    await PsychologicalPatient.collection.createIndex(
+    await safeCreateIndex(
+      PsychologicalPatient.collection,
       { referringDoctor: 1, riskLevel: 1 },
       { name: 'referring_risk_idx', sparse: true, background: true }
     );
     logger.info('✅ PsychologicalPatient: referringDoctor + riskLevel index created');
 
     // Therapy sessions by patient + date
-    await TherapySession.collection.createIndex(
+    await safeCreateIndex(
+      TherapySession.collection,
       { patient: 1, sessionDate: -1 },
       { name: 'patient_session_date_idx', background: true }
     );
     logger.info('✅ TherapySession: patient + sessionDate index created');
 
     // Sessions by therapist
-    await TherapySession.collection.createIndex(
+    await safeCreateIndex(
+      TherapySession.collection,
       { therapist: 1, sessionDate: -1 },
       { name: 'therapist_session_date_idx', background: true }
     );

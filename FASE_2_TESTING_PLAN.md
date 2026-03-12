@@ -1,5 +1,5 @@
 # 🧪 FASE 2: TESTING - ESTADO Y PLAN DE ACCIÓN
-## Psiconepsis - Colombia
+## Basileiás - Colombia
 
 **Fecha:** 25 de enero de 2026  
 **Estado actual:** Suite de testing parcialmente implementada  

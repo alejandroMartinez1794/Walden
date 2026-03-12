@@ -19,7 +19,7 @@ const TermsOfService = () => {
           <section>
             <h3 className="text-xl font-bold text-headingColor mb-3">1. Aceptación de los Términos</h3>
             <p>
-              Al registrarse y utilizar Psiconepsis, usted acepta vincularse jurídicamente por estos Términos y Condiciones. 
+              Al registrarse y utilizar Basileiás, usted acepta vincularse jurídicamente por estos Términos y Condiciones. 
               Si no está de acuerdo con alguno de ellos, debe abstenerse de utilizar la plataforma.
             </p>
           </section>
@@ -71,7 +71,7 @@ const TermsOfService = () => {
           <section>
             <h3 className="text-xl font-bold text-headingColor mb-3">7. Propiedad Intelectual</h3>
             <p>
-              Todo el contenido de la plataforma (software, textos, marcas) es propiedad exclusiva de Psiconepsis o sus licenciantes. 
+              Todo el contenido de la plataforma (software, textos, marcas) es propiedad exclusiva de Basileiás o sus licenciantes. 
               Está prohibida la grabación de las sesiones por parte del paciente sin autorización escrita del profesional.
             </p>
           </section>

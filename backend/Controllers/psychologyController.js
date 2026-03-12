@@ -8,6 +8,7 @@ import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
+import logger from '../utils/logger.js';
 
 // ============ PACIENTES ============
 
@@ -32,7 +33,7 @@ export const createPatient = async (req, res) => {
       data: newPatient,
     });
   } catch (error) {
-    console.error('Error al crear paciente:', error);
+    logger.error('Error al crear paciente:', error);
     res.status(500).json({ success: false, message: 'Error al crear paciente' });
   }
 };
@@ -40,7 +41,7 @@ export const createPatient = async (req, res) => {
 export const getMyPatients = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    console.log(`🧠 getMyPatients: Buscando pacientes para psicólogo ${psychologistId}`);
+    logger.info(`🧠 getMyPatients: Buscando pacientes para psicólogo ${psychologistId}`);
     
     const { status } = req.query;
     
@@ -102,7 +103,7 @@ export const getMyPatients = async (req, res) => {
       data: patients,
     });
   } catch (error) {
-    console.error('❌ Error en getMyPatients:', error);
+    logger.error('❌ Error en getMyPatients:', error);
     res.status(500).json({ success: false, message: 'Error al obtener pacientes', error: error.message });
   }
 };
@@ -126,7 +127,7 @@ export const getPatientById = async (req, res) => {
       data: patient,
     });
   } catch (error) {
-    console.error('Error al obtener paciente:', error);
+    logger.error('Error al obtener paciente:', error);
     res.status(500).json({ success: false, message: 'Error al obtener paciente' });
   }
 };
@@ -152,7 +153,7 @@ export const updatePatient = async (req, res) => {
       data: updatedPatient,
     });
   } catch (error) {
-    console.error('Error al actualizar paciente:', error);
+    logger.error('Error al actualizar paciente:', error);
     res.status(500).json({ success: false, message: 'Error al actualizar paciente' });
   }
 };
@@ -178,7 +179,7 @@ export const createSession = async (req, res) => {
       data: newSession,
     });
   } catch (error) {
-    console.error('Error al crear sesión:', error);
+    logger.error('Error al crear sesión:', error);
     res.status(500).json({ success: false, message: 'Error al registrar sesión' });
   }
 };
@@ -200,7 +201,7 @@ export const getPatientSessions = async (req, res) => {
       data: sessions,
     });
   } catch (error) {
-    console.error('Error al obtener sesiones:', error);
+    logger.error('Error al obtener sesiones:', error);
     res.status(500).json({ success: false, message: 'Error al obtener sesiones' });
   }
 };
@@ -269,7 +270,7 @@ export const createAssessment = async (req, res) => {
       data: newAssessment,
     });
   } catch (error) {
-    console.error('Error al crear evaluación:', error);
+    logger.error('Error al crear evaluación:', error);
     res.status(500).json({ success: false, message: 'Error al registrar evaluación' });
   }
 };
@@ -295,7 +296,7 @@ export const getPatientAssessments = async (req, res) => {
       data: assessments,
     });
   } catch (error) {
-    console.error('Error al obtener evaluaciones:', error);
+    logger.error('Error al obtener evaluaciones:', error);
     res.status(500).json({ success: false, message: 'Error al obtener evaluaciones' });
   }
 };
@@ -315,7 +316,7 @@ export const createTreatmentPlan = async (req, res) => {
       data: newPlan,
     });
   } catch (error) {
-    console.error('Error al crear plan de tratamiento:', error);
+    logger.error('Error al crear plan de tratamiento:', error);
     res.status(500).json({ success: false, message: 'Error al crear plan' });
   }
 };
@@ -336,7 +337,7 @@ export const getPatientTreatmentPlans = async (req, res) => {
       data: plans,
     });
   } catch (error) {
-    console.error('Error al obtener planes:', error);
+    logger.error('Error al obtener planes:', error);
     res.status(500).json({ success: false, message: 'Error al obtener planes' });
   }
 };
@@ -362,7 +363,7 @@ export const updateTreatmentPlan = async (req, res) => {
       data: updatedPlan,
     });
   } catch (error) {
-    console.error('Error al actualizar plan:', error);
+    logger.error('Error al actualizar plan:', error);
     res.status(500).json({ success: false, message: 'Error al actualizar plan' });
   }
 };
@@ -413,7 +414,7 @@ export const getPsychologyDashboard = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error al obtener dashboard:', error);
+    logger.error('Error al obtener dashboard:', error);
     res.status(500).json({ success: false, message: 'Error al obtener datos del dashboard' });
   }
 };
@@ -440,12 +441,12 @@ export const upsertClinicalHistory = async (req, res) => {
         context: { status: 'SUCCESS' }
       });
     } catch (logError) {
-      console.error('Error creando log de auditoría:', logError);
+      logger.error('Error creando log de auditoría:', logError);
     }
 
     res.status(200).json({ success: true, message: 'Historia clínica guardada', data: updated });
   } catch (error) {
-    console.error('Error al guardar historia clínica:', error);
+    logger.error('Error al guardar historia clínica:', error);
     res.status(500).json({ success: false, message: 'Error al guardar historia clínica' });
   }
 };
@@ -466,13 +467,13 @@ export const getClinicalHistory = async (req, res) => {
           context: { status: 'SUCCESS' }
         });
       } catch (logError) {
-        console.error('Error creando log de acceso:', logError);
+        logger.error('Error creando log de acceso:', logError);
       }
     }
 
     res.status(200).json({ success: true, data: doc || null });
   } catch (error) {
-    console.error('Error al obtener historia clínica:', error);
+    logger.error('Error al obtener historia clínica:', error);
     res.status(500).json({ success: false, message: 'Error al obtener historia clínica' });
   }
 };
@@ -699,7 +700,7 @@ export const getCbtOverview = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error en CBT overview:', error);
+    logger.error('Error en CBT overview:', error);
     res.status(500).json({ success: false, message: 'Error al obtener métricas de TCC' });
   }
 };
@@ -810,7 +811,7 @@ export const seedCbtDemoData = async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Datos demo TCC generados' });
   } catch (error) {
-    console.error('Error en seed demo TCC:', error);
+    logger.error('Error en seed demo TCC:', error);
     res.status(500).json({ success: false, message: 'Error al generar demo' });
   }
 };

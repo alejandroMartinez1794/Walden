@@ -4,100 +4,72 @@ import { BASE_URL } from '../../config';
 // Intents y palabras clave
 const intents = {
   greeting: {
-    keywords: ['hola', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey', 'hi', 'saludos', 'quiubo', 'que mas', 'bien o no'],
+    keywords: ['hola', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey', 'hi', 'saludos', 'quiubo', 'que mas', 'bien o no', 'inicio', 'empezar'],
     responses: [
-      '¡Hola! 👋 Soy PsicoBot, tu asistente virtual en Psiconepsis. ¿En qué vuelta te puedo ayudar hoy?',
-      '¡Quiubo! Bienvenido a Psiconepsis. ¿Qué necesitas? Estoy aquí para guiarte.',
-      '¡Hola! Espero que estés teniendo un día bacano. ¿Cómo te puedo colaborar?',
+      '¡Hola! 👋 Bienvenido a Basileiás (Βασιλειάς), tu espacio de terapia digital basado en evidencia (TCC).\n\nSi es tu primera vez aquí, te invitamos a escribirnos directamente a: **contactobasileias@gmail.com** para orientarte mejor.\n\n¿En qué podemos ayudarte hoy? Puedo explicarte nuestros servicios, cómo trabajamos o resolver tus dudas.',
     ],
-    quickReplies: ['Agendar cita', 'Ver especialistas', 'Servicios', 'Precios'],
+    quickReplies: ['Contacto', 'Nuestros Servicios', 'Sobre Basileiás', 'Dudas Frecuentes'],
+  },
+  about: {
+    keywords: ['sobre', 'que es', 'quienes son', 'tcc', 'enfoque', 'filosofia', 'metodo', 'cognitivo', 'conductual', 'ciencia'],
+    responses: [
+      '**Sobre Basileiás y la TCC** 🧠\n\nNuestra práctica se basa en la **Terapia Cognitivo-Conductual (TCC)**, el modelo con mayor respaldo científico para tratar ansiedad y depresión.\n\nEntendemos que pensamientos, emociones y conductas están conectados. Trabajamos contigo para modificar patrones disfuncionales y recuperar tu equilibrio, usando técnicas validadas como reestructuración cognitiva y exposición gradual.\n\nPuedes leer más en la sección "Sobre Nosotros".',
+    ],
+    quickReplies: ['Ver Servicios', 'Ir a Sobre Nosotros', 'Contacto'],
+  },
+  services: {
+    keywords: ['servicio', 'servicios', 'que ofrecen', 'especialidades', 'tratamiento', 'que hacen', 'depresion', 'ansiedad', 'huerfanas', 'duelo', 'adolescentes'],
+    responses: [
+      '**Nuestros Servicios Especializados:**\n\n1. **Enfermedades Huérfanas**: Apoyo a pacientes y cuidadores.\n2. **Depresión y Ánimo**: Transformación de patrones negativos.\n3. **Ansiedad y Estrés**: Técnicas de manejo y exposición.\n4. **Psicoterapia Individual**: Autoconocimiento para adultos.\n5. **TCC para Adolescentes**: Habilidades emocionales y resiliencia.\n6. **Crisis y Duelo**: Acompañamiento empático inmediato.\n\n¿Te interesa alguno en particular? Escríbenos.',
+    ],
+    quickReplies: ['Ir a Servicios', 'Contacto', 'Agendar Cita'],
+  },
+  faq_general: {
+    keywords: ['como funciona', 'virtual', 'presencial', 'distancia', 'remoto', 'online'],
+    responses: [
+      '**¿Cómo funciona la atención?** 💻\n\nLas sesiones son principalmente **virtuales** a través de nuestra plataforma segura, adaptándonos a tus objetivos. Algunos profesionales ofrecen atención presencial bajo cita previa.\n\nPuedes iniciar tu proceso desde cualquier lugar.',
+    ],
+    quickReplies: ['Ver Preguntas Frecuentes', 'Contacto'],
+  },
+  faq_crisis: {
+    keywords: ['crisis', 'urgencia', 'emergencia', 'riesgo', 'suicidio', 'morir', 'ayuda urgente', 'urgente'],
+    responses: [
+      '⚠️ **Atención en Crisis**\n\nSi estás en riesgo vital o emergencia inmediata, por favor acude directamente a **Urgencias** de tu localidad.\n\nNosotros ofrecemos acompañamiento clínico prioritario para crisis emocionales y duelos, pero no reemplazamos a los servicios de emergencia médica.',
+    ],
+    quickReplies: ['Contacto', 'Ver Recursos'],
+  },
+  faq_new_patients: {
+    keywords: ['nuevo', 'primera vez', 'empezar', 'quiero cita', 'paciente nuevo'],
+    responses: [
+      '**¿Eres nuevo paciente?** ¡Bienvenido! 🌟\n\nSí, nuestro equipo está abierto a nuevos procesos. Lo mejor para empezar es que nos escribas a **contactobasileias@gmail.com** contándonos brevemente tu caso para asignarte el profesional ideal.\n\nTambién puedes registrarte en la plataforma.',
+    ],
+    quickReplies: ['Contacto', 'Registrarme'],
+  },
+  contact: {
+    keywords: ['contacto', 'telefono', 'email', 'direccion', 'ubicacion', 'donde estan', 'llamar', 'correo', 'ayuda', 'soporte', 'escribir'],
+    responses: [
+      '📞 **Contacto Directo**\n\nEstamos listos para escucharte. Al ser tu primera vez o si tienes dudas específicas, el mejor canal es:\n\n📧 **Email**: contactobasileias@gmail.com\n📏 **Ubicación**: Bogotá, Colombia\n\nEscríbenos y te responderemos a la brevedad.',
+    ],
+    quickReplies: ['Ir a Contacto'],
   },
   booking: {
     keywords: ['agendar', 'cita', 'turno', 'reservar', 'appointment', 'appointment booking', 'consulta', 'sacar cita'],
     responses: [
-      '¡De una! Para agendar es súper fácil:\n\n1. Ve a la sección "Doctores".\n2. Elige al especialista que más te trame.\n3. Selecciona la hora que te sirva.\n\n¿Quieres que te muestre los doctores de una vez?',
+      'Para agendar, por favor contáctanos por correo (**contactobasileias@gmail.com**) si es tu primera vez, o inicia sesión si ya eres paciente.\n\nTe guiaremos para encontrar el horario que más te convenga.',
     ],
-    quickReplies: ['Ver doctores', 'Ver mis citas', 'Cancelar cita'],
-  },
-  doctors: {
-    keywords: ['doctor', 'doctores', 'especialista', 'medico', 'médico', 'profesional', 'psicologo', 'psiquiatra'],
-    responses: [
-      'Tenemos un equipo de primera. ¿Qué tipo de especialista estás buscando? Tenemos psicólogos, psiquiatras y médicos generales.',
-    ],
-    quickReplies: ['Psicología', 'Psiquiatría', 'Medicina General', 'Ver todos'],
-    fetchDoctors: true,
-  },
-  services: {
-    keywords: ['servicio', 'servicios', 'que ofrecen', 'especialidades', 'tratamiento', 'que hacen'],
-    responses: [
-      'En Psiconepsis nos encargamos de tu salud integral con:\n\n🧠 Psicología Clínica (TCC)\n💊 Psiquiatría\n🩺 Medicina General\n📹 Telepsicología Segura\n\nTodo con la mejor tecnología y seguridad. ¿Te interesa algo en específico?',
-    ],
-    quickReplies: ['Agendar cita', 'Ver doctores', 'Telepsicología'],
-  },
-  security: {
-    keywords: ['seguridad', 'privacidad', 'datos', 'seguro', 'encriptado', 'confidencial'],
-    responses: [
-      '¡Tranquilo! Aquí la seguridad es lo primero. Usamos "PsicoNepsis Shield":\n\n🔒 Encriptación AES-256 (Nivel militar)\n🛡️ Auditoría clínica inmutable\n🤐 Confidencialidad total\n\nTus secretos están a salvo con nosotros, ni nosotros podemos leerlos.',
-    ],
-    quickReplies: ['Ver política de datos', 'Agendar cita segura'],
-  },
-  psychology: {
-    keywords: ['ansiedad', 'depresion', 'estres', 'triste', 'ayuda mental', 'terapia', 'tusa', 'mal'],
-    responses: [
-      'Entiendo, a veces la vida se pone pesada. En Psiconepsis tenemos expertos en:\n\n✅ Manejo de ansiedad y estrés\n✅ Depresión\n✅ Terapia de pareja\n✅ Crecimiento personal\n\nNo tienes que pasar por esto solo. ¿Te gustaría hablar con alguien?',
-    ],
-    quickReplies: ['Agendar con Psicólogo', 'Hacer test de ansiedad', 'Urgencia'],
-  },
-  prices: {
-    keywords: ['precio', 'costo', 'cuanto cuesta', 'tarifa', 'pago', 'billete', 'plata', 'vale'],
-    responses: [
-      'Manejamos tarifas justas para que te cuides:\n\n💰 Consulta General: $50.000 - $80.000\n💰 Especialistas: $80.000 - $150.000\n💰 Terapia TCC: $100.000\n\nPuedes pagar con Nequi, Daviplata o Tarjeta. ¿Te animas?',
-    ],
-    quickReplies: ['Agendar cita', 'Ver doctores'],
-  },
-  payment: {
-    keywords: ['pagar', 'nequi', 'daviplata', 'tarjeta', 'efectivo', 'metodos de pago'],
-    responses: [
-      'Recibimos de todo para que no te vares:\n\n💳 Tarjetas Débito/Crédito\n📱 Nequi y Daviplata\n🏦 PSE\n\nEl pago se hace al confirmar la cita. ¡Fácil y rápido!',
-    ],
-    quickReplies: ['Agendar cita'],
-  },
-  myBookings: {
-    keywords: ['mis citas', 'mi cita', 'mis turnos', 'reservas', 'cuando me toca'],
-    responses: [
-      'Revisa tus vueltas en "Mi Perfil" -> "Mis Citas". Ahí ves fecha, hora y hasta puedes entrar a la videollamada si es virtual.',
-    ],
-    quickReplies: ['Ir a mis citas', 'Agendar nueva'],
-  },
-  contact: {
-    keywords: ['contacto', 'telefono', 'email', 'direccion', 'ubicacion', 'donde estan', 'llamar'],
-    responses: [
-      '📞 Contáctanos de una:\n\n📱 WhatsApp: +57 300 123 4567\n📧 Email: psiconepsis@gmail.com\n📍 Sede Principal: Calle 123 # 45-67, Bogotá\n\n¡Estamos atentos!',
-    ],
-    quickReplies: ['Agendar cita', 'Ver mapa'],
-  },
-  insult: {
-    keywords: ['bobo', 'estupido', 'idiota', 'mierda', 'puta', 'malparido', 'gonorrea'],
-    responses: [
-      'Epa, bájele al tono. Aquí estamos para ayudar con buena vibra. Respeto ante todo, parcero. ✌️',
-      'Oye, tranqui. No hay necesidad de esas palabras. ¿En qué te puedo ayudar de buena manera?',
-    ],
+    quickReplies: ['Contacto', 'Iniciar Sesión'],
   },
   thanks: {
     keywords: ['gracias', 'thanks', 'muchas gracias', 'perfecto', 'excelente', 'bien', 'listo', 'todo bien'],
     responses: [
-      '¡Con gusto! Pa\' las que sea. 😎',
-      '¡A la orden! Cuídate mucho.',
-      '¡Todo bien! Aquí estamos firmes.',
+      '¡Con gusto! Recuerda: ante cualquier duda, un correo a **contactobasileias@gmail.com** es la vía más rápida. ¡Cuídate!',
     ],
-    quickReplies: ['Agendar cita', 'Cerrar chat'],
+    quickReplies: ['Contacto', 'Cerrar chat'],
   },
   goodbye: {
     keywords: ['adios', 'chao', 'hasta luego', 'bye', 'nos vemos', 'suerte'],
     responses: [
-      '¡La buena! Que tengas un día chimba. 👋',
-      '¡Chao pues! Cuídate.',
-      '¡Nos pillamos! Vuelve cuando quieras.',
+      '¡Hasta luego! Recuerda escribirnos si necesitas iniciar tu proceso. 👋',
     ],
   },
 };
@@ -122,36 +94,14 @@ const getRandomResponse = (responses) => {
   return responses[Math.floor(Math.random() * responses.length)];
 };
 
-// Fetch doctors from API
-const fetchDoctors = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${BASE_URL}/doctors`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error('Error fetching doctors');
-    }
-
-    const { data } = await res.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching doctors:', error);
-    return [];
-  }
-};
-
 // Función principal para obtener respuesta del chatbot
 export const getChatbotResponse = async (userMessage, user) => {
   const intent = detectIntent(userMessage);
 
   if (intent === 'unknown') {
     return {
-      text: 'Lo siento, no estoy seguro de entender tu pregunta. 🤔\n\nPuedo ayudarte con:\n• Agendar citas\n• Buscar doctores\n• Información de servicios\n• Consultar precios\n\n¿Qué te gustaría saber?',
-      quickReplies: ['Agendar cita', 'Ver doctores', 'Ver servicios', 'Ayuda'],
+      text: 'No estoy seguro de entender tu consulta específica. \n\nRecuerda que para **información detallada, dudas clínicas o agendamiento**, lo mejor es escribirnos directamente a: **contactobasileias@gmail.com**.\n\nPuedo hablarte sobre:\n- Nuestros Servicios\n- Qué es la TCC\n- Atención en crisis',
+      quickReplies: ['Nuestros Servicios', 'Sobre Basileiás', 'Contacto'],
     };
   }
 
@@ -160,18 +110,6 @@ export const getChatbotResponse = async (userMessage, user) => {
     text: getRandomResponse(intentData.responses),
     quickReplies: intentData.quickReplies || null,
   };
-
-  // Si necesita fetch de doctores
-  if (intentData.fetchDoctors) {
-    const doctors = await fetchDoctors();
-    if (doctors.length > 0) {
-      response.text += `\n\nAquí hay algunos de nuestros doctores disponibles:`;
-      response.data = {
-        type: 'doctors',
-        items: doctors,
-      };
-    }
-  }
 
   return response;
 };

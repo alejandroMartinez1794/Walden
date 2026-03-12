@@ -1,5 +1,5 @@
 # CONSENTIMIENTO INFORMADO PARA SERVICIOS DE TELESALUD
-## Psiconepsis - Colombia
+## Basileiás - Colombia
 
 **En cumplimiento de la Resolución 2654 de 2019 del Ministerio de Salud y Protección Social**
 
@@ -7,9 +7,9 @@
 
 ## INFORMACIÓN GENERAL
 
-**Prestador del Servicio:** Psiconepsis  
+**Prestador del Servicio:** Basileiás  
 **Modalidad:** Telemedicina interactiva - Consulta en tiempo real  
-**Plataforma:** www.psiconepsis.com  
+**Plataforma:** www.Basileiás.com  
 **Fecha:** [Fecha de aceptación]  
 
 ---
@@ -18,7 +18,7 @@
 
 ### ¿Qué es la Telesalud?
 
-La telesalud es la provisión de servicios de salud a distancia mediante el uso de tecnologías de la información y las comunicaciones (TIC). En Psiconepsis ofrecemos:
+La telesalud es la provisión de servicios de salud a distancia mediante el uso de tecnologías de la información y las comunicaciones (TIC). En Basileiás ofrecemos:
 
 - **Teleconsulta:** Consultas médicas en tiempo real por videollamada
 - **Telepsicología:** Sesiones terapéuticas virtuales
@@ -40,7 +40,7 @@ Comunicación en tiempo real entre profesional de la salud y paciente mediante v
 
 ### Calificación y Registro
 
-Los profesionales disponibles en Psiconepsis:
+Los profesionales disponibles en Basileiás:
 
 ✓ **Están registrados** ante el Ministerio de Salud (RETHUS)  
 ✓ **Cuentan con tarjeta profesional** vigente  
@@ -191,7 +191,7 @@ Recibirá factura electrónica por cada servicio según normativa DIAN.
 
 ## 8. RESPONSABILIDADES
 
-### 8.1 Responsabilidad de Psiconepsis
+### 8.1 Responsabilidad de Basileiás
 
 Nos comprometemos a:
 ✓ Verificar credenciales de profesionales  
@@ -226,7 +226,7 @@ El paciente es responsable de:
 Si no está satisfecho con el servicio:
 
 **Paso 1:** Contactar directamente al profesional  
-**Paso 2:** Reportar a Psiconepsis: soporte@psiconepsis.com  
+**Paso 2:** Reportar a Basileiás: soporte@Basileiás.com  
 **Paso 3:** Si no hay resolución satisfactoria:
 
 **Superintendencia Nacional de Salud**  
@@ -273,7 +273,7 @@ Reembolso completo o reagendamiento prioritario sin costo.
 
 ### 11.1 Datos Sensibles
 
-Autorizo expresamente a Psiconepsis para:
+Autorizo expresamente a Basileiás para:
 
 ✓ Recopilar mi información de salud (datos sensibles)  
 ✓ Almacenar historia clínica digital  
@@ -303,7 +303,7 @@ Autorizo expresamente a Psiconepsis para:
 
 Para atención a menores de 18 años:
 
-**Yo, [Nombre del padre/madre/representante], identificado(a) con C.C. [número], en calidad de [relación], AUTORIZO que [nombre del menor], identificado(a) con [documento], reciba servicios de telesalud a través de Psiconepsis.**
+**Yo, [Nombre del padre/madre/representante], identificado(a) con C.C. [número], en calidad de [relación], AUTORIZO que [nombre del menor], identificado(a) con [documento], reciba servicios de telesalud a través de Basileiás.**
 
 **Declaro que:**  
 ✓ He leído y comprendido este consentimiento  
@@ -325,7 +325,7 @@ Cuando sea apropiado según edad y madurez:
 ### 13.1 Derecho a Revocar
 
 Puedo revocar este consentimiento en cualquier momento mediante:
-- Correo electrónico a: privacidad@psiconepsis.com
+- Correo electrónico a: privacidad@Basileiás.com
 - Formulario en plataforma
 - Comunicación escrita
 
@@ -394,10 +394,10 @@ Al marcar la casilla de aceptación y hacer clic en "Acepto", confirmo que:
 
 ## INFORMACIÓN DE CONTACTO
 
-**Psiconepsis**  
-**Correo:** soporte@psiconepsis.com  
+**Basileiás**  
+**Correo:** soporte@Basileiás.com  
 **Teléfono:** [Número]  
-**Sitio web:** www.psiconepsis.com  
+**Sitio web:** www.Basileiás.com  
 **Dirección:** [Dirección en Bogotá D.C.]  
 
 **Líneas de Ayuda Nacional:**  

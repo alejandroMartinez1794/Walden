@@ -1,7 +1,7 @@
 {
-  "name": "psiconepsis-booking",
+  "name": "basileias-booking",
   "version": "1.0.0",
-  "description": "",
+  "description": "Basileiás - Healthcare booking platform",
   "type": "module",
   "main": "index.js",
   "scripts": {

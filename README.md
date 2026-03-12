@@ -1,6 +1,6 @@
-# Psiconepsis (monorepo)
+# Basileiás (Βασιλειάς)
 
-Work-in-progress full-stack medical appointment booking platform with **automated workflows**.
+Plataforma full-stack de gestión de citas médicas con **flujos de trabajo automatizados**.
 
 ## ✨ Características Principales
 

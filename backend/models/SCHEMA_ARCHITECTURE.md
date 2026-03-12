@@ -1,7 +1,7 @@
-# PsicoNepsis Data Architecture
+# Basileiás Data Architecture
 
 ## Overview
-This document describes the complete data model architecture for PsicoNepsis, a clinical-grade telepsychology platform specializing in CBT.
+This document describes the complete data model architecture for Basileiás, a clinical-grade telepsychology platform specializing in CBT.
 
 ## Design Principles
 

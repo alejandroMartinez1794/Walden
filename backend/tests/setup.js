@@ -10,7 +10,7 @@
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET_KEY = 'test-jwt-secret-key-for-testing-only';
 process.env.JWT_EXPIRE_TIME = '15d';
-process.env.MONGO_URL = process.env.MONGO_URL_TEST || 'mongodb://localhost:27017/psiconepsis-test';
+process.env.MONGO_URL = process.env.MONGO_URL_TEST || 'mongodb://localhost:27017/basileias-test';
 
 // Helpers globales
 global.generateMongoId = () => {

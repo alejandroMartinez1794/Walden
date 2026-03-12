@@ -32,6 +32,50 @@ export const handleQuickAction = (action, navigate, user) => {
       navigate('/contact');
       return true;
     },
+    'Ir a Contacto': () => {
+      navigate('/contact');
+      return true;
+    },
+    'Agendar cita': () => {
+      navigate('/contact');
+      return true;
+    },
+    'Agendar Cita': () => {
+        navigate('/contact');
+        return true;
+    },
+    'Nuestros Servicios': () => {
+      navigate('/services');
+      return true;
+    },
+    'Ir a Servicios': () => {
+        navigate('/services');
+        return true;
+    },
+    'Sobre Basileiás': () => {
+       navigate('/home'); 
+       return true;
+    },
+    'Ir a Sobre Nosotros': () => {
+        navigate('/home'); 
+        return true;
+     },
+    'Dudas Frecuentes': () => {
+        navigate('/home'); 
+        return true;
+    },
+    'Ver Preguntas Frecuentes': () => {
+        navigate('/home'); 
+        return true;
+    },
+    'Registrarme': () => {
+      navigate('/register');
+      return true;
+    },
+    'Iniciar Sesión': () => {
+      navigate('/login');
+      return true;
+    },
   };
 
   return actions[action] ? actions[action]() : false;

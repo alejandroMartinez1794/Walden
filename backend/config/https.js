@@ -61,7 +61,7 @@ export const loadSSLCertificates = () => {
   
   // Producción: Let's Encrypt o custom
   const certBasePath = process.env.SSL_CERT_PATH || '/etc/letsencrypt/live';
-  const domain = process.env.DOMAIN || 'api.psiconepsis.com';
+  const domain = process.env.DOMAIN || 'api.basileias.com';
   
   const letsEncryptPath = path.join(certBasePath, domain);
   const customCertPath = './certs';

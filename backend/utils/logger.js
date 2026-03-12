@@ -71,7 +71,7 @@ if (NODE_ENV === 'production') {
 
 const logger = winston.createLogger({
   level: LOG_LEVEL,
-  defaultMeta: { service: 'psiconepsis-api' },
+  defaultMeta: { service: 'basileias-api' },
   format: jsonFormat,
   transports
 });

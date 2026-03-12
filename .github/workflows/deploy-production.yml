@@ -106,7 +106,7 @@ jobs:
       - name: Verificar deploy
         run: |
           echo "✅ Deploy a producción completado"
-          echo "🌐 URL: ${{ secrets.PRODUCTION_URL || 'https://psiconepsis.com' }}"
+          echo "🌐 URL: ${{ secrets.PRODUCTION_URL || 'https://basileias.com' }}"
       
       - name: Notificar en caso de fallo
         if: failure()

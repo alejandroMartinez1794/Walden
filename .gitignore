@@ -1,8 +1,10 @@
 node_modules/
 # Backend environment
 backend/.env
-backend/node_modules/
 backend/.env.local
+backend/.env.production
+backend/.env.staging
+backend/node_modules/
 
 # Frontend environment
 Frontend/.env

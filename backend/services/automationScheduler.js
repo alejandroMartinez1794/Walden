@@ -1,6 +1,7 @@
 // backend/services/automationScheduler.js
 import cron from 'node-cron';
 import { getAutomationConfig } from './automationConfig.js';
+import logger from '../utils/logger.js';
 
 export const scheduleTask = (expression, taskName, taskFn) => {
   const { enabled, timezone } = getAutomationConfig();
@@ -22,7 +23,7 @@ export const scheduleTask = (expression, taskName, taskFn) => {
       try {
         await taskFn();
       } catch (error) {
-        console.error(`❌ Error en tarea ${taskName}:`, error.message);
+        logger.error(`❌ Error en tarea ${taskName}:`, error.message);
       } finally {
         isRunning = false;
       }

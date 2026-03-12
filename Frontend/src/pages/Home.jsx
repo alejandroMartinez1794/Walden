@@ -27,31 +27,44 @@ const Home = () => {
                     
                         {/*---------Hero Content-------- */}
                         <div className="lg:w-6/12">
-                            <div className="lg:max-w-[520px]">                
-                                <h1 className="text-[36px] leading-[46px] text-headingColor font-[800] md:text-[60px]
-                                md:leading-[70px]">
-                                    Más que una sesión, una experiencia de autocomprensión.
+                            <div className="lg:max-w-[570px]">
+                                <h1 className="text-[32px] leading-[1.2] text-headingColor font-[800] md:text-[44px] md:leading-[1.2] mb-6 tracking-tight">
+                                    Servicio psicológico profesional, centrado en tu proceso.
                                 </h1>
-                                <p className="text_para">
-                                    A través de la Terapia Cognitivo-Conductual (TCC), te acompaño a reconocer los patrones que sostienen tu ansiedad, tu tristeza o tu cansancio mental; y a construir, paso a paso, una mente más clara, estable y en paz.
-                                </p>
+                                
+                                <div className="space-y-4 text-[16px] leading-[1.7] text-textColor font-[400]">
+                                    <p>
+                                        La Terapia Cognitivo-Conductual es un enfoque estructurado y respaldado por evidencia científica para el tratamiento de la ansiedad, la depresión y otros tipos de malestar emocional.
+                                    </p>
 
-                                <p className="text_para mt-4">
-                                    No es terapia automatizada, es atención clínica, humana y adaptada a tu ritmo —en un entorno digital que respeta tus procesos y te da herramientas reales para crecer.
-                                </p>
+                                    <p>
+                                        El proceso inicia con una evaluación cuidadosa y una formulación individualizada, que permite comprender cómo determinados pensamientos, emociones y conductas están influyendo en tu bienestar. A partir de allí, trabajamos con estrategias concretas y técnicas validadas, orientadas a generar cambios reales y sostenibles.
+                                    </p>
 
-                                                                <div className="flex justify-center mt-6">
-                                                                    <button
-                                                                        className="btn"
-                                                                        onClick={() => {
-                                                                            if (typeof window !== 'undefined' && window.openChatbot) {
-                                                                                window.openChatbot();
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        Inicia tu proceso terapéutico
-                                                                    </button>
-                                                                </div>
+                                    <div className="pl-4 border-l-4 border-primaryColor/20 py-1 my-6 bg-gray-50/50 rounded-r-lg">
+                                        <p className="italic text-slate-700">
+                                            "El servicio psicológico se concibe como una responsabilidad profesional frente al sufrimiento humano. Cada proceso se desarrolla con rigor metodológico, compromiso ético y respeto profundo por la dignidad de la persona."
+                                        </p>
+                                    </div>
+
+                                    <p className="font-medium text-headingColor text-[17px]">
+                                        Encontrarás un espacio serio, confidencial y adaptado a tu ritmo.
+                                    </p>
+                                </div>
+
+                                <div className="mt-8 flex justify-start">
+                                    <button
+                                        className="btn w-full sm:w-auto px-8 py-3 text-base flex items-center justify-center gap-2 hover:shadow-lg transform transition-all duration-200"
+                                        onClick={() => {
+                                            if (typeof window !== 'undefined' && window.openChatbot) {
+                                                window.openChatbot();
+                                            }
+                                        }}
+                                    >
+                                        Solicitar evaluación inicial
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                    </button>
+                                </div>
                             </div>
 
                             {/*---------Hero indicators (Español)-------- */}
@@ -196,7 +209,7 @@ const Home = () => {
                                 </ul>
 
                                 <div className="flex justify-center mt-6">
-                                    <Link to="/">
+                                    <Link to="/contact">
                                         <button className="btn">Conoce más</button>
                                     </Link>
                                 </div>

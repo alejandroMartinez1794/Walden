@@ -8,6 +8,7 @@ import oAuth2Client, { loadSavedToken } from '../config/google.js';
 import jwt from 'jsonwebtoken';
 import {getOAuthClientWithUserTokens} from '../utils/getOAuthClientWithUserTokens.js';
 import Booking from '../models/BookingSchema.js';
+import logger from '../utils/logger.js';
 
 /**
  * 🔗 Genera URL de autenticación de Google
@@ -84,7 +85,7 @@ export const handleGoogleCallback = async (req, res) => {
     return res.redirect(redirectUrl);
 
   } catch (error) {
-    console.error('🔴 Error en handleGoogleCallback:', error);
+    logger.error('🔴 Error en handleGoogleCallback:', error);
     return res.status(500).json({ error: 'Error en la autenticación con Google' });
   }
 };
@@ -94,7 +95,7 @@ export const handleGoogleCallback = async (req, res) => {
  */
 export const createCalendarEvent = async (req, res) => {
   try {
-    console.log("📥 Petición recibida para crear evento");
+    logger.info("📥 Petición recibida para crear evento");
 
   // Admitimos tanto start/end como startTime/endTime
   let { summary, description, start, end, startTime, endTime, attendees, doctorId, reason } = req.body;
@@ -137,7 +138,7 @@ export const createCalendarEvent = async (req, res) => {
       resource: event,
     });
 
-    console.log("📅 Evento creado:", response.data);
+    logger.info("📅 Evento creado:", response.data);
 
     const newBooking = await Booking.create({
       user: userId,
@@ -156,7 +157,7 @@ export const createCalendarEvent = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error creando evento:', err.response?.data || err.message || err);
+    logger.error('❌ Error creando evento:', err.response?.data || err.message || err);
     const status = err.code === 401 ? 401 : 500;
     res.status(status).json({
       success: false,
@@ -190,7 +191,7 @@ export const getCalendarEvents = async (req, res) => {
       data: response.data.items,
     });
   } catch (error) {
-    console.error('❌ Error al obtener eventos:', error);
+    logger.error('❌ Error al obtener eventos:', error);
     res.status(500).json({ error: 'No se pudieron obtener los eventos' });
   }
 };
@@ -228,7 +229,7 @@ export const updateCalendarEvent = async (req, res) => {
     res.status(200).json({ message: 'Evento actualizado', event: updatedEvent.data });
 
   } catch (error) {
-    console.error('❌ Error al actualizar evento:', error);
+    logger.error('❌ Error al actualizar evento:', error);
     res.status(500).json({ error: 'No se pudo actualizar el evento' });
   }
 };
@@ -254,7 +255,7 @@ export const deleteCalendarEvent = async (req, res) => {
     res.status(200).json({ message: 'Evento eliminado' });
 
   } catch (error) {
-    console.error('❌ Error al eliminar evento:', error);
+    logger.error('❌ Error al eliminar evento:', error);
     res.status(500).json({ error: 'No se pudo eliminar el evento' });
   }
 };

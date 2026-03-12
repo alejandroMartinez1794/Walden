@@ -1,8 +1,8 @@
-# 🤖 Sistema de Automatización - Psiconepsis
+# 🤖 Sistema de Automatización - Basileiás
 
 ## Descripción General
 
-Sistema de automatización nativo integrado en el backend de Psiconepsis que maneja:
+Sistema de automatización nativo integrado en el backend de Basileiás que maneja:
 - ✅ Recordatorios automáticos de citas
 - ✅ Alertas médicas críticas
 - ✅ Seguimiento post-sesión
@@ -126,11 +126,11 @@ backend/
 EMAIL_SERVICE=gmail                        # o 'hotmail', 'outlook'
 EMAIL_USERNAME=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password           # App password de Gmail
-EMAIL_FROM=psiconepsis@gmail.com
+EMAIL_FROM=Basileiás@gmail.com
 
 # Frontend URL (para links en emails)
 FRONTEND_URL=http://localhost:5173         # Desarrollo
-# FRONTEND_URL=https://psiconepsis.com    # Producción
+# FRONTEND_URL=https://Basileiás.com    # Producción
 
 # MongoDB
 MONGO_URL=mongodb://...
@@ -355,5 +355,5 @@ db.bookings.find({ followUpSent: true })
 
 ---
 
-**Desarrollado para Psiconepsis** 🧠💙  
+**Desarrollado para Basileiás** 🧠💙  
 Sistema de automatización médica integrado y eficiente.

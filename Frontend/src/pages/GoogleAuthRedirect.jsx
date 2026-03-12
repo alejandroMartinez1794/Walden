@@ -36,7 +36,7 @@ const GoogleAuthRedirect = () => {
         // ✅ 4. Redirigir con recarga para que el token esté disponible al inicio
         if (parsedUser.role === 'paciente') {
           window.location.href = '/users/profile/me';
-        } else if (parsedUser.role === 'doctor') {
+        } else if (parsedUser.role === 'doctor' || parsedUser.role === 'admin') {
           window.location.href = '/doctors/profile/me';
         } else {
           window.location.href = '/home';

@@ -19,7 +19,7 @@ export const sanitizeForCalendar = (booking) => {
     // ✅ HIPAA-compliant: Mínimo PHI
     const event = {
       summary: 'Sesión Programada',  // Generic, sin detalles
-      description: `Booking ID: ${booking._id}\nPlataforma: Psiconepsis`,
+      description: `Booking ID: ${booking._id}\nPlataforma: basileias`,
       start: {
         dateTime: booking.appointmentDate,
         timeZone: process.env.TIMEZONE || 'America/Bogota'

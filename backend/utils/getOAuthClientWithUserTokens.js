@@ -2,6 +2,7 @@
 import { google } from 'googleapis';
 import GoogleToken from '../models/GoogleTokenSchema.js';
 import oAuth2Client from '../config/google.js';
+import logger from './logger.js';
 
 /**
  * Obtiene un cliente OAuth2 autenticado con los tokens del usuario desde MongoDB
@@ -14,7 +15,7 @@ export const getOAuthClientWithUserTokens = async (userId) => {
   const tokenDoc = await GoogleToken.findOne({ userId });
 
   // Agregar un console.log para verificar si se encontraron los tokens
-  console.log("🔍 Token encontrado para el usuario:", userId, tokenDoc);
+  logger.info("🔍 Token encontrado para el usuario:", userId, tokenDoc);
 
   if (!tokenDoc) {
     throw new Error('❌ No se encontraron tokens de Google para este usuario');
@@ -49,10 +50,10 @@ export const getOAuthClientWithUserTokens = async (userId) => {
           { $set: update },
           { new: true, upsert: true }
         );
-        console.log('🔄 Tokens de Google actualizados para usuario', userId);
+        logger.info('🔄 Tokens de Google actualizados para usuario', userId);
       }
     } catch (e) {
-      console.warn('⚠️ No se pudo persistir el refresh de tokens:', e.message);
+      logger.warn('⚠️ No se pudo persistir el refresh de tokens:', e.message);
     }
   });
 
@@ -60,7 +61,7 @@ export const getOAuthClientWithUserTokens = async (userId) => {
   try {
     await client.getAccessToken();
   } catch (e) {
-    console.warn('⚠️ No se pudo obtener access token inmediato, continuará en primera llamada:', e.message);
+    logger.warn('⚠️ No se pudo obtener access token inmediato, continuará en primera llamada:', e.message);
   }
 
   // Devolver el cliente configurado

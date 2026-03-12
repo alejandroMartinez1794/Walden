@@ -13,6 +13,7 @@
  */
 
 import mongoose from "mongoose";
+import logger from '../utils/logger.js';
 
 const AuditLogSchema = new mongoose.Schema({
   // ¿Quién? - Identificación del usuario
@@ -193,13 +194,13 @@ AuditLogSchema.statics.log = async function(data) {
     // Si es CRITICAL, enviar alerta inmediata
     if (data.severity === 'CRITICAL') {
       // TODO: Integrar con sistema de alertas (email, Slack, PagerDuty)
-      console.error('🚨 CRITICAL AUDIT EVENT:', data);
+      logger.error('🚨 CRITICAL AUDIT EVENT:', data);
     }
     
     return log;
   } catch (error) {
     // NO fallar la request principal si el logging falla
-    console.error('❌ Failed to create audit log:', error);
+    logger.error('❌ Failed to create audit log:', error);
     return null;
   }
 };

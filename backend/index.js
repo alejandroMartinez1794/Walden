@@ -61,35 +61,42 @@ import { startMedicalAlertService } from './services/medicalAlertService.js';
 import { startFollowUpService } from './services/followUpService.js';
 import { ensureCriticalIndexes } from './scripts/ensureIndexes.js';
 
-// Seguridad Avanzada (PsicoNepsis Shield) - Solo lo esencial para performance
+// Seguridad Avanzada (Basileiás Shield) - Solo lo esencial para performance
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 // DESACTIVADO para performance: xss-clean y hpp (redundantes con otras validaciones)
 
+logger.info('\n═══════════════════════════════════════════════════════');
+logger.info('🚀 Iniciando Basileiás Backend API');
+logger.info('═══════════════════════════════════════════════════════\n');
+
 // Cargar .env.local primero (credenciales locales), luego .env (plantilla)
-// IMPORTANTE: No llamar a dotenv.config() dos veces, solo una
-const envPath = '.env.local'; // Intenta primero .env.local
+logger.info('📋 [1/6] Cargando configuración...');
+const envPath = '.env.local';
 try {
     dotenv.config({ path: envPath, override: true });
-    logger.info('Loaded .env.local');
+    logger.info('   ✓ Variables de entorno cargadas desde .env.local');
 } catch (err) {
-    logger.warn('.env.local not found, falling back to .env');
+    logger.info('   ⚠ .env.local no encontrado, usando .env');
     dotenv.config({ path: '.env', override: true });
 }
 
 // Validar secretos requeridos al iniciar (skip en entorno de test)
+logger.info('\n🔐 [2/6] Validando secretos de seguridad...');
 if (process.env.NODE_ENV !== 'test') {
     const secretsValidation = await validateSecrets();
     if (!secretsValidation.valid) {
-        logger.error('❌ Missing required secrets:', secretsValidation.missing);
-        logger.error('Application cannot start without required secrets');
-        logger.info('See backend/SECRETS_MANAGEMENT.md for setup instructions');
+        logger.error('   ✗ Error: Faltan secretos requeridos:', secretsValidation.missing);
+        logger.error('   ✗ La aplicación no puede iniciar sin los secretos requeridos');
+        logger.info('   ℹ Ver backend/SECRETS_MANAGEMENT.md para instrucciones');
         process.exit(1);
     }
-    logger.info('✅ Secrets validated', getSecretsStats());
+    logger.info('   ✓ Todos los secretos validados correctamente');
+    const stats = getSecretsStats();
+    logger.info(`   ✓ Secretos cargados: ${stats.loaded}/${stats.total}`);
 } else {
-    logger.info('⏭️  Skipping secrets validation in test environment');
+    logger.info('   ⏭ Validación de secretos omitida (entorno de test)');
 }
 
 const app = express();
@@ -173,12 +180,13 @@ const connectDB = async () => {
             socketTimeoutMS: 45000, // Socket timeout
         });
 
-        logger.info('MongoDB connected with optimized pool (max: 20, min: 5)');
+        logger.info('   ✓ Conexión MongoDB establecida');
+        logger.info('   ✓ Pool de conexiones optimizado (max: 20, min: 5)');
         
         // ============= PHASE 5: OPTIMIZED DATABASE INDEXES =============
         // Create compound indexes for faster queries
         createOptimizedIndexes().catch((err) => {
-            logger.warn('Index optimization failed (non-critical)', { error: err.message });
+            logger.info('   ⚠ Optimización de índices falló (no crítico)');
         });
         
         // 🚀 Verificar índices críticos en background (no bloquea)
@@ -186,15 +194,22 @@ const connectDB = async () => {
         
         // 🚀 LAZY LOADING: Servicios se inician 5 segundos DESPUÉS (reducido de 10s)
         setTimeout(() => {
-            logger.info('Automation services activated');
+            logger.info('\n🤖 [6/6] Activando servicios de automatización...');
+            logger.info('   ✓ Recordatorios de citas');
+            logger.info('   ✓ Alertas médicas críticas');
+            logger.info('   ✓ Seguimiento post-sesión');
             startAppointmentReminderService();
             startMedicalAlertService();
             startFollowUpService();
-        }, 5000); // 5 segundos delay (optimizado)
+            
+            logger.info('\n═══════════════════════════════════════════════════════');
+            logger.info('✅ BACKEND LISTO PARA TRABAJAR');
+            logger.info('═══════════════════════════════════════════════════════\n');
+        }, 5000);
 
     } catch (error) { 
-        logger.error('MongoDB connection failed', { message: error.message });
-        logger.warn('Server running without database connection');
+        logger.error('   ✗ Error en conexión MongoDB:', error.message);
+        logger.info('   ⚠ Servidor ejecutándose sin conexión a base de datos');
     }
 }
 
@@ -310,31 +325,40 @@ export default app;
 // Función para iniciar el servidor (solo cuando no sea test)
 export const startServer = async () => {
     // ============= PHASE 5: INITIALIZE REDIS =============
-    // Redis is optional - app works without it (graceful degradation)
+    logger.info('\n⚡ [3/6] Inicializando servicios de cache...');
     await initRedis();
+    if (isRedisAvailable()) {
+        logger.info('   ✓ Redis conectado y disponible');
+    } else {
+        logger.info('   ⚠ Redis no configurado (opcional)');
+    }
     
     const useHTTPS = process.env.USE_HTTPS === 'true';
     
+    logger.info('\n🌐 [4/6] Configurando servidor web...');
     if (useHTTPS) {
         // Modo HTTPS
         const httpsServer = await createHTTPSServer(app);
         const httpRedirectServer = createHTTPRedirectServer();
         
         httpsServer.listen(PORT, () => {
-            logger.info('Backend ready (HTTPS)', { url: `https://localhost:${PORT}` });
+            logger.info(`   ✓ Servidor HTTPS listo en https://localhost:${PORT}`);
+            logger.info('\n🗄️  [5/6] Conectando a base de datos...');
             connectDB();
         });
         
         const httpPort = process.env.HTTP_REDIRECT_PORT || 8080;
         httpRedirectServer.listen(httpPort, () => {
-            logger.info('HTTP redirect server ready', { port: httpPort, redirectTo: 'HTTPS' });
+            logger.info(`   ✓ Servidor de redirección HTTP → HTTPS (puerto ${httpPort})`);
         });
         
         return { httpsServer, httpRedirectServer };
     } else {
         // Modo HTTP (desarrollo)
         const httpServer = app.listen(PORT, () => {
-            logger.info('Backend ready (HTTP)', { url: `http://localhost:${PORT}` });
+            logger.info(`   ✓ Servidor HTTP listo en http://localhost:${PORT}`);
+            logger.info(`   ✓ Entorno: ${process.env.NODE_ENV || 'development'}`);
+            logger.info('\n🗄️  [5/6] Conectando a base de datos...');
             connectDB();
         });
         
@@ -345,23 +369,27 @@ export const startServer = async () => {
 // Iniciar servidor solo si no estamos en modo test
 if (process.env.NODE_ENV !== 'test') {
     startServer().catch((error) => {
-        logger.error('Failed to start server', { error: error.message });
+        logger.error('\n❌ Error crítico al iniciar el servidor:', error.message);
+        logger.error('   Stack trace:', error.stack);
         process.exit(1);
     });
     
     // ============= PHASE 5-6: GRACEFUL SHUTDOWN =============
     // Properly close Redis, rate limiter Redis, and MongoDB connections on shutdown
     const gracefulShutdown = async (signal) => {
-        logger.info(`${signal} received. Starting graceful shutdown...`);
+        logger.info(`\n\n⚠️  ${signal} recibido. Iniciando apagado controlado...`);
         
         try {
+            logger.info('   → Cerrando rate limiter Redis...');
             await closeRateLimitRedis();
+            logger.info('   → Cerrando Redis cache...');
             await closeRedis();
+            logger.info('   → Desconectando MongoDB...');
             await mongoose.disconnect();
-            logger.info('Graceful shutdown complete');
+            logger.info('\n✅ Apagado controlado completado exitosamente\n');
             process.exit(0);
         } catch (error) {
-            logger.error('Error during shutdown', { error: error.message });
+            logger.error('\n❌ Error durante el apagado:', error.message);
             process.exit(1);
         }
     };

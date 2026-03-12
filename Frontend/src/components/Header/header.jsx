@@ -2,7 +2,6 @@ import { useEffect, useRef, useContext, useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
-import logo from '../../assets/images/PsicoNepsis.png';
 import { authContext } from '../../context/AuthContext';
 import { BASE_URL } from '../../config';
 
@@ -85,7 +84,7 @@ const Header = () => {
   }, [role, token]);
 
   const userDashboardLink =
-    role?.toLowerCase() === 'doctor'
+    role?.toLowerCase() === 'doctor' || role?.toLowerCase() === 'admin'
       ? '/doctors/profile/me'
       : role?.toLowerCase() === 'paciente'
       ? '/users/profile/me'
@@ -103,9 +102,34 @@ const Header = () => {
       <div className="container">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="py-2">
-            <Link to="/home">
-              <img src={logo} alt="logo" className="h-20 w-auto mix-blend-multiply cursor-pointer hover:scale-105 transition-transform duration-200" />
+          <div className="py-3">
+            <Link 
+              to="/home" 
+              className="group block transition-opacity duration-200 hover:opacity-80"
+            >
+              <div className="flex flex-col justify-center">
+                <span 
+                  className="text-[2.5rem] font-normal tracking-tight leading-none text-slate-900"
+                  style={{ 
+                    fontFamily: "'Cormorant Garamond', 'Libre Baskerville', 'Crimson Text', Georgia, serif",
+                    fontWeight: 500,
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1
+                  }}
+                >
+                  Βασιλειάς
+                </span>
+                <span 
+                  className="text-[0.6rem] font-medium tracking-[0.35em] text-slate-500 uppercase mt-1.5 ml-1 block"
+                  style={{ 
+                    fontFamily: "'Inter', 'SF Pro Display', -apple-system, sans-serif",
+                    fontWeight: 500,
+                    lineHeight: 1
+                  }}
+                >
+                  BASILEIÁS
+                </span>
+              </div>
             </Link>
           </div>
 
@@ -127,8 +151,8 @@ const Header = () => {
                 </li>
               ))}
               
-              {/* Psychology Link - Only for Doctors */}
-              {role?.toLowerCase() === 'doctor' && (
+              {/* Psychology Link - Only for Doctors and Admin */}
+              {(role?.toLowerCase() === 'doctor' || role?.toLowerCase() === 'admin') && (
                 <li onClick={handleNavClick}>
                   <NavLink
                     to="/psychology/dashboard"

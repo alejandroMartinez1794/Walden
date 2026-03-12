@@ -7,6 +7,7 @@
  */
 
 import * as brevo from '@getbrevo/brevo';
+import logger from './logger.js';
 
 /**
  * Send email via Brevo API
@@ -20,7 +21,7 @@ import * as brevo from '@getbrevo/brevo';
 const sendEmail = async (options) => {
   // En modo test, mock sin conexión real
   if (process.env.NODE_ENV === 'test') {
-    console.log('📧 [TEST MODE] Email would be sent:', {
+    logger.info('📧 [TEST MODE] Email would be sent:', {
       to: options.email,
       subject: options.subject
     });
@@ -32,7 +33,7 @@ const sendEmail = async (options) => {
 
   // Validar que exista API key
   if (!process.env.BREVO_API_KEY) {
-    console.error('❌ BREVO_API_KEY not configured');
+    logger.error('❌ BREVO_API_KEY not configured');
     throw new Error('Email service not configured. Contact system administrator.');
   }
 
@@ -49,8 +50,8 @@ const sendEmail = async (options) => {
     
     sendSmtpEmail.subject = options.subject;
     sendSmtpEmail.sender = {
-      name: 'Psiconepsis',
-      email: process.env.EMAIL_FROM || 'noreply@psiconepsis.app',
+      name: 'basileias',
+      email: process.env.EMAIL_FROM || 'noreply@basileias.app',
     };
     sendSmtpEmail.to = [
       {
@@ -64,7 +65,7 @@ const sendEmail = async (options) => {
       sendSmtpEmail.bcc = [
         {
           email: process.env.EMAIL_BCC,
-          name: 'Admin Psiconepsis',
+          name: 'Admin basileias',
         },
       ];
     }
@@ -81,7 +82,7 @@ const sendEmail = async (options) => {
     // 4) Send email via Brevo
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
     
-    console.log(`✅ Email sent to ${options.email} (ID: ${response.messageId})`);
+    logger.info(`✅ Email sent to ${options.email} (ID: ${response.messageId})`);
     
     return {
       messageId: response.messageId,
@@ -89,11 +90,11 @@ const sendEmail = async (options) => {
     };
     
   } catch (error) {
-    console.error('❌ Brevo email error:', error.message);
+    logger.error('❌ Brevo email error:', error.message);
     
     // Log detailed error in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('Full error:', error);
+      logger.error('Full error:', error);
     }
     
     throw new Error(`Failed to send email: ${error.message}`);
@@ -117,12 +118,12 @@ export default sendEmail;
  * 
  * 3. Add to .env:
  *    BREVO_API_KEY=xkeysib-your_key_here
- *    EMAIL_FROM=noreply@psiconepsis.app
- *    EMAIL_BCC=admin@psiconepsis.app (optional)
+ *    EMAIL_FROM=noreply@basileias.app
+ *    EMAIL_BCC=admin@basileias.app (optional)
  * 
  * 4. Verify sender email:
  *    - Senders & IP → Add a Sender
- *    - Use your domain email (e.g., noreply@psiconepsis.app)
+ *    - Use your domain email (e.g., noreply@basileias.app)
  *    - Verify via email confirmation
  * 
  * 5. Advantages over SMTP:

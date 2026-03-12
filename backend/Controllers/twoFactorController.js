@@ -5,8 +5,9 @@ import Doctor from '../models/DoctorSchema.js';
 import jwt from 'jsonwebtoken';
 import { getCookieOptions } from '../utils/csrf.js';
 import SecurityLog from '../models/SecurityLogSchema.js';
+import logger from '../utils/logger.js';
 
-const APP_NAME = 'Psiconepsis';
+const APP_NAME = 'Basileiás';
 
 const getUser = async (id) => {
     let user = await User.findById(id).select('+twoFactorSecret');
@@ -36,7 +37,7 @@ export const setup2FA = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('2FA Setup Error:', error);
+        logger.error('2FA Setup Error:', error);
         res.status(500).json({ message: 'Error configurando 2FA' });
     }
 };
@@ -77,7 +78,7 @@ export const verify2FA = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('2FA Verify Error:', error);
+        logger.error('2FA Verify Error:', error);
         res.status(500).json({ message: 'Error verificando 2FA' });
     }
 };
@@ -151,7 +152,7 @@ export const validate2FALogin = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('2FA Login Error:', error);
+        logger.error('2FA Login Error:', error);
         res.status(500).json({ message: 'Error en validación 2FA' });
     }
 };

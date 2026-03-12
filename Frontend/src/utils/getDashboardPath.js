@@ -1,7 +1,7 @@
 const DASHBOARD_ROUTES = {
-  doctor: '/psychology/dashboard',
+  doctor: '/doctors/profile/me',
   paciente: '/users/profile/me',
-  admin: '/home',
+  admin: '/doctors/profile/me', // Admin tiene acceso completo como doctor
 };
 
 export const getDashboardPath = (role) => {

@@ -19,6 +19,7 @@
  */
 
 import mongoose from 'mongoose';
+import logger from '../utils/logger.js';
 
 // ========================================
 // SCHEMA MONGODB
@@ -115,7 +116,7 @@ class TokenBlacklistCache {
     }
     
     if (cleaned > 0) {
-      console.log(`🧹 Cleaned ${cleaned} expired tokens from blacklist cache`);
+      logger.info(`🧹 Cleaned ${cleaned} expired tokens from blacklist cache`);
     }
   }
 
@@ -162,16 +163,16 @@ export const blacklistToken = async (token, userId, expiresAt, reason = 'LOGOUT'
       expiresAt
     });
     
-    console.log(`🚫 Token blacklisted: ${reason} for user ${userId}`);
+    logger.info(`🚫 Token blacklisted: ${reason} for user ${userId}`);
     return true;
   } catch (error) {
     // Si es error de duplicado, ignorar (ya está blacklisted)
     if (error.code === 11000) {
-      console.warn('⚠️ Token already blacklisted');
+      logger.warn('⚠️ Token already blacklisted');
       return true;
     }
     
-    console.error('❌ Error blacklisting token:', error);
+    logger.error('❌ Error blacklisting token:', error);
     return false;
   }
 };
@@ -203,7 +204,7 @@ export const isTokenBlacklisted = async (token) => {
     
     return false;
   } catch (error) {
-    console.error('❌ Error checking token blacklist:', error);
+    logger.error('❌ Error checking token blacklist:', error);
     // En caso de error, asumir que NO está blacklisted (fail-open)
     // Alternativa: fail-closed (rechazar todo en caso de error)
     return false;
@@ -228,7 +229,7 @@ export const blacklistAllUserTokens = async (userId, reason = 'SECURITY_BREACH')
       expiresAt: { $gt: new Date() }
     });
     
-    console.log(`🚫 Blacklisting ${activeTokens.length} tokens for user ${userId}: ${reason}`);
+    logger.info(`🚫 Blacklisting ${activeTokens.length} tokens for user ${userId}: ${reason}`);
     
     // Marcar como blacklisted con la nueva razón
     await BlacklistedToken.updateMany(
@@ -243,7 +244,7 @@ export const blacklistAllUserTokens = async (userId, reason = 'SECURITY_BREACH')
     
     return true;
   } catch (error) {
-    console.error('❌ Error blacklisting all user tokens:', error);
+    logger.error('❌ Error blacklisting all user tokens:', error);
     return false;
   }
 };
@@ -258,10 +259,10 @@ export const cleanupExpiredTokens = async () => {
       expiresAt: { $lt: new Date() }
     });
     
-    console.log(`🧹 Cleaned ${result.deletedCount} expired tokens from database`);
+    logger.info(`🧹 Cleaned ${result.deletedCount} expired tokens from database`);
     return result.deletedCount;
   } catch (error) {
-    console.error('❌ Error cleaning expired tokens:', error);
+    logger.error('❌ Error cleaning expired tokens:', error);
     return 0;
   }
 };
@@ -282,7 +283,7 @@ export const getBlacklistStats = async () => {
       byReason
     };
   } catch (error) {
-    console.error('❌ Error getting blacklist stats:', error);
+    logger.error('❌ Error getting blacklist stats:', error);
     return null;
   }
 };

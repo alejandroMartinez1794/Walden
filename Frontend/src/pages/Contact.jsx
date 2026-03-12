@@ -136,21 +136,27 @@ const Contact = () => {
                         <div className='bg-white rounded-lg shadow-md p-6'>
                             <h3 className='text-xl font-semibold mb-2'>Contacto directo</h3>
                             <p className='text_para mb-4'>
-                                Email: <a href='mailto:contacto@psiconepsis.example' className='text-primaryColor'>contacto@psiconepsis.example</a>
+                                📧 Email: <a href='mailto:contactobasileias@gmail.com' className='text-primaryColor hover:underline'>contactobasileias@gmail.com</a>
                                 <br />
-                                Teléfono: <a href='tel:+573000000000' className='text-primaryColor'>+57 300 000 0000</a>
+                                📍 Ubicación: Bogotá, Colombia
                             </p>
 
-                            <h4 className='font-semibold mb-1'>Horario de atención</h4>
-                            <p className='text_para mb-4'>Lun - Vie: 09:00 - 18:00 (GMT-5)</p>
-
-                            <h4 className='font-semibold mb-1'>Atención en casos de urgencia</h4>
+                            <h4 className='font-semibold mb-1'>⏰ Horario de atención</h4>
                             <p className='text_para mb-4'>
-                                Si atraviesas una emergencia psicológica o riesgo vital, por favor contacta inmediatamente los servicios de emergencia locales o dirígete a un servicio de urgencias. Nuestro equipo no reemplaza atención de emergencia.
+                                Lunes a Viernes: 09:00 - 18:00 (Hora Colombia, GMT-5)
+                                <br />
+                                Respuesta a mensajes: Dentro de 48 horas hábiles
                             </p>
 
-                            <h4 className='font-semibold mb-1'>Privacidad</h4>
-                            <p className='text_para'>Tu información se mantendrá confidencial y solo será utilizada para gestionar tu consulta y comunicaciones relacionadas con la atención.</p>
+                            <h4 className='font-semibold mb-1 text-red-600'>⚠️ Atención en casos de urgencia</h4>
+                            <p className='text_para mb-4'>
+                                Si atraviesas una emergencia psicológica o riesgo vital, por favor contacta inmediatamente los servicios de emergencia locales (línea 123 en Colombia) o dirígete a un servicio de urgencias. Nuestro equipo ofrece acompañamiento clínico, pero no reemplaza atención de emergencia médica.
+                            </p>
+
+                            <h4 className='font-semibold mb-1'>🔒 Privacidad y Confidencialidad</h4>
+                            <p className='text_para'>
+                                Tu información se mantendrá estrictamente confidencial y solo será utilizada para gestionar tu consulta y comunicaciones relacionadas con la atención psicológica. Cumplimos con la Ley 1581 de 2012 de Protección de Datos Personales en Colombia.
+                            </p>
                         </div>
                     </div>
                 </div>

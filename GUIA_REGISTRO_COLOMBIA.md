@@ -1,5 +1,5 @@
 # GUÍA DE REGISTRO Y COMPLIANCE - COLOMBIA
-## Psiconepsis - Telesalud
+## Basileiás - Telesalud
 
 **Para operar legalmente servicios de telesalud en Colombia**
 
@@ -41,11 +41,11 @@ Registro obligatorio ante la Superintendencia de Industria y Comercio (SIC) para
 
 #### Paso 1: Preparar Información de las Bases de Datos
 
-Debes registrar **CADA base de datos**. Para Psiconepsis:
+Debes registrar **CADA base de datos**. Para Basileiás:
 
 **Base de Datos 1: Usuarios/Pacientes**
 ```
-Nombre: Base de Datos de Pacientes Psiconepsis
+Nombre: Base de Datos de Pacientes Basileiás
 Finalidad: Prestación de servicios de telesalud
 Tipo de datos:
   - Datos de identificación (nombre, cédula, fecha nacimiento)
@@ -64,7 +64,7 @@ Medidas de seguridad:
 
 **Base de Datos 2: Profesionales**
 ```
-Nombre: Base de Datos de Profesionales de Salud Psiconepsis
+Nombre: Base de Datos de Profesionales de Salud Basileiás
 Finalidad: Gestión de proveedores de servicios médicos
 Tipo de datos:
   - Datos de identificación
@@ -165,7 +165,7 @@ No hay costo por registro RNBD.
 
 **Depende de la modalidad:**
 
-- **Telemedicina (como Psiconepsis):** Requiere registro
+- **Telemedicina (como Basileiás):** Requiere registro
 - **Solo información de salud:** No requiere
 
 ### 📝 Requisitos
@@ -224,7 +224,7 @@ Preparar:
 3. Click: **"Registro de Telemedicina"**
 
 **Información requerida:**
-- Datos de la plataforma (Psiconepsis)
+- Datos de la plataforma (Basileiás)
 - NIT empresa
 - Servicios ofrecidos
 - Cobertura geográfica (Colombia)
@@ -342,7 +342,7 @@ No hay costo por registro en Ministerio de Salud.
 
 **1. Formulario de Autorización** (Para registro de usuarios)
 ```html
-[ ] Autorizo a Psiconepsis el tratamiento de mis datos personales
+[ ] Autorizo a Basileiás el tratamiento de mis datos personales
 [ ] Autorizo el tratamiento de datos sensibles de salud
 [ ] He leído y acepto la Política de Tratamiento de Datos
 [ ] He leído y acepto el Consentimiento Informado para Telesalud
@@ -376,7 +376,7 @@ Firma: ___________
 
 **3. Procedimiento Interno de Respuesta**
 ```
-1. Recepción de solicitud (Email: privacidad@psiconepsis.com)
+1. Recepción de solicitud (Email: privacidad@Basileiás.com)
 2. Verificación de identidad del titular
 3. Evaluación de la solicitud (2 días)
 4. Respuesta:
@@ -446,9 +446,9 @@ Firma: ___________
    - [ ] Ministerio: www.minsalud.gov.co
 
 3. **Configurar emails corporativos:**
-   - [ ] privacidad@psiconepsis.com (datos personales)
-   - [ ] legal@psiconepsis.com (asuntos legales)
-   - [ ] soporte@psiconepsis.com (usuarios)
+   - [ ] privacidad@Basileiás.com (datos personales)
+   - [ ] legal@Basileiás.com (asuntos legales)
+   - [ ] soporte@Basileiás.com (usuarios)
 
 4. **Integrar documentos en plataforma:**
    - [ ] Mostrar Política de Datos en registro

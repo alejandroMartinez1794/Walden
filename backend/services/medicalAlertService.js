@@ -6,6 +6,7 @@ import Measure from '../models/MeasureSchema.js';
 import sendEmail from '../utils/emailService.js';
 import { getAutomationConfig } from './automationConfig.js';
 import { scheduleTask } from './automationScheduler.js';
+import logger from '../utils/logger.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -18,7 +19,7 @@ const notifyDoctorAboutCriticalAlert = async (alert) => {
     const doctor = await Doctor.findById(alert.clinician);
 
     if (!doctor?.email) {
-      console.log(`⚠️ No se pudo notificar: doctor sin email`);
+      logger.info(`⚠️ No se pudo notificar: doctor sin email`);
       return;
     }
 
@@ -85,16 +86,16 @@ const notifyDoctorAboutCriticalAlert = async (alert) => {
           </div>
           
           <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #666;">
-            <p style="margin: 0;">Alerta generada automáticamente por el Sistema Psiconepsis</p>
+            <p style="margin: 0;">Alerta generada automáticamente por el Sistema Basileiás</p>
             <p style="margin: 5px 0 0 0;">Por favor, tome acción dentro de las próximas 24 horas</p>
           </div>
         </div>
       `
     });
 
-    console.log(`✅ Alerta crítica notificada a ${doctor.email}`);
+    logger.info(`✅ Alerta crítica notificada a ${doctor.email}`);
   } catch (error) {
-    console.error('❌ Error notificando alerta crítica:', error.message);
+    logger.error('❌ Error notificando alerta crítica:', error.message);
   }
 };
 
@@ -128,7 +129,7 @@ const processUnresolvedAlerts = () => {
         await sleep(Math.max(emailThrottleMs, 2000));
       }
     } catch (error) {
-      console.error('❌ Error procesando alertas:', error.message);
+      logger.error('❌ Error procesando alertas:', error.message);
     }
   });
 };
@@ -140,7 +141,7 @@ const processUnresolvedAlerts = () => {
 const detectRiskPatterns = () => {
   return scheduleTask('0 2 * * *', 'Detección de patrones clínicos', async () => {
     try {
-      console.log('🔄 Analizando patrones de riesgo en métricas...');
+      logger.info('🔄 Analizando patrones de riesgo en métricas...');
 
       // Buscar pacientes con mediciones recientes
       const recentMeasures = await Measure.find({
@@ -174,7 +175,7 @@ const detectRiskPatterns = () => {
               notes: `Detección automática: PHQ-9 score ${measure.phq9Score || 'N/A'}, ideación suicida registrada`
             });
             alertsCreated++;
-            console.log(`🚨 Alerta de riesgo suicida creada para paciente ${patientId}`);
+            logger.info(`🚨 Alerta de riesgo suicida creada para paciente ${patientId}`);
           }
         }
 
@@ -196,16 +197,16 @@ const detectRiskPatterns = () => {
               notes: `Detección automática: PHQ-9 score ${measure.phq9Score} (depresión moderadamente severa)`
             });
             alertsCreated++;
-            console.log(`🟠 Alerta de depresión severa creada para paciente ${patientId}`);
+            logger.info(`🟠 Alerta de depresión severa creada para paciente ${patientId}`);
           }
         }
 
         patientsAnalyzed.add(patientId);
       }
 
-      console.log(`✅ Análisis de patrones completado: ${alertsCreated} nuevas alertas creadas`);
+      logger.info(`✅ Análisis de patrones completado: ${alertsCreated} nuevas alertas creadas`);
     } catch (error) {
-      console.error('❌ Error en análisis de patrones:', error.message);
+      logger.error('❌ Error en análisis de patrones:', error.message);
     }
   });
 };
