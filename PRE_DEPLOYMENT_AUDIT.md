@@ -1,4 +1,4 @@
-# 🔍 AUDITORÍA PRE-DEPLOYMENT COMPLETA - Psiconepsis
+# 🔍 AUDITORÍA PRE-DEPLOYMENT COMPLETA - Basileiás
 
 **Fecha:** 27 de Enero, 2026  
 **Ejecutada por:** AI Agent (Análisis línea por línea)  
@@ -206,7 +206,7 @@ CSRF_SECRET=<generar-con-openssl-rand-hex-32>
 Agregar comentario:
 ```bash
 # Production example:
-# CORS_ORIGINS=https://psiconepsis.app,https://www.psiconepsis.app
+# CORS_ORIGINS=https://Basileiás.app,https://www.Basileiás.app
 ```
 
 **Acción:** ✏️ Mejorar documentación en `.env.example`
@@ -322,22 +322,22 @@ CLOUDINARY_API_SECRET=your_api_secret
   - [ ] WOMPI_PRIVATE_KEY (producción, NO test)
   - [ ] WOMPI_EVENT_SECRET
   - [ ] WOMPI_INTEGRITY_SECRET
-  - [ ] BACKEND_URL=https://api.psiconepsis.app
-  - [ ] FRONTEND_URL=https://psiconepsis.app
-  - [ ] CORS_ORIGINS=https://psiconepsis.app
+  - [ ] BACKEND_URL=https://api.Basileiás.app
+  - [ ] FRONTEND_URL=https://Basileiás.app
+  - [ ] CORS_ORIGINS=https://Basileiás.app
   - [ ] REDIS_URL (Railway lo genera automático)
   - [ ] HCAPTCHA_SECRET (de hCaptcha dashboard)
 
 - [ ] **Actualizar Frontend `.env.production`**
-  - [ ] VITE_BACKEND_URL=https://api.psiconepsis.app/api/v1
+  - [ ] VITE_BACKEND_URL=https://api.Basileiás.app/api/v1
   - [ ] VITE_HCAPTCHA_SITE_KEY
 
 - [ ] **Verificar servicios externos configurados**
   - [ ] Google Cloud Console: OAuth redirect URI con dominio real
-  - [ ] Brevo: Verificar sender email (noreply@psiconepsis.app)
+  - [ ] Brevo: Verificar sender email (noreply@Basileiás.app)
   - [ ] Wompi: Cambiar de test a producción + configurar webhook URL
   - [ ] hCaptcha: Agregar dominio permitido
-  - [ ] New Relic: Crear app "Psiconepsis API"
+  - [ ] New Relic: Crear app "Basileiás API"
   - [ ] Sentry: Crear proyecto y obtener DSN
 
 - [ ] **Ejecutar tests finales**
@@ -361,7 +361,7 @@ CLOUDINARY_API_SECRET=your_api_secret
   2. [ ] Configurar root directory: `/backend`
   3. [ ] Agregar TODAS las variables de entorno
   4. [ ] Agregar Redis plugin
-  5. [ ] Generar dominio custom: api.psiconepsis.app
+  5. [ ] Generar dominio custom: api.Basileiás.app
   6. [ ] Verificar logs de deploy (sin errores)
 
 - [ ] **Vercel (Frontend)**
@@ -370,7 +370,7 @@ CLOUDINARY_API_SECRET=your_api_secret
   3. [ ] Agregar `VITE_BACKEND_URL` y `VITE_HCAPTCHA_SITE_KEY`
   4. [ ] Build command: `npm run build`
   5. [ ] Output directory: `dist`
-  6. [ ] Configurar dominio: psiconepsis.app
+  6. [ ] Configurar dominio: Basileiás.app
 
 - [ ] **MongoDB Atlas**
   1. [ ] Crear cluster M0 (São Paulo region)
@@ -388,8 +388,8 @@ CLOUDINARY_API_SECRET=your_api_secret
 ### Post-Deploy
 
 - [ ] **Verificaciones de Producción**
-  - [ ] `curl https://api.psiconepsis.app/health` → 200 OK
-  - [ ] Frontend carga: https://psiconepsis.app
+  - [ ] `curl https://api.Basileiás.app/health` → 200 OK
+  - [ ] Frontend carga: https://Basileiás.app
   - [ ] Registro de usuario funciona
   - [ ] Login funciona
   - [ ] Google OAuth funciona (redirect correcto)
@@ -403,7 +403,7 @@ CLOUDINARY_API_SECRET=your_api_secret
   - [ ] Verificar HSTS headers
   - [ ] Verificar CSP headers (Helmet)
   - [ ] Verificar rate limiting funciona (intentar +10 logins)
-  - [ ] Verificar CORS (solo permite psiconepsis.app)
+  - [ ] Verificar CORS (solo permite Basileiás.app)
 
 - [ ] **Compliance Colombia**
   - [ ] Documentos legales accesibles en frontend
@@ -543,7 +543,7 @@ VITE_BACKEND_URL=http://localhost:5000/api/v1
 VITE_BACKEND_URL=http://localhost:8000/api/v1
 
 # Production example (add as comment):
-# VITE_BACKEND_URL=https://api.psiconepsis.app/api/v1
+# VITE_BACKEND_URL=https://api.Basileiás.app/api/v1
 
 # hCaptcha site key (anti-bots)
 VITE_HCAPTCHA_SITE_KEY=your_hcaptcha_site_key
