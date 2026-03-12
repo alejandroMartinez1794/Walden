@@ -127,7 +127,7 @@ const Header = () => {
                     lineHeight: 1
                   }}
                 >
-                  BASILEIÁS
+                  BASILEIA
                 </span>
               </div>
             </Link>

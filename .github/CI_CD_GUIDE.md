@@ -1,6 +1,6 @@
-# 🚀 CI/CD Pipeline - Basileiás
+# 🚀 CI/CD Pipeline - Basileia
 
-Este documento describe el pipeline de CI/CD implementado para el proyecto Basileiás.
+Este documento describe el pipeline de CI/CD implementado para el proyecto Basileia.
 
 ## 📋 Workflows Implementados
 
@@ -92,11 +92,11 @@ SNYK_TOKEN              # Token de Snyk para security scanning
 ```bash
 # Backend
 cd backend
-docker build -t Basileiás-backend .
+docker build -t Basileia-backend .
 
 # Frontend
 cd Frontend
-docker build --build-arg VITE_API_URL=http://localhost:8000 -t Basileiás-frontend .
+docker build --build-arg VITE_API_URL=http://localhost:8000 -t Basileia-frontend .
 ```
 
 ### Docker Compose

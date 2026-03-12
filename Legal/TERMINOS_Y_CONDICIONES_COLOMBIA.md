@@ -1,5 +1,5 @@
 # TÉRMINOS Y CONDICIONES DE USO
-## Basileiás - Plataforma de Telesalud
+## Basileia - Plataforma de Telesalud
 ### Colombia
 
 **Fecha de última actualización:** 24 de enero de 2026  
@@ -11,17 +11,17 @@
 
 ### 1.1 Identificación del Prestador
 
-**Nombre Comercial:** Basileiás  
+**Nombre Comercial:** Basileia  
 **Razón Social:** [Razón social de la empresa]  
 **NIT:** [Número de identificación tributaria]  
 **Domicilio:** Bogotá D.C., Colombia  
-**Correo Electrónico:** legal@Basileiás.com  
-**Sitio Web:** www.Basileiás.com  
+**Correo Electrónico:** legal@Basileia.com  
+**Sitio Web:** www.Basileia.com  
 **Teléfono:** [Número de contacto]  
 
 ### 1.2 Naturaleza del Servicio
 
-Basileiás es una plataforma digital de telesalud que conecta pacientes con profesionales de la salud mental (psicólogos, psiquiatras, terapeutas) para la prestación de servicios de consulta, diagnóstico, tratamiento y seguimiento mediante tecnologías de la información y las comunicaciones.
+Basileia es una plataforma digital de telesalud que conecta pacientes con profesionales de la salud mental (psicólogos, psiquiatras, terapeutas) para la prestación de servicios de consulta, diagnóstico, tratamiento y seguimiento mediante tecnologías de la información y las comunicaciones.
 
 ### 1.3 Aceptación de los Términos
 
@@ -41,7 +41,7 @@ Al crear una cuenta, utilizar la plataforma o contratar cualquier servicio, el u
 
 **Usuario/Paciente:** Persona que se registra para recibir servicios de salud.  
 **Profesional:** Médico, psicólogo o psiquiatra registrado que presta servicios.  
-**Plataforma:** El sitio web, aplicaciones móviles y sistemas de Basileiás.  
+**Plataforma:** El sitio web, aplicaciones móviles y sistemas de Basileia.  
 **Sesión:** Consulta individual entre paciente y profesional.  
 **Historia Clínica:** Registro digital de atenciones y datos de salud.  
 **Telesalud:** Prestación de servicios de salud a distancia mediante TIC.  
@@ -81,11 +81,11 @@ El usuario es responsable de:
 ✓ Notificar inmediatamente accesos no autorizados  
 ✓ Actualizar información de contacto  
 
-**Basileiás NO es responsable** por pérdidas derivadas del uso no autorizado de la cuenta por negligencia del usuario.
+**Basileia NO es responsable** por pérdidas derivadas del uso no autorizado de la cuenta por negligencia del usuario.
 
 ### 3.4 Suspensión y Terminación de Cuenta
 
-Basileiás puede suspender o terminar cuentas por:
+Basileia puede suspender o terminar cuentas por:
 - Incumplimiento de estos Términos
 - Proporcionar información falsa
 - Uso fraudulento o abusivo
@@ -139,7 +139,7 @@ Basileiás puede suspender o terminar cuentas por:
 - Plataforma disponible 24/7 para agendamiento
 - Videoconsultas según horario del profesional
 - Mantenimiento programado se notificará con anticipación
-- Basileiás no garantiza disponibilidad ininterrumpida
+- Basileia no garantiza disponibilidad ininterrumpida
 
 ---
 
@@ -147,12 +147,12 @@ Basileiás puede suspender o terminar cuentas por:
 
 ### 5.1 Independencia Profesional
 
-**IMPORTANTE:** Basileiás es una plataforma intermediaria.
+**IMPORTANTE:** Basileia es una plataforma intermediaria.
 
 ✓ Los profesionales actúan de forma **independiente**  
 ✓ La relación terapéutica es directamente **entre paciente y profesional**  
 ✓ El profesional es **responsable** de diagnóstico y tratamiento  
-✓ Basileiás **NO** practica medicina ni interfiere en decisiones clínicas  
+✓ Basileia **NO** practica medicina ni interfiere en decisiones clínicas  
 
 ### 5.2 Responsabilidad Clínica
 
@@ -163,7 +163,7 @@ Basileiás puede suspender o terminar cuentas por:
 - Seguimiento adecuado
 - Referencia a atención presencial cuando sea necesario
 
-**Basileiás es responsable de:**
+**Basileia es responsable de:**
 - Verificar credenciales del profesional
 - Mantener plataforma funcional y segura
 - Proteger datos personales
@@ -171,7 +171,7 @@ Basileiás puede suspender o terminar cuentas por:
 
 ### 5.3 Verificación de Profesionales
 
-Basileiás verifica que cada profesional:
+Basileia verifica que cada profesional:
 ✓ Tenga título válido  
 ✓ Esté registrado en RETHUS  
 ✓ Cuente con tarjeta profesional vigente  
@@ -192,7 +192,7 @@ El paciente debe:
 ✓ Informar alergias, medicamentos actuales, antecedentes  
 ✓ No ocultar información relevante para el tratamiento  
 
-**Basileiás no se hace responsable** de diagnósticos o tratamientos basados en información falsa o incompleta proporcionada por el paciente.
+**Basileia no se hace responsable** de diagnósticos o tratamientos basados en información falsa o incompleta proporcionada por el paciente.
 
 ### 6.2 Condiciones para la Consulta
 
@@ -239,7 +239,7 @@ El paciente debe:
 El pago se procesa AL MOMENTO de agendar la cita.
 
 **Comisión de Plataforma:**  
-Basileiás retiene un porcentaje del valor como comisión por uso de la plataforma.
+Basileia retiene un porcentaje del valor como comisión por uso de la plataforma.
 
 ### 7.4 Facturación
 
@@ -278,7 +278,7 @@ Si el profesional cancela:
 
 Si la sesión no puede realizarse por fallas técnicas:
 
-**Responsabilidad de Basileiás (servidor, plataforma):**
+**Responsabilidad de Basileia (servidor, plataforma):**
 - Reembolso completo + crédito compensatorio
 - Reagendamiento prioritario sin costo
 
@@ -293,7 +293,7 @@ Si la sesión no puede realizarse por fallas técnicas:
 ### 8.4 Insatisfacción con el Servicio
 
 Si no está satisfecho con la atención:
-1. Reportar a: soporte@Basileiás.com
+1. Reportar a: soporte@Basileia.com
 2. Investigación en 5 días hábiles
 3. Resolución según hallazgos
 4. Posibilidad de reembolso o crédito según caso
@@ -307,7 +307,7 @@ Si no está satisfecho con la atención:
 El tratamiento de datos personales se rige por:
 - **Ley 1581 de 2012** (Protección de Datos Personales)
 - **Decreto 1377 de 2013**
-- **Política de Tratamiento de Datos** de Basileiás
+- **Política de Tratamiento de Datos** de Basileia
 
 Ver documento completo: [POLITICA_TRATAMIENTO_DATOS_COLOMBIA.md]
 
@@ -345,7 +345,7 @@ Puede ejercer derechos de:
 - Revocación de autorización
 - Consulta y reclamo
 
-**Contacto:** privacidad@Basileiás.com
+**Contacto:** privacidad@Basileia.com
 
 ---
 
@@ -353,7 +353,7 @@ Puede ejercer derechos de:
 
 ### 10.1 Titularidad
 
-**Basileiás es titular de:**
+**Basileia es titular de:**
 - Nombre, logotipo, marca registrada
 - Diseño y código de la plataforma
 - Contenido editorial (blogs, guías, recursos)
@@ -369,7 +369,7 @@ Puede ejercer derechos de:
 
 ### 10.2 Licencia de Uso
 
-Basileiás otorga licencia **no exclusiva, limitada, revocable** para:
+Basileia otorga licencia **no exclusiva, limitada, revocable** para:
 ✓ Acceder y usar la plataforma para fines personales  
 ✓ Descargar su historia clínica  
 
@@ -383,7 +383,7 @@ Basileiás otorga licencia **no exclusiva, limitada, revocable** para:
 ### 10.3 Contenido del Usuario
 
 Al publicar contenido (reseñas, comentarios):
-✓ Otorga a Basileiás licencia para usarlo  
+✓ Otorga a Basileia licencia para usarlo  
 ✓ Garantiza que no viola derechos de terceros  
 ✓ Acepta que puede ser moderado o eliminado  
 
@@ -399,7 +399,7 @@ Están obligados al secreto profesional según:
 - Ley 1090 de 2006 (Psicología)
 - Código de ética de cada profesión
 
-**Basileiás:**  
+**Basileia:**  
 Mantiene confidencialidad según Ley 1581 de 2012.
 
 ### 11.2 Excepciones Legales
@@ -421,15 +421,15 @@ La información puede divulgarse SIN consentimiento en:
 
 ## 12. LIMITACIÓN DE RESPONSABILIDAD
 
-### 12.1 Responsabilidad de Basileiás
+### 12.1 Responsabilidad de Basileia
 
-Basileiás **ES** responsable de:
+Basileia **ES** responsable de:
 ✓ Funcionamiento de la plataforma  
 ✓ Seguridad de datos personales  
 ✓ Verificación inicial de credenciales  
 ✓ Procesamiento de pagos  
 
-Basileiás **NO ES** responsable de:
+Basileia **NO ES** responsable de:
 ❌ Actos u omisiones de los profesionales  
 ❌ Resultados del tratamiento médico  
 ❌ Diagnósticos o prescripciones erróneas  
@@ -439,7 +439,7 @@ Basileiás **NO ES** responsable de:
 
 ### 12.2 Limitación de Daños
 
-En el máximo permitido por ley, la responsabilidad de Basileiás se limita al valor pagado por el servicio específico que dio origen al reclamo.
+En el máximo permitido por ley, la responsabilidad de Basileia se limita al valor pagado por el servicio específico que dio origen al reclamo.
 
 **NO somos responsables de daños:**
 - Indirectos, incidentales, especiales, consecuenciales
@@ -474,7 +474,7 @@ No somos responsables por incumplimientos causados por:
 ❌ Intentar hackear o vulnerar la seguridad  
 ❌ Usar bots o automatización  
 ❌ Revender servicios  
-❌ Competir directamente con Basileiás  
+❌ Competir directamente con Basileia  
 
 ### 13.2 Consecuencias
 
@@ -493,7 +493,7 @@ El incumplimiento puede resultar en:
 
 **Antes de iniciar acción legal, intentar:**
 
-1. **Contacto directo:** soporte@Basileiás.com
+1. **Contacto directo:** soporte@Basileia.com
 2. **Tiempo de respuesta:** 5 días hábiles
 3. **Mediación:** Si no hay acuerdo, mediación voluntaria
 4. **Queja ante SIC:** Superintendencia de Industria y Comercio
@@ -549,7 +549,7 @@ Línea: 018000 910097
 
 ### 16.1 Derecho a Modificar
 
-Basileiás se reserva el derecho de modificar estos Términos en cualquier momento.
+Basileia se reserva el derecho de modificar estos Términos en cualquier momento.
 
 ### 16.2 Notificación
 
@@ -583,7 +583,7 @@ La falta de ejercicio de un derecho no constituye renuncia al mismo.
 
 ### 17.4 Cesión
 
-El usuario no puede ceder sus derechos u obligaciones. Basileiás puede ceder este acuerdo notificando al usuario.
+El usuario no puede ceder sus derechos u obligaciones. Basileia puede ceder este acuerdo notificando al usuario.
 
 ### 17.5 Supervivencia
 
@@ -594,17 +594,17 @@ Las cláusulas sobre confidencialidad, propiedad intelectual, limitación de res
 ## 18. CONTACTO
 
 ### 18.1 Soporte Técnico
-**Email:** soporte@Basileiás.com  
+**Email:** soporte@Basileia.com  
 **Horario:** Lunes a viernes, 8am-6pm  
 
 ### 18.2 Asuntos Legales
-**Email:** legal@Basileiás.com  
+**Email:** legal@Basileia.com  
 
 ### 18.3 Privacidad y Datos
-**Email:** privacidad@Basileiás.com  
+**Email:** privacidad@Basileia.com  
 
 ### 18.4 Quejas y Reclamos
-**Email:** quejas@Basileiás.com  
+**Email:** quejas@Basileia.com  
 **Tiempo de respuesta:** 5 días hábiles  
 
 ---
@@ -627,9 +627,9 @@ Las cláusulas sobre confidencialidad, propiedad intelectual, limitación de res
 **Fecha de vigencia:** 24 de enero de 2026  
 **Última modificación:** 24 de enero de 2026  
 
-**Basileiás - Colombia**  
+**Basileia - Colombia**  
 **Servicios de Telesalud**  
-**www.Basileiás.com**
+**www.Basileia.com**
 
 ---
 

@@ -138,7 +138,7 @@ export const wompiWebhook = async (req, res) => {
                 // Notificar al Usuario
                 await sendEmail({
                     email: booking.user.email,
-                    subject: '¡Pago Exitoso! Tu cita está confirmada - Basileiás',
+                    subject: '¡Pago Exitoso! Tu cita está confirmada - Basileia',
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #4ade80; border-radius: 8px;">
                             <h2 style="color: #166534;">¡Pago Confirmado! 🎉</h2>
@@ -155,7 +155,7 @@ export const wompiWebhook = async (req, res) => {
                  // Notificar al Doctor
                  await sendEmail({
                     email: booking.doctor.email,
-                    subject: 'Nueva Cita Pagada 💰 - Basileiás',
+                    subject: 'Nueva Cita Pagada 💰 - Basileia',
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #3b82f6; border-radius: 8px;">
                             <h2 style="color: #1e40af;">¡Nueva Cita Confirmada!</h2>

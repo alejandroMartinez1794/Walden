@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 const InformedConsent = () => {
     // Log de trazabilidad para confirmar montaje en frontend
     useEffect(() => {
-        console.info('Consentimiento Basileias v2025-01-12 renderizado');
+        console.info('Consentimiento Basileia v2025-01-12 renderizado');
     }, []);
 
     const [formData, setFormData] = useState({
@@ -99,11 +99,11 @@ const InformedConsent = () => {
                                     fontWeight: 500
                                 }}
                             >
-                                BASILEIÁS
+                                BASILEIA
                             </span>
                         </div>
                         <div className="text-left mt-1">
-                            <h1 className="text-xl font-bold uppercase tracking-widest text-slate-900 leading-tight">Basileiás S.A.S.</h1>
+                            <h1 className="text-xl font-bold uppercase tracking-widest text-slate-900 leading-tight">Basileia S.A.S.</h1>
                                 <p className="text-xs font-semibold tracking-wide uppercase text-slate-500">Nit: 901.XXX.XXX-X</p>
                                 <p className="text-[10px] text-slate-500 font-mono uppercase">Habilitación servicios de salud: Código XXXXX</p>
                             </div>
@@ -127,7 +127,7 @@ const InformedConsent = () => {
                     </div>
 
                     <p>
-                        Yo, identificado(a) como aparece al pie de mi firma, en pleno uso de mis facultades legales y mentales, otorgo mi <strong>CONSENTIMIENTO LIBRE, PREVIO, EXPRESO E INFORMADO</strong> a <strong>BASILEIÁS S.A.S.</strong> y a sus profesionales adscritos, para la prestación de servicios de psicología clínica bajo la modalidad de telepsicología (virtual).
+                        Yo, identificado(a) como aparece al pie de mi firma, en pleno uso de mis facultades legales y mentales, otorgo mi <strong>CONSENTIMIENTO LIBRE, PREVIO, EXPRESO E INFORMADO</strong> a <strong>BASILEIA S.A.S.</strong> y a sus profesionales adscritos, para la prestación de servicios de psicología clínica bajo la modalidad de telepsicología (virtual).
                     </p>
 
                     <p>
@@ -167,7 +167,7 @@ const InformedConsent = () => {
                         <section>
                             <h3 className="font-bold text-slate-900 border-b border-slate-300 mb-2 uppercase text-sm">3. Protocolo Estricto de Emergencias y Crisis</h3>
                             <div className="bg-red-50 border-l-4 border-red-700 p-3 my-2 text-red-900 text-sm font-medium">
-                                ADVERTENCIA: BASILEIÁS NO ES UN SERVICIO DE EMERGENCIAS NI DE URGENCIAS VITALES.
+                                ADVERTENCIA: BASILEIA NO ES UN SERVICIO DE EMERGENCIAS NI DE URGENCIAS VITALES.
                             </div>
                             <p>
                                 El servicio no opera 24/7. En caso de presentar crisis severa, ideación suicida inminente, conducta autolesiva, riesgo de homicidio o psicosis aguda, me obligo a:
@@ -208,7 +208,7 @@ const InformedConsent = () => {
                          <section>
                             <h3 className="font-bold text-slate-900 border-b border-slate-300 mb-2 uppercase text-sm">6. Tratamiento de Datos Personales (Habeas Data)</h3>
                             <p>
-                                En cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013, autorizo a Basileiás S.A.S. para recolectar, almacenar y tratar mis datos personales y sensibles (datos de salud mental) con la finalidad exclusiva de:
+                                En cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013, autorizo a Basileia S.A.S. para recolectar, almacenar y tratar mis datos personales y sensibles (datos de salud mental) con la finalidad exclusiva de:
                             </p>
                             <ul className="list-disc list-outside ml-5 mt-1 space-y-1 mb-2">
                                 <li>Prestación del servicio asistencial y gestión de la Historia Clínica (custodia legal por 20 años según Res 1995/99).</li>
@@ -342,10 +342,10 @@ const InformedConsent = () => {
                                 {/* FIRMA EMPRESA */}
                                 <div className="text-right flex flex-col items-end">
                                     <div className="h-24 flex items-end mb-2">
-                                        <span className="font-script text-2xl text-slate-500 italic pr-4">Basileiás Legal Dept.</span>
+                                        <span className="font-script text-2xl text-slate-500 italic pr-4">Basileia Legal Dept.</span>
                                     </div>
                                     <div className="border-t border-slate-900 pt-1 w-full text-right">
-                                        <p className="font-bold text-sm uppercase text-slate-900">BASILEIÁS S.A.S.</p>
+                                        <p className="font-bold text-sm uppercase text-slate-900">BASILEIA S.A.S.</p>
                                         <p className="text-xs text-slate-600">NIT: 901.XXX.XXX-X</p>
                                         <p className="text-[10px] text-slate-500">Representación Legal & Dirección Clínica</p>
                                     </div>
@@ -361,7 +361,7 @@ const InformedConsent = () => {
                         Documento generado electrónicamente bajo estándares de la Ley 527 de 1999.
                     </p>
                     <p className="text-[10px] text-slate-300 font-mono">
-                        Basileiás S.A.S. | Calle 123 # 45-67 Bogotá D.C. | contactobasileias@gmail.com | www.basileias.com
+                        Basileia S.A.S. | Calle 123 # 45-67 Bogotá D.C. | contactobasileia@gmail.com | www.basileia.com
                     </p>
                 </div>
 

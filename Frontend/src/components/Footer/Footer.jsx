@@ -88,7 +88,7 @@ const Footer = () => {
                                         fontWeight: 500
                                     }}
                                 >
-                                    BASILEIÁS
+                                    BASILEIA
                                 </span>
                             </div>
                             

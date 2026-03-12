@@ -1,16 +1,16 @@
 # POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES
-## Basileiás - Colombia
+## Basileia - Colombia
 
 **Fecha de última actualización:** 24 de enero de 2026  
-**Responsable:** Basileiás  
+**Responsable:** Basileia  
 **Domicilio:** Bogotá D.C., Colombia  
-**Correo electrónico:** privacidad@Basileiás.com  
+**Correo electrónico:** privacidad@Basileia.com  
 
 ---
 
 ## 1. INTRODUCCIÓN
 
-En cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013, **Basileiás** (en adelante "la Plataforma") establece la presente Política de Tratamiento de Datos Personales para informar a nuestros usuarios sobre el manejo, uso, almacenamiento y protección de la información personal recopilada a través de nuestros servicios de telemedicina y agendamiento de citas médicas.
+En cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013, **Basileia** (en adelante "la Plataforma") establece la presente Política de Tratamiento de Datos Personales para informar a nuestros usuarios sobre el manejo, uso, almacenamiento y protección de la información personal recopilada a través de nuestros servicios de telemedicina y agendamiento de citas médicas.
 
 ---
 
@@ -20,7 +20,7 @@ En cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013, **Basileiás**
 - **Dato Sensible:** Datos que afectan la intimidad o cuyo uso indebido puede generar discriminación, incluyendo información de salud.
 - **Titular:** Persona natural cuyos datos personales sean objeto de tratamiento.
 - **Tratamiento:** Cualquier operación sobre datos personales, incluyendo recolección, almacenamiento, uso, circulación o supresión.
-- **Responsable:** Basileiás, quien decide sobre el tratamiento de datos personales.
+- **Responsable:** Basileia, quien decide sobre el tratamiento de datos personales.
 - **Encargado:** Quien realiza el tratamiento por cuenta del responsable.
 
 ---
@@ -105,7 +105,7 @@ Los datos personales recopilados serán utilizados para las siguientes finalidad
 De acuerdo con la Ley 1581 de 2012, los titulares de datos personales tienen los siguientes derechos:
 
 ### 5.1 Derecho de Acceso
-Conocer, actualizar y rectificar sus datos personales frente a Basileiás.
+Conocer, actualizar y rectificar sus datos personales frente a Basileia.
 
 ### 5.2 Derecho de Rectificación
 Solicitar la corrección de datos inexactos o incompletos.
@@ -135,8 +135,8 @@ Presentar quejas ante la Superintendencia de Industria y Comercio por infraccion
 ### 6.1 Canales de Atención
 Los titulares pueden ejercer sus derechos a través de:
 
-**Correo Electrónico:** privacidad@Basileiás.com  
-**Formulario Web:** www.Basileiás.com/derechos-datos  
+**Correo Electrónico:** privacidad@Basileia.com  
+**Formulario Web:** www.Basileia.com/derechos-datos  
 **Dirección Física:** [Dirección en Bogotá]  
 
 ### 6.2 Procedimiento
@@ -156,7 +156,7 @@ Los titulares pueden ejercer sus derechos a través de:
 
 ## 7. MEDIDAS DE SEGURIDAD
 
-Basileiás implementa las siguientes medidas para proteger los datos personales:
+Basileia implementa las siguientes medidas para proteger los datos personales:
 
 ### 7.1 Medidas Técnicas
 - **Cifrado de Datos:** TLS 1.3 para transmisión, AES-256 para almacenamiento
@@ -206,12 +206,12 @@ Transcurridos los plazos legales, los datos serán:
 ## 9. TRANSFERENCIAS Y TRANSMISIONES
 
 ### 9.1 Transferencia Internacional
-Basileiás NO transfiere datos personales a otros países.
+Basileia NO transfiere datos personales a otros países.
 
 Todos los datos se almacenan en servidores ubicados en Colombia o en proveedores que garantizan niveles de protección equivalentes a la legislación colombiana.
 
 ### 9.2 Transmisión Nacional
-Basileiás puede transmitir datos a:
+Basileia puede transmitir datos a:
 
 **Profesionales de la Salud:**  
 Médicos, psicólogos y psiquiatras registrados en la plataforma para prestación del servicio.
@@ -261,7 +261,7 @@ Los usuarios pueden:
 ## 11. MENORES DE EDAD
 
 ### 11.1 Política General
-Los servicios de Basileiás están dirigidos a mayores de 18 años.
+Los servicios de Basileia están dirigidos a mayores de 18 años.
 
 ### 11.2 Atención a Menores
 Para atención a menores de edad:
@@ -274,7 +274,7 @@ Para atención a menores de edad:
 ## 12. MODIFICACIONES A LA POLÍTICA
 
 ### 12.1 Actualizaciones
-Basileiás se reserva el derecho de modificar esta política en cualquier momento para:
+Basileia se reserva el derecho de modificar esta política en cualquier momento para:
 - Cumplir cambios legislativos
 - Implementar mejores prácticas de seguridad
 - Adaptar a nuevos servicios
@@ -293,7 +293,7 @@ Los usuarios tendrán 10 días hábiles para oponerse. El uso continuado implica
 
 ### Oficial de Protección de Datos
 **Nombre:** [Designar responsable]  
-**Correo:** privacidad@Basileiás.com  
+**Correo:** privacidad@Basileia.com  
 **Teléfono:** [Número de contacto]  
 **Dirección:** [Dirección en Bogotá D.C.]  
 
@@ -308,7 +308,7 @@ Los usuarios tendrán 10 días hábiles para oponerse. El uso continuado implica
 
 ## 14. ACEPTACIÓN
 
-Al registrarse en Basileiás y marcar la casilla de aceptación, el usuario declara que:
+Al registrarse en Basileia y marcar la casilla de aceptación, el usuario declara que:
 
 ✓ Ha leído y comprendido esta Política de Tratamiento de Datos  
 ✓ Autoriza expresamente el tratamiento de sus datos personales  

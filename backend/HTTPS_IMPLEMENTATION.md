@@ -8,7 +8,7 @@
 
 ## 📋 Implementation Summary
 
-Se completó la configuración completa de HTTPS/TLS para el backend de Basileiás, incluyendo soporte para desarrollo y producción.
+Se completó la configuración completa de HTTPS/TLS para el backend de Basileia, incluyendo soporte para desarrollo y producción.
 
 ## ✅ Completed Tasks
 
@@ -122,12 +122,12 @@ npm run start-https-dev
 sudo apt install certbot python3-certbot-nginx
 
 # 2. Obtain certificate
-sudo certbot --nginx -d api.Basileiás.com
+sudo certbot --nginx -d api.Basileia.com
 
 # 3. Configure .env
 USE_HTTPS=true
 SSL_CERT_PATH=/etc/letsencrypt/live
-DOMAIN=api.Basileiás.com
+DOMAIN=api.Basileia.com
 PORT=443
 
 # 4. Start server
@@ -137,10 +137,10 @@ npm start
 ### Production with Nginx (Recommended)
 ```bash
 # 1. Copy nginx config
-sudo cp backend/config/nginx.conf /etc/nginx/sites-available/Basileiás
+sudo cp backend/config/nginx.conf /etc/nginx/sites-available/Basileia
 
 # 2. Enable site
-sudo ln -s /etc/nginx/sites-available/Basileiás /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/Basileia /etc/nginx/sites-enabled/
 
 # 3. Test & reload
 sudo nginx -t
@@ -223,7 +223,7 @@ npm start
 4. ⏳ Update frontend to use HTTPS URLs (cuando backend esté en HTTPS)
 
 ### Production Deployment
-1. ⏳ Setup domain (api.Basileiás.com)
+1. ⏳ Setup domain (api.Basileia.com)
 2. ⏳ Configure DNS records
 3. ⏳ Install Nginx on server
 4. ⏳ Obtain Let's Encrypt certificate

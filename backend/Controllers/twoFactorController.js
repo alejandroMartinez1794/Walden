@@ -7,7 +7,7 @@ import { getCookieOptions } from '../utils/csrf.js';
 import SecurityLog from '../models/SecurityLogSchema.js';
 import logger from '../utils/logger.js';
 
-const APP_NAME = 'Basileiás';
+const APP_NAME = 'Basileia';
 
 const getUser = async (id) => {
     let user = await User.findById(id).select('+twoFactorSecret');

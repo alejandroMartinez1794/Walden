@@ -61,14 +61,14 @@ import { startMedicalAlertService } from './services/medicalAlertService.js';
 import { startFollowUpService } from './services/followUpService.js';
 import { ensureCriticalIndexes } from './scripts/ensureIndexes.js';
 
-// Seguridad Avanzada (Basileiás Shield) - Solo lo esencial para performance
+// Seguridad Avanzada (Basileia Shield) - Solo lo esencial para performance
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 // DESACTIVADO para performance: xss-clean y hpp (redundantes con otras validaciones)
 
 logger.info('\n═══════════════════════════════════════════════════════');
-logger.info('🚀 Iniciando Basileiás Backend API');
+logger.info('🚀 Iniciando Basileia Backend API');
 logger.info('═══════════════════════════════════════════════════════\n');
 
 // Cargar .env.local primero (credenciales locales), luego .env (plantilla)

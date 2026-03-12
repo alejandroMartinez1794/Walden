@@ -1,6 +1,6 @@
-# 🚀 Guía de Deployment - Basileiás
+# 🚀 Guía de Deployment - Basileia
 
-Guía completa para desplegar Basileiás en producción usando el stack gratuito seleccionado.
+Guía completa para desplegar Basileia en producción usando el stack gratuito seleccionado.
 
 ## 📋 Stack de Producción (100% Gratuito)
 
@@ -13,7 +13,7 @@ Guía completa para desplegar Basileiás en producción usando el stack gratuito
 - **Error Tracking**: Sentry (50K errores/mes, gratis con Student Pack)
 - **Email**: Brevo (300 emails/día, gratis permanente)
 - **Payments**: Wompi (Colombia, 2.79% + $400 COP por transacción)
-- **Domain**: Basileiás.app (Name.com Student Pack, gratis 1 año)
+- **Domain**: Basileia.app (Name.com Student Pack, gratis 1 año)
 
 ---
 
@@ -40,7 +40,7 @@ Crear `.env.production` en backend con valores reales:
 
 ```bash
 # Database
-MONGO_URL=mongodb+srv://user:password@cluster.mongodb.net/Basileiás
+MONGO_URL=mongodb+srv://user:password@cluster.mongodb.net/Basileia
 
 # JWT & Security
 JWT_SECRET_KEY=<generar-con-openssl-rand-base64-32>
@@ -50,24 +50,24 @@ CSRF_SECRET=<generar-con-openssl-rand-hex-32>
 # Google OAuth & Calendar
 GOOGLE_CLIENT_ID=<tu-client-id>.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=<tu-client-secret>
-GOOGLE_REDIRECT_URI=https://api.Basileiás.app/api/v1/calendar/google-callback
+GOOGLE_REDIRECT_URI=https://api.Basileia.app/api/v1/calendar/google-callback
 
 # URLs
-BACKEND_URL=https://api.Basileiás.app
-FRONTEND_URL=https://Basileiás.app
-CORS_ORIGINS=https://Basileiás.app
+BACKEND_URL=https://api.Basileia.app
+FRONTEND_URL=https://Basileia.app
+CORS_ORIGINS=https://Basileia.app
 
 # New Relic
 NEW_RELIC_LICENSE_KEY=<tu-license-key>
-NEW_RELIC_APP_NAME=Basileiás API
+NEW_RELIC_APP_NAME=Basileia API
 
 # Sentry
 SENTRY_DSN=https://<key>@o<org>.ingest.sentry.io/<project>
 
 # Brevo
 BREVO_API_KEY=xkeysib-<tu-api-key>
-EMAIL_FROM=noreply@Basileiás.app
-EMAIL_BCC=admin@Basileiás.app
+EMAIL_FROM=noreply@Basileia.app
+EMAIL_BCC=admin@Basileia.app
 
 # Redis (opcional - Heroku lo proporciona via addon)
 REDIS_URL=redis://default:password@host:port
@@ -89,16 +89,16 @@ HCAPTCHA_SECRET=<tu-secret>
 
 1. Ir a [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)
 2. Crear cuenta (gratis)
-3. Crear nuevo proyecto "Basileiás"
+3. Crear nuevo proyecto "Basileia"
 4. Create Deployment → M0 (FREE)
    - Provider: AWS
    - Region: **São Paulo (sa-east-1)** (más cercano a Colombia)
-   - Cluster Name: `Basileiás-prod`
+   - Cluster Name: `Basileia-prod`
 
 ### 2.2 Configurar Seguridad
 
 1. **Database Access** → Add New Database User
-   - Username: `Basileiás_admin`
+   - Username: `Basileia_admin`
    - Password: (generar seguro)
    - Built-in Role: `Atlas Admin`
 
@@ -111,10 +111,10 @@ HCAPTCHA_SECRET=<tu-secret>
 1. Connect → Drivers → Node.js
 2. Copiar connection string:
    ```
-   mongodb+srv://Basileiás_admin:<password>@Basileiás-prod.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   mongodb+srv://Basileia_admin:<password>@Basileia-prod.xxxxx.mongodb.net/?retryWrites=true&w=majority
    ```
 3. Reemplazar `<password>` con tu contraseña
-4. Agregar nombre de base de datos: `/Basileiás`
+4. Agregar nombre de base de datos: `/Basileia`
 
 ### 2.4 Crear Índices Iniciales
 
@@ -158,7 +158,7 @@ npm install -g heroku
 heroku login
 
 # Crear app
-heroku create basileias-api
+heroku create basileia-api
 
 # Configurar para monorepo (backend está en /backend)
 heroku buildpacks:set heroku/nodejs
@@ -207,10 +207,10 @@ heroku logs --tail
 
 # Obtener URL pública
 heroku info
-# URL: https://basileias-api.herokuapp.com
+# URL: https://basileia-api.herokuapp.com
 
 # Configurar custom domain
-heroku domains:add api.basileias.app
+heroku domains:add api.basileia.app
 ```
 
 ---
@@ -224,7 +224,7 @@ cd Frontend
 
 # Actualizar .env.production
 cat > .env.production << EOF
-VITE_BASE_URL=https://api.Basileiás.app
+VITE_BASE_URL=https://api.Basileia.app
 EOF
 
 # Verificar build
@@ -255,7 +255,7 @@ vercel --prod
 
 4. Environment Variables:
    ```
-   VITE_BASE_URL=https://api.Basileiás.app
+   VITE_BASE_URL=https://api.Basileia.app
    ```
 
 5. Deploy
@@ -263,7 +263,7 @@ vercel --prod
 ### 4.3 Custom Domain
 
 1. Vercel Dashboard → Settings → Domains
-2. Add Domain: `Basileiás.app`
+2. Add Domain: `Basileia.app`
 3. Seguir instrucciones DNS en Name.com
 
 ---
@@ -273,7 +273,7 @@ vercel --prod
 ### 5.1 Obtener Dominio Gratis (Student Pack)
 
 1. Ir a [Name.com](https://www.name.com/partner/github-students)
-2. Registrar `Basileiás.app` (gratis 1 año con Student Pack)
+2. Registrar `Basileia.app` (gratis 1 año con Student Pack)
 3. Renovación: ~$15/año después del primer año
 
 ### 5.2 Configurar DNS
@@ -305,7 +305,7 @@ TTL: 300
 
 - Vercel: SSL automático (Let's Encrypt)
 - Heroku: SSL automático
-- Verificar: `https://Basileiás.app` y `https://api.Basileiás.app`
+- Verificar: `https://Basileia.app` y `https://api.Basileia.app`
 
 ---
 
@@ -317,7 +317,7 @@ TTL: 300
 2. Verificar email
 3. Settings → SMTP & API → Create API Key
 4. Copiar `BREVO_API_KEY=xkeysib-...`
-5. Senders & IP → Add Sender: `noreply@Basileiás.app`
+5. Senders & IP → Add Sender: `noreply@Basileia.app`
 6. Verificar email sender
 
 ### 6.2 New Relic (Monitoring)
@@ -349,7 +349,7 @@ TTL: 300
 3. Copiar public y private keys
 4. **Producción**: Cambiar de `test` a `prod` keys
 5. Configurar Webhooks:
-   - URL: `https://api.Basileiás.app/api/v1/payment/webhook`
+   - URL: `https://api.Basileia.app/api/v1/payment/webhook`
    - Events: `transaction.updated`
 
 ---
@@ -360,22 +360,22 @@ TTL: 300
 
 ```bash
 # Backend health
-curl https://api.Basileiás.app/
+curl https://api.Basileia.app/
 # Debe retornar: "La gente, la gente!"
 
 # Frontend
-curl https://Basileiás.app/
+curl https://Basileia.app/
 # Debe retornar HTML
 
 # API Documentation
-open https://api.Basileiás.app/api-docs
+open https://api.Basileia.app/api-docs
 ```
 
 ### 7.2 Pruebas de Endpoints
 
 ```bash
 # Registro de usuario
-curl -X POST https://api.Basileiás.app/api/v1/auth/register \
+curl -X POST https://api.Basileia.app/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test User",
@@ -385,7 +385,7 @@ curl -X POST https://api.Basileiás.app/api/v1/auth/register \
   }'
 
 # Login
-curl -X POST https://api.Basileiás.app/api/v1/auth/login \
+curl -X POST https://api.Basileia.app/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -393,7 +393,7 @@ curl -X POST https://api.Basileiás.app/api/v1/auth/login \
   }'
 
 # Listar doctores aprobados
-curl https://api.Basileiás.app/api/v1/doctors?isApproved=approved
+curl https://api.Basileia.app/api/v1/doctors?isApproved=approved
 ```
 
 ### 7.3 Verificar Servicios
@@ -414,11 +414,11 @@ curl https://api.Basileiás.app/api/v1/doctors?isApproved=approved
 1. [console.cloud.google.com](https://console.cloud.google.com)
 2. APIs & Services → Credentials
 3. OAuth 2.0 Client → Authorized redirect URIs:
-   - Agregar: `https://api.Basileiás.app/api/v1/calendar/google-callback`
+   - Agregar: `https://api.Basileia.app/api/v1/calendar/google-callback`
 
 #### Wompi Webhooks:
 1. Panel Wompi → Configuración → Webhooks
-2. URL: `https://api.Basileiás.app/api/v1/payment/webhook`
+2. URL: `https://api.Basileia.app/api/v1/payment/webhook`
 
 ### 8.2 Habilitar Rate Limiting en Heroku
 
@@ -453,7 +453,7 @@ MongoDB Atlas → Clusters → Backup:
 ### 9.3 Uptime Monitoring
 
 Usar [UptimeRobot](https://uptimerobot.com/) (gratis):
-- Monitor: `https://api.Basileiás.app`
+- Monitor: `https://api.Basileia.app`
 - Interval: 5 minutes
 - Alert: Email cuando down
 
@@ -553,7 +553,7 @@ git push origin main
 - [ ] MongoDB Atlas cluster creado y funcionando
 - [ ] Heroku backend deployed y accesible
 - [ ] Vercel frontend deployed y accesible
-- [ ] Dominio configurado (Basileiás.app)
+- [ ] Dominio configurado (Basileia.app)
 - [ ] SSL activo en ambos dominios
 - [ ] Google OAuth configurado con URLs de producción
 - [ ] Brevo email verificado y funcionando
@@ -569,7 +569,7 @@ git push origin main
 
 ## 🎉 ¡Listo para Producción!
 
-Tu aplicación Basileiás ahora está en producción con:
+Tu aplicación Basileia ahora está en producción con:
 - ✅ 100% Gratuito (primer año con Student Pack)
 - ✅ Escalable (Heroku + Vercel)
 - ✅ Monitoreado (New Relic + Sentry)

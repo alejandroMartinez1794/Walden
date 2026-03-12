@@ -1,4 +1,4 @@
-# Basileiás (Βασιλειάς)
+# Basileia (Βασιλειάς)
 
 Plataforma full-stack de gestión de citas médicas con **flujos de trabajo automatizados**.
 

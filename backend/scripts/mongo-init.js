@@ -1,15 +1,15 @@
 # Script de inicialización de MongoDB para Docker
 
 # Crear usuario para la aplicación
-db = db.getSiblingDB('basileias');
+db = db.getSiblingDB('basileia');
 
 db.createUser({
-  user: 'basileias_user',
-  pwd: 'basileias_password_change_me',
+  user: 'basileia_user',
+  pwd: 'basileia_password_change_me',
   roles: [
     {
       role: 'readWrite',
-      db: 'basileias'
+      db: 'basileia'
     }
   ]
 });
@@ -27,4 +27,4 @@ db.bookings.createIndex({ doctorId: 1 });
 db.bookings.createIndex({ userId: 1 });
 db.bookings.createIndex({ appointmentDate: 1 });
 
-print('✅ MongoDB inicializado correctamente para basileias');
+print('✅ MongoDB inicializado correctamente para basileia');

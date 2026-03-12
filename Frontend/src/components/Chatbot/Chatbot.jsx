@@ -29,14 +29,14 @@ const Chatbot = () => {
       const welcomeMsg = {
         id: Date.now(),
         text: user
-          ? `¡Hola ${user.name}! 👋 Bienvenido de nuevo a Basileiás. ¿En qué podemos acompañarte hoy?`
-          : '¡Hola! 👋 Bienvenido a Basileiás (Βασιλειάς). \n\n**¿Es tu primera vez aquí?** \nTe recomendamos escribirnos a **contactobasileias@gmail.com** para recibir una orientación inicial personalizada.\n\nTambién estoy aquí para resolver dudas rápidas sobre nuestros servicios.',
+          ? `¡Hola ${user.name}! 👋 Bienvenido de nuevo a Basileia. ¿En qué podemos acompañarte hoy?`
+          : '¡Hola! 👋 Bienvenido a Basileia (Βασιλειάς). \n\n**¿Es tu primera vez aquí?** \nTe recomendamos escribirnos a **contactobasileia@gmail.com** para recibir una orientación inicial personalizada.\n\nTambién estoy aquí para resolver dudas rápidas sobre nuestros servicios.',
         sender: 'bot',
         timestamp: new Date(),
         quickReplies: [
           'Contacto',
           'Nuestros Servicios',
-          'Sobre Basileiás',
+          'Sobre Basileia',
         ],
       };
       setMessages([welcomeMsg]);
@@ -140,7 +140,7 @@ const Chatbot = () => {
                 <span className="text-2xl">🏥</span>
               </div>
               <div>
-                <h3 className="font-bold text-lg">Basileiás Assistant</h3>
+                <h3 className="font-bold text-lg">Basileia Assistant</h3>
                 <p className="text-xs opacity-90">Siempre disponible</p>
               </div>
             </div>
@@ -201,7 +201,7 @@ const Chatbot = () => {
 
           {/* Footer */}
           <div className="bg-gray-100 px-4 py-2 text-center text-xs text-gray-500">
-            Powered by Basileiás AI
+            Powered by Basileia AI
           </div>
         </div>
       )}

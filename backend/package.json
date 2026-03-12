@@ -1,7 +1,7 @@
 {
-  "name": "basileias-booking",
+  "name": "basileia-booking",
   "version": "1.0.0",
-  "description": "Basileiás - Healthcare booking platform",
+  "description": "Basileia - Healthcare booking platform",
   "type": "module",
   "main": "index.js",
   "scripts": {

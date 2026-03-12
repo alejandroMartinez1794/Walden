@@ -28,7 +28,7 @@ export const sendConsentEmail = async (req, res) => {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background-color: #0f172a; padding: 20px; text-align: center;">
-          <h2 style="color: white; margin: 0;">Basileiás</h2>
+          <h2 style="color: white; margin: 0;">Basileia</h2>
           <p style="color: #94a3b8; margin: 5px 0 0 0;">Salud Mental Integral</p>
         </div>
         
@@ -52,14 +52,14 @@ export const sendConsentEmail = async (req, res) => {
         </div>
         
         <div style="text-align: center; padding: 20px; font-size: 12px; color: #94a3b8;">
-          <p>Este es un mensaje automático de la plataforma Basileiás.</p>
+          <p>Este es un mensaje automático de la plataforma Basileia.</p>
         </div>
       </div>
     `;
 
     await sendEmail({
       email: email,
-      subject: 'Documento Pendiente: Consentimiento Informado - Basileiás',
+      subject: 'Documento Pendiente: Consentimiento Informado - Basileia',
       message: `Hola ${name || ''}, por favor firma tu consentimiento informado en: ${finalLink}`,
       html: htmlContent
     });

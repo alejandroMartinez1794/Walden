@@ -2,7 +2,7 @@
 
 ## Overview
 
-Este documento describe cómo configurar HTTPS/TLS para el backend de Basileiás en desarrollo y producción.
+Este documento describe cómo configurar HTTPS/TLS para el backend de Basileia en desarrollo y producción.
 
 ## 📋 Table of Contents
 
@@ -65,7 +65,7 @@ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keyc
 
 **Linux:**
 ```bash
-sudo cp backend/certs/dev-cert.pem /usr/local/share/ca-certificates/Basileiás-dev.crt
+sudo cp backend/certs/dev-cert.pem /usr/local/share/ca-certificates/Basileia-dev.crt
 sudo update-ca-certificates
 ```
 
@@ -77,7 +77,7 @@ Let's Encrypt es **gratis, automático y renovable**. Recomendado para producci�
 
 ### Prerequisites
 
-- Dominio registrado (ej: `api.Basileiás.com`)
+- Dominio registrado (ej: `api.Basileia.com`)
 - Servidor con IP pública
 - Puerto 80 y 443 abiertos
 
@@ -97,7 +97,7 @@ sudo yum install certbot python3-certbot-nginx
 #### 2. Obtain Certificate
 
 ```bash
-sudo certbot --nginx -d api.Basileiás.com
+sudo certbot --nginx -d api.Basileia.com
 ```
 
 Certbot automáticamente:
@@ -123,18 +123,18 @@ Si vas a usar Node.js directamente (sin reverse proxy):
 
 ```bash
 # Stop backend temporarily
-sudo systemctl stop Basileiás-backend
+sudo systemctl stop Basileia-backend
 
 # Obtain certificate (standalone)
-sudo certbot certonly --standalone -d api.Basileiás.com
+sudo certbot certonly --standalone -d api.Basileia.com
 
 # Start backend
-sudo systemctl start Basileiás-backend
+sudo systemctl start Basileia-backend
 ```
 
 Certificados se guardan en:
 ```
-/etc/letsencrypt/live/api.Basileiás.com/
+/etc/letsencrypt/live/api.Basileia.com/
 ├── fullchain.pem  (certificado completo)
 ├── privkey.pem    (clave privada)
 ├── chain.pem      (CA chain)
@@ -148,7 +148,7 @@ Certificados se guardan en:
 NODE_ENV=production
 USE_HTTPS=true
 SSL_CERT_PATH=/etc/letsencrypt/live
-DOMAIN=api.Basileiás.com
+DOMAIN=api.Basileia.com
 PORT=443
 ```
 
@@ -160,7 +160,7 @@ sudo nano /etc/letsencrypt/renewal-hooks/post/restart-backend.sh
 
 ```bash
 #!/bin/bash
-systemctl restart Basileiás-backend
+systemctl restart Basileia-backend
 ```
 
 ```bash
@@ -169,14 +169,14 @@ sudo chmod +x /etc/letsencrypt/renewal-hooks/post/restart-backend.sh
 
 ### Opción C: Certbot DNS Challenge (Wildcards)
 
-Para obtener certificado wildcard (`*.Basileiás.com`):
+Para obtener certificado wildcard (`*.Basileia.com`):
 
 ```bash
 sudo certbot certonly \
   --dns-cloudflare \
   --dns-cloudflare-credentials ~/.secrets/cloudflare.ini \
-  -d Basileiás.com \
-  -d *.Basileiás.com
+  -d Basileia.com \
+  -d *.Basileia.com
 ```
 
 ---
@@ -240,10 +240,10 @@ sudo yum install nginx
 
 ```bash
 # Copy template
-sudo cp backend/config/nginx.conf /etc/nginx/sites-available/Basileiás
+sudo cp backend/config/nginx.conf /etc/nginx/sites-available/Basileia
 
 # Create symlink
-sudo ln -s /etc/nginx/sites-available/Basileiás /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/Basileia /etc/nginx/sites-enabled/
 
 # Remove default
 sudo rm /etc/nginx/sites-enabled/default
@@ -252,11 +252,11 @@ sudo rm /etc/nginx/sites-enabled/default
 ### 3. Edit Configuration
 
 ```bash
-sudo nano /etc/nginx/sites-available/Basileiás
+sudo nano /etc/nginx/sites-available/Basileia
 ```
 
 Cambiar:
-- `server_name api.Basileiás.com` → Tu dominio
+- `server_name api.Basileia.com` → Tu dominio
 - Rutas de certificados SSL
 - Upstream servers si usas múltiples instancias
 
@@ -288,28 +288,28 @@ TRUST_PROXY=true  # Confiar en headers X-Forwarded-*
 ### 6. Setup Systemd Service
 
 ```bash
-sudo nano /etc/systemd/system/Basileiás-backend.service
+sudo nano /etc/systemd/system/Basileia-backend.service
 ```
 
 ```ini
 [Unit]
-Description=Basileiás Backend API
+Description=Basileia Backend API
 After=network.target mongodb.service
 
 [Service]
 Type=simple
 User=nodejs
-WorkingDirectory=/opt/Basileiás/backend
+WorkingDirectory=/opt/Basileia/backend
 ExecStart=/usr/bin/node index.js
 Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=Basileiás
+SyslogIdentifier=Basileia
 
 # Environment
 Environment=NODE_ENV=production
-EnvironmentFile=/opt/Basileiás/backend/.env
+EnvironmentFile=/opt/Basileia/backend/.env
 
 [Install]
 WantedBy=multi-user.target
@@ -320,16 +320,16 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 
 # Enable service
-sudo systemctl enable Basileiás-backend
+sudo systemctl enable Basileia-backend
 
 # Start service
-sudo systemctl start Basileiás-backend
+sudo systemctl start Basileia-backend
 
 # Check status
-sudo systemctl status Basileiás-backend
+sudo systemctl status Basileia-backend
 
 # View logs
-sudo journalctl -u Basileiás-backend -f
+sudo journalctl -u Basileia-backend -f
 ```
 
 ---
@@ -340,19 +340,19 @@ sudo journalctl -u Basileiás-backend -f
 
 ```bash
 # Test SSL/TLS configuration
-curl -I https://api.Basileiás.com
+curl -I https://api.Basileia.com
 
 # Check certificate details
-openssl s_client -connect api.Basileiás.com:443 -servername api.Basileiás.com
+openssl s_client -connect api.Basileia.com:443 -servername api.Basileia.com
 
 # Test with SSL Labs (online)
-# https://www.ssllabs.com/ssltest/analyze.html?d=api.Basileiás.com
+# https://www.ssllabs.com/ssltest/analyze.html?d=api.Basileia.com
 ```
 
 ### Test Security Headers
 
 ```bash
-curl -I https://api.Basileiás.com/api/v1/health
+curl -I https://api.Basileia.com/api/v1/health
 ```
 
 Verificar headers:
@@ -365,10 +365,10 @@ Verificar headers:
 
 ```bash
 # Health check
-curl https://api.Basileiás.com/api/v1/health
+curl https://api.Basileia.com/api/v1/health
 
 # Test API endpoint
-curl -X POST https://api.Basileiás.com/api/v1/auth/login \
+curl -X POST https://api.Basileia.com/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"password123"}'
 ```
@@ -384,7 +384,7 @@ curl -X POST https://api.Basileiás.com/api/v1/auth/login \
 **Solución:**
 ```bash
 # Verificar rutas
-ls -la /etc/letsencrypt/live/api.Basileiás.com/
+ls -la /etc/letsencrypt/live/api.Basileia.com/
 ls -la backend/certs/
 
 # Regenerar certificados de desarrollo
@@ -442,7 +442,7 @@ sudo systemctl status certbot.timer
 # Desarrollo: Normal, ignorar o instalar cert en OS
 # Producción: Verificar fullchain.pem incluye intermediate certs
 
-openssl s_client -connect api.Basileiás.com:443 -showcerts
+openssl s_client -connect api.Basileia.com:443 -showcerts
 ```
 
 ### Nginx 502 Bad Gateway
@@ -455,10 +455,10 @@ openssl s_client -connect api.Basileiás.com:443 -showcerts
 curl http://localhost:8000/api/v1/health
 
 # Ver logs
-sudo journalctl -u Basileiás-backend -n 50
+sudo journalctl -u Basileia-backend -n 50
 
 # Reiniciar
-sudo systemctl restart Basileiás-backend
+sudo systemctl restart Basileia-backend
 ```
 
 ---
@@ -469,7 +469,7 @@ sudo systemctl restart Basileiás-backend
 
 ```bash
 # Check expiration
-echo | openssl s_client -connect api.Basileiás.com:443 2>/dev/null | openssl x509 -noout -dates
+echo | openssl s_client -connect api.Basileia.com:443 2>/dev/null | openssl x509 -noout -dates
 ```
 
 ### Automated Monitoring

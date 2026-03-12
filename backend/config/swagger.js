@@ -2,7 +2,7 @@
  * Swagger/OpenAPI Documentation Configuration
  * 
  * Access documentation at: http://localhost:8000/api-docs
- * Production: https://api.basileias.app/api-docs
+ * Production: https://api.basileia.app/api-docs
  * 
  * Benefits:
  * - Interactive API testing
@@ -19,10 +19,10 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'basileias API Documentation',
+      title: 'basileia API Documentation',
       version: '1.0.0',
       description: `
-        **basileias** - Plataforma de Telemedicina y Psicología en Colombia
+        **basileia** - Plataforma de Telemedicina y Psicología en Colombia
         
         API RESTful para gestión de citas médicas, historias clínicas, y servicios de psicología.
         
@@ -40,9 +40,9 @@ const options = {
         - Historias clínicas electrónicas (Resolución 1995/1999)
       `,
       contact: {
-        name: 'basileias Support',
-        email: 'soporte@basileias.app',
-        url: 'https://basileias.app',
+        name: 'basileia Support',
+        email: 'soporte@basileia.app',
+        url: 'https://basileia.app',
       },
       license: {
         name: 'Proprietary',
@@ -54,7 +54,7 @@ const options = {
         description: 'Development server',
       },
       {
-        url: 'https://api.basileias.app',
+        url: 'https://api.basileia.app',
         description: 'Production server (Heroku)',
       },
     ],
@@ -321,7 +321,7 @@ export function setupSwagger(app) {
   // Swagger UI options
   const swaggerUiOptions = {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'basileias API Docs',
+    customSiteTitle: 'basileia API Docs',
     customfavIcon: '/favicon.ico',
   };
 

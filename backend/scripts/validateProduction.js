@@ -252,7 +252,7 @@ function validateSecurity() {
 async function main() {
   console.log(`
 ╔═══════════════════════════════════════════════════════╗
-║   🚀 PRODUCTION READINESS VALIDATION - Basileiás   ║
+║   🚀 PRODUCTION READINESS VALIDATION - Basileia   ║
 ╚═══════════════════════════════════════════════════════╝
   `);
 

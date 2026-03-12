@@ -136,7 +136,7 @@ const Contact = () => {
                         <div className='bg-white rounded-lg shadow-md p-6'>
                             <h3 className='text-xl font-semibold mb-2'>Contacto directo</h3>
                             <p className='text_para mb-4'>
-                                📧 Email: <a href='mailto:contactobasileias@gmail.com' className='text-primaryColor hover:underline'>contactobasileias@gmail.com</a>
+                                📧 Email: <a href='mailto:contactobasileia@gmail.com' className='text-primaryColor hover:underline'>contactobasileia@gmail.com</a>
                                 <br />
                                 📍 Ubicación: Bogotá, Colombia
                             </p>

@@ -1,4 +1,4 @@
-# Implementation Checklist - Basileiás Data Models
+# Implementation Checklist - Basileia Data Models
 
 ## Phase 1: Schema Creation ✅ COMPLETE
 

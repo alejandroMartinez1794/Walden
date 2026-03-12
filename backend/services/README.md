@@ -1,8 +1,8 @@
-# 🤖 Sistema de Automatización - Basileiás
+# 🤖 Sistema de Automatización - Basileia
 
 ## Descripción General
 
-Sistema de automatización nativo integrado en el backend de Basileiás que maneja:
+Sistema de automatización nativo integrado en el backend de Basileia que maneja:
 - ✅ Recordatorios automáticos de citas
 - ✅ Alertas médicas críticas
 - ✅ Seguimiento post-sesión
@@ -126,11 +126,11 @@ backend/
 EMAIL_SERVICE=gmail                        # o 'hotmail', 'outlook'
 EMAIL_USERNAME=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password           # App password de Gmail
-EMAIL_FROM=Basileiás@gmail.com
+EMAIL_FROM=Basileia@gmail.com
 
 # Frontend URL (para links en emails)
 FRONTEND_URL=http://localhost:5173         # Desarrollo
-# FRONTEND_URL=https://Basileiás.com    # Producción
+# FRONTEND_URL=https://Basileia.com    # Producción
 
 # MongoDB
 MONGO_URL=mongodb://...
@@ -355,5 +355,5 @@ db.bookings.find({ followUpSent: true })
 
 ---
 
-**Desarrollado para Basileiás** 🧠💙  
+**Desarrollado para Basileia** 🧠💙  
 Sistema de automatización médica integrado y eficiente.

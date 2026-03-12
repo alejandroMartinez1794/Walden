@@ -25,7 +25,7 @@ Tu backend ahora **NO necesita N8N** porque implementamos:
 EMAIL_SERVICE=gmail
 EMAIL_USERNAME=tu-email@gmail.com
 EMAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx  # App password de Gmail
-EMAIL_FROM=Basileiás@gmail.com
+EMAIL_FROM=Basileia@gmail.com
 FRONTEND_URL=http://localhost:5173
 ```
 

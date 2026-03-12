@@ -1,5 +1,5 @@
 # COMPLIANCE COLOMBIA - RESUMEN
-## Basileiás
+## Basileia
 
 **Fecha de configuración:** 24 de enero de 2026  
 **Jurisdicción:** Colombia 🇨🇴  

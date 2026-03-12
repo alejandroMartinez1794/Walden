@@ -1,4 +1,4 @@
-# 🚀 ROADMAP COMPLETO HACIA PRODUCCIÓN - Basileiás
+# 🚀 ROADMAP COMPLETO HACIA PRODUCCIÓN - Basileia
 
 **Análisis exhaustivo realizado:** 25 de enero, 2026  
 **Ubicación:** Bogotá, Colombia 🇨🇴  
@@ -381,7 +381,7 @@ npm install --save-dev artillery k6
 ```yaml
 # load-test.yml (Artillery)
 config:
-  target: "https://api.Basileiás.com"
+  target: "https://api.Basileia.com"
   phases:
     - duration: 60
       arrivalRate: 10
@@ -445,7 +445,7 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'Basileiás-api' },
+  defaultMeta: { service: 'Basileia-api' },
   transports: [
     new winston.transports.DailyRotateFile({
       filename: 'logs/error-%DATE%.log',
@@ -568,7 +568,7 @@ export const healthCheck = async (req, res) => {
 3. [ ] Monitorear uso de CPU, memoria, disco
 4. [ ] Configurar alertas de umbral (>80% memory = alerta)
 5. [ ] Integrar con UptimeRobot o Pingdom
-6. [ ] Configurar status page público (status.Basileiás.com)
+6. [ ] Configurar status page público (status.Basileia.com)
 7. [ ] Implementar circuit breakers para servicios externos
 
 ---
@@ -764,13 +764,13 @@ jobs:
       
       - name: Build Docker images
         run: |
-          docker build -t Basileiás-backend:${{ github.sha }} ./backend
-          docker build -t Basileiás-frontend:${{ github.sha }} ./Frontend
+          docker build -t Basileia-backend:${{ github.sha }} ./backend
+          docker build -t Basileia-frontend:${{ github.sha }} ./Frontend
       
       - name: Push to registry
         run: |
-          docker push Basileiás-backend:${{ github.sha }}
-          docker push Basileiás-frontend:${{ github.sha }}
+          docker push Basileia-backend:${{ github.sha }}
+          docker push Basileia-frontend:${{ github.sha }}
 
   deploy:
     needs: build
@@ -1021,13 +1021,13 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Basileiás API',
+      title: 'Basileia API',
       version: '1.0.0',
-      description: 'API documentation for Basileiás platform',
+      description: 'API documentation for Basileia platform',
     },
     servers: [
       { url: 'http://localhost:8000', description: 'Development' },
-      { url: 'https://api.Basileiás.com', description: 'Production' }
+      { url: 'https://api.Basileia.com', description: 'Production' }
     ],
     components: {
       securitySchemes: {
@@ -1077,7 +1077,7 @@ export const createBooking = async (req, res) => { ... };
 2. [ ] Documentar TODOS los endpoints
 3. [ ] Agregar ejemplos de request/response
 4. [ ] Documentar códigos de error
-5. [ ] Publicar docs en subdomain (docs.Basileiás.com)
+5. [ ] Publicar docs en subdomain (docs.Basileia.com)
 6. [ ] Crear guía de autenticación
 7. [ ] Documentar rate limits
 
@@ -1112,13 +1112,13 @@ const envs = {
     logLevel: 'debug'
   },
   staging: {
-    apiUrl: 'https://api-staging.Basileiás.com',
-    frontendUrl: 'https://staging.Basileiás.com',
+    apiUrl: 'https://api-staging.Basileia.com',
+    frontendUrl: 'https://staging.Basileia.com',
     logLevel: 'info'
   },
   production: {
-    apiUrl: 'https://api.Basileiás.com',
-    frontendUrl: 'https://Basileiás.com',
+    apiUrl: 'https://api.Basileia.com',
+    frontendUrl: 'https://Basileia.com',
     logLevel: 'warn'
   }
 };

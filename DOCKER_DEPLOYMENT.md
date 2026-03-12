@@ -1,6 +1,6 @@
 # 🐳 Guía de Despliegue con Docker
 
-Esta guía te ayudará a desplegar Basileiás usando Docker.
+Esta guía te ayudará a desplegar Basileia usando Docker.
 
 ## 📋 Requisitos Previos
 
@@ -128,7 +128,7 @@ docker system prune -a --volumes
 
 ```bash
 # Editar .env para usar MongoDB Atlas
-MONGO_URL=mongodb+srv://user:pass@cluster.mongodb.net/Basileiás
+MONGO_URL=mongodb+srv://user:pass@cluster.mongodb.net/Basileia
 
 # Levantar solo servicios necesarios
 docker-compose up backend frontend -d
@@ -220,7 +220,7 @@ heroku container:release web
 sudo apt install certbot python3-certbot-nginx
 
 # Obtener certificado
-sudo certbot --nginx -d Basileiás.com -d www.Basileiás.com
+sudo certbot --nginx -d Basileia.com -d www.Basileia.com
 
 # Auto-renovación
 sudo certbot renew --dry-run
@@ -245,7 +245,7 @@ docker-compose logs > logs-$(date +%Y%m%d).txt
 docker stats
 
 # Inspeccionar container
-docker inspect Basileiás-backend
+docker inspect Basileia-backend
 ```
 
 ### Health Checks
@@ -317,10 +317,10 @@ docker-compose ps
 ```bash
 # Crear backup
 docker-compose exec mongo mongodump --out /tmp/backup
-docker cp Basileiás-mongo:/tmp/backup ./backup-$(date +%Y%m%d)
+docker cp Basileia-mongo:/tmp/backup ./backup-$(date +%Y%m%d)
 
 # Restaurar backup
-docker cp ./backup Basileiás-mongo:/tmp/
+docker cp ./backup Basileia-mongo:/tmp/
 docker-compose exec mongo mongorestore /tmp/backup
 ```
 
@@ -329,7 +329,7 @@ docker-compose exec mongo mongorestore /tmp/backup
 ```bash
 # Crear backup de todos los volumes
 docker run --rm \
-  -v Basileiás-booking-main_mongo-data:/data \
+  -v Basileia-booking-main_mongo-data:/data \
   -v $(pwd):/backup \
   alpine tar czf /backup/mongo-backup-$(date +%Y%m%d).tar.gz /data
 ```
@@ -337,5 +337,5 @@ docker run --rm \
 ## 📞 Soporte
 
 - GitHub Issues: https://github.com/alejandroMartinez1794/Walden/issues
-- Email: dev@Basileiás.com
+- Email: dev@Basileia.com
 - Documentación: Ver /docs en el repo

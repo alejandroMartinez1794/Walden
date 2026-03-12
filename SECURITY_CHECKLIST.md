@@ -143,7 +143,7 @@
 
 - [ ] Environment separation
   - Secretos separados por ambiente (dev/staging/prod)
-  - Prefijos: `Basileiás/dev`, `Basileiás/prod`
+  - Prefijos: `Basileia/dev`, `Basileia/prod`
   - Diferentes IAM roles por ambiente
 
 ## ⚠️ Warnings

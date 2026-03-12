@@ -64,11 +64,11 @@ Agregar estas variables:
 EMAIL_SERVICE=gmail
 EMAIL_USERNAME=tu-email@gmail.com
 EMAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx  # App Password de Gmail
-EMAIL_FROM=Basileiás@gmail.com
+EMAIL_FROM=Basileia@gmail.com
 
 # Frontend URL (para links en emails)
 FRONTEND_URL=http://localhost:5173  # Desarrollo
-# FRONTEND_URL=https://Basileiás.com  # Producción
+# FRONTEND_URL=https://Basileia.com  # Producción
 ```
 
 ### Obtener App Password de Gmail
@@ -184,7 +184,7 @@ db.bookings.countDocuments({ followUpSent: true })
 1. **Process manager** (PM2):
    ```bash
    npm install -g pm2
-   pm2 start backend/index.js --name Basileiás-api
+   pm2 start backend/index.js --name Basileia-api
    pm2 save
    pm2 startup
    ```

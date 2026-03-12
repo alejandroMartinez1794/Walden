@@ -36,7 +36,7 @@ const sendSecurityAlert = async (user, req) => {
                 <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
                     <h2 style="color: #d97706;">Nuevo Inicio de Sesión Detectado</h2>
                     <p>Hola <strong>${user.name}</strong>,</p>
-                    <p>Se ha detectado un nuevo inicio de sesión en tu cuenta de Basileiás.</p>
+                    <p>Se ha detectado un nuevo inicio de sesión en tu cuenta de Basileia.</p>
                     <ul style="background: #f9fafb; padding: 15px; border-radius: 5px; list-style: none;">
                         <li><strong>Fecha:</strong> ${time}</li>
                         <li><strong>IP:</strong> ${req.ip}</li>
@@ -164,7 +164,7 @@ const sendVerificationEmail = async ({ email, name, token }) => {
 
     await sendEmail({
         email,
-        subject: 'Verifica tu correo - Basileiás',
+        subject: 'Verifica tu correo - Basileia',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #2563eb;">Verifica tu correo</h2>

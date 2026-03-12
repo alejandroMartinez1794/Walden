@@ -181,7 +181,7 @@ export const createBooking = async (req, res) => {
         logger.info('📨 Enviando correo al paciente...');
         sendEmail({
           email: patientProfile.email,
-          subject: 'Confirmación de Cita - Basileiás',
+          subject: 'Confirmación de Cita - Basileia',
           message: `Hola ${patientProfile.name},\n\nTu cita con el Dr. ${doctorProfile.name} ha sido programada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}\n\nGracias por confiar en nosotros.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -199,7 +199,7 @@ export const createBooking = async (req, res) => {
         })
         await sendEmail({
           email: patientProfile.email,
-          subject: 'Cita Confirmada - Basileiás',
+          subject: 'Cita Confirmada - Basileia',
           message: `Hola ${patientProfile.name},\n\nTu cita ha sido confirmada para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -227,7 +227,7 @@ export const createBooking = async (req, res) => {
         logger.info('📨 Enviando correo al doctor...');
         await sendEmail({
           email: doctorProfile.email,
-          subject: 'Nueva Cita Programada - Basileiás',
+          subject: 'Nueva Cita Programada - Basileia',
           message: `Hola Dr. ${doctorProfile.name},\n\nSe ha programado una nueva cita con el paciente ${patientProfile.name} para el ${startDateTime.toLocaleString()}.\n\nMotivo: ${motivoConsulta}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -308,7 +308,7 @@ export const cancelBooking = async (req, res) => {
       if (patient?.email) {
         sendEmail({
           email: patient.email,
-          subject: 'Cita Cancelada - Basileiás',
+          subject: 'Cita Cancelada - Basileia',
           message: `Hola ${patient.name},\n\nTu cita con el Dr. ${doctor.name} programada para el ${dateStr} ha sido cancelada.\n\nSi no fuiste tú quien realizó esta acción, por favor contáctanos.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -325,7 +325,7 @@ export const cancelBooking = async (req, res) => {
       if (doctor?.email) {
         sendEmail({
           email: doctor.email,
-          subject: 'Cita Cancelada - Basileiás',
+          subject: 'Cita Cancelada - Basileia',
           message: `Hola Dr. ${doctor.name},\n\nLa cita con el paciente ${patient.name} programada para el ${dateStr} ha sido cancelada.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

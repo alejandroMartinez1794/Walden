@@ -44,4 +44,4 @@ jobs:
         if: success()
         run: |
           echo "✅ Deploy a staging exitoso"
-          echo "URL: ${{ secrets.STAGING_URL || 'https://staging.basileias.com' }}"
+          echo "URL: ${{ secrets.STAGING_URL || 'https://staging.basileia.com' }}"

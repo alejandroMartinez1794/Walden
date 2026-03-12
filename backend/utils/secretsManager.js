@@ -40,7 +40,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 // Configuración del backend de secrets
 const SECRETS_BACKEND = process.env.SECRETS_BACKEND || 'local'; // local, aws, vault, azure, gcp
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
-const AWS_SECRET_NAME = process.env.AWS_SECRET_NAME || 'basileias/production';
+const AWS_SECRET_NAME = process.env.AWS_SECRET_NAME || 'basileia/production';
 
 /**
  * 🔑 Secretos requeridos para funcionamiento
@@ -137,7 +137,7 @@ const getSecretVault = async (key) => {
       token: process.env.VAULT_TOKEN
     });
     
-    const vaultPath = process.env.VAULT_PATH || 'secret/basileias';
+    const vaultPath = process.env.VAULT_PATH || 'secret/basileia';
     const response = await vaultClient.read(`${vaultPath}/config`);
     
     return response.data[key] || null;

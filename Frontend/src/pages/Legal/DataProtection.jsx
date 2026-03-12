@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
           <section>
             <h3 className="text-xl font-bold text-headingColor mb-3">1. Responsable del Tratamiento</h3>
             <p>
-              <strong>Basileiás</strong> actúa como responsable del tratamiento de los datos personales recolectados a través de esta plataforma. 
+              <strong>Basileia</strong> actúa como responsable del tratamiento de los datos personales recolectados a través de esta plataforma. 
               Los datos sensibles de salud son tratados bajo estricta confidencialidad profesional.
             </p>
           </section>

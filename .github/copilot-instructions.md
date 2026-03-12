@@ -1,4 +1,4 @@
-# Basileiás Platform - AI Agent Guide
+# Basileia Platform - AI Agent Guide
 
 ## Project Architecture
 
@@ -70,7 +70,7 @@ const { data, loading, error } = useFetchData(`${BASE_URL}/doctors`);
 ```javascript
 // In doctor.js
 
-# Basileiás — Guía breve para agentes de código (en español)
+# Basileia — Guía breve para agentes de código (en español)
 
 Orientación rápida para hacer cambios productivos en este repositorio (concisa y accionable).
 

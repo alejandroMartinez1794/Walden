@@ -86,7 +86,7 @@ const notifyDoctorAboutCriticalAlert = async (alert) => {
           </div>
           
           <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #666;">
-            <p style="margin: 0;">Alerta generada automáticamente por el Sistema Basileiás</p>
+            <p style="margin: 0;">Alerta generada automáticamente por el Sistema Basileia</p>
             <p style="margin: 5px 0 0 0;">Por favor, tome acción dentro de las próximas 24 horas</p>
           </div>
         </div>

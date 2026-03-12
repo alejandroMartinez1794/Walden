@@ -1,10 +1,10 @@
-# Basileiás - Ethical Governance & Clinical Safety Evaluation
+# Basileia - Ethical Governance & Clinical Safety Evaluation
 
 ## Executive Summary
 
 **Evaluation Date**: January 20, 2026  
 **Evaluator Role**: Clinical Ethics & Telepsychology Governance  
-**System**: Basileiás (Virtual CBT Telepsychology Platform)  
+**System**: Basileia (Virtual CBT Telepsychology Platform)  
 **Standards Applied**: APA Telepsychology Guidelines, HIPAA, State Licensing Laws, Professional Ethics Codes
 
 **Overall Assessment**: ⚠️ **CONDITIONALLY COMPLIANT** - System architecture demonstrates strong ethical foundations with appropriate safeguards, but requires explicit implementation of critical fail-safes before clinical deployment.
@@ -1275,7 +1275,7 @@ async function enforceSessionNoteDeadline() {
 
 ### 8.1 Pre-Deployment Checklist
 
-Before launching Basileiás, **MUST complete**:
+Before launching Basileia, **MUST complete**:
 
 #### Legal & Compliance:
 - [ ] Malpractice insurance policy obtained (covering telepsychology)
@@ -1335,7 +1335,7 @@ Before launching Basileiás, **MUST complete**:
 
 ## Conclusion
 
-**Basileiás demonstrates strong ethical foundations** with appropriate separation of concerns (patient vs. clinician data), legal compliance frameworks (HIPAA, informed consent), and clinical safety mechanisms (risk assessment, protocols).
+**Basileia demonstrates strong ethical foundations** with appropriate separation of concerns (patient vs. clinician data), legal compliance frameworks (HIPAA, informed consent), and clinical safety mechanisms (risk assessment, protocols).
 
 **Critical gaps identified** require immediate attention before clinical deployment:
 1. Real-time location verification for virtual crisis scenarios

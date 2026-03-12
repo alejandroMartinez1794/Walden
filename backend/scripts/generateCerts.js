@@ -70,7 +70,7 @@ const attrs = [
   },
   {
     name: 'organizationName',
-    value: 'basileias Development'
+    value: 'basileia Development'
   },
   {
     shortName: 'OU',

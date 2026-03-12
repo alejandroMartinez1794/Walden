@@ -1,7 +1,7 @@
-# Basileiás Data Architecture
+# Basileia Data Architecture
 
 ## Overview
-This document describes the complete data model architecture for Basileiás, a clinical-grade telepsychology platform specializing in CBT.
+This document describes the complete data model architecture for Basileia, a clinical-grade telepsychology platform specializing in CBT.
 
 ## Design Principles
 

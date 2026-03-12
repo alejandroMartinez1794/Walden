@@ -52,7 +52,7 @@ export const handleQuickAction = (action, navigate, user) => {
         navigate('/services');
         return true;
     },
-    'Sobre Basileiás': () => {
+    'Sobre Basileia': () => {
        navigate('/home'); 
        return true;
     },

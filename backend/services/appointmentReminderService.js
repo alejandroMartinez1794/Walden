@@ -67,7 +67,7 @@ const sendAppointmentReminder = async (booking, hoursBeforeText) => {
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
           <p style="color: #999; font-size: 12px;">
-            Este es un mensaje automático de Basileiás. Por favor no respondas a este correo.
+            Este es un mensaje automático de Basileia. Por favor no respondas a este correo.
           </p>
         </div>
       `

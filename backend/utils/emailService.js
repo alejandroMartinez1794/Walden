@@ -50,8 +50,8 @@ const sendEmail = async (options) => {
     
     sendSmtpEmail.subject = options.subject;
     sendSmtpEmail.sender = {
-      name: 'basileias',
-      email: process.env.EMAIL_FROM || 'noreply@basileias.app',
+      name: 'basileia',
+      email: process.env.EMAIL_FROM || 'noreply@basileia.app',
     };
     sendSmtpEmail.to = [
       {
@@ -65,7 +65,7 @@ const sendEmail = async (options) => {
       sendSmtpEmail.bcc = [
         {
           email: process.env.EMAIL_BCC,
-          name: 'Admin basileias',
+          name: 'Admin basileia',
         },
       ];
     }
@@ -118,12 +118,12 @@ export default sendEmail;
  * 
  * 3. Add to .env:
  *    BREVO_API_KEY=xkeysib-your_key_here
- *    EMAIL_FROM=noreply@basileias.app
- *    EMAIL_BCC=admin@basileias.app (optional)
+ *    EMAIL_FROM=noreply@basileia.app
+ *    EMAIL_BCC=admin@basileia.app (optional)
  * 
  * 4. Verify sender email:
  *    - Senders & IP → Add a Sender
- *    - Use your domain email (e.g., noreply@basileias.app)
+ *    - Use your domain email (e.g., noreply@basileia.app)
  *    - Verify via email confirmation
  * 
  * 5. Advantages over SMTP:

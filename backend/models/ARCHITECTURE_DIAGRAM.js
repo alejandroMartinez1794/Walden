@@ -1,5 +1,5 @@
 /**
- * Basileiás Data Model Architecture - Visual Overview
+ * Basileia Data Model Architecture - Visual Overview
  * 
  * This file provides a visual representation of the data relationships
  * and privacy boundaries in the system.

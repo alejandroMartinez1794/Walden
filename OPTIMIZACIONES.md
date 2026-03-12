@@ -1,4 +1,4 @@
-# 🚀 Optimizaciones de Performance - Backend Basileiás
+# 🚀 Optimizaciones de Performance - Backend Basileia
 
 ## ✅ Cambios Implementados (Enero 2026)
 
@@ -89,7 +89,7 @@ AUTOMATION_MAX_BATCH=50
 AUTOMATION_EMAIL_THROTTLE_MS=1000
 
 # Seguridad
-CORS_ORIGINS=https://Basileiás.com,https://app.Basileiás.com
+CORS_ORIGINS=https://Basileia.com,https://app.Basileia.com
 ```
 
 ### Monitoreo Recomendado

@@ -16,7 +16,7 @@ const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes
 
 const filterOptions = [
 	{ id: 'all', label: 'Todo' },
-	{ id: 'basileias', label: 'Basileiás' },
+	{ id: 'basileia', label: 'Basileia' },
 	{ id: 'google', label: 'Google' },
 ];
 
@@ -41,7 +41,7 @@ const mapBookingsToEvents = (bookings = []) =>
 			backgroundColor: LOCAL_EVENT_COLOR,
 			borderColor: LOCAL_EVENT_COLOR,
 			extendedProps: {
-				source: 'basileias',
+				source: 'basileia',
 				doctorName: booking.doctor?.name || 'Profesional',
 				doctorSpecialty: booking.doctor?.specialization || 'Medicina',
 				reason: booking.reason,
@@ -105,11 +105,11 @@ const formatSelectedDay = (date) =>
 const isSameLocalDay = (a, b) =>
 	a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
-const sourceLabel = (source) => (source === 'google' ? 'Google' : 'Basileiás');
+const sourceLabel = (source) => (source === 'google' ? 'Google' : 'Basileia');
 
 const sourceBadgeClass = (source) => {
 	if (source === 'google') return 'bg-sky-50 text-sky-700 border border-sky-100';
-	if (source === 'basileias') return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+	if (source === 'basileia') return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
 	return 'bg-slate-100 text-slate-600 border border-slate-200';
 };
 
@@ -168,7 +168,7 @@ const computeExperience = (events) => {
 			focusSuggestion: 'Registra o importa tu primera cita',
 		};
 	}
-	const localCount = events.filter((evt) => evt.extendedProps?.source === 'basileias').length;
+	const localCount = events.filter((evt) => evt.extendedProps?.source === 'basileia').length;
 	const googleCount = events.filter((evt) => evt.extendedProps?.source === 'google').length;
 	const total = events.length;
 	const googleShare = total ? Math.round((googleCount / total) * 100) : 0;
@@ -388,7 +388,7 @@ const MyCalendar = () => {
 	}, [events, filteredEvents, eventFilter, selectedDate]);
 
 	const localEvents = useMemo(
-		() => events.filter((evt) => evt.extendedProps?.source === 'basileias'),
+		() => events.filter((evt) => evt.extendedProps?.source === 'basileia'),
 		[events]
 	);
 
@@ -651,7 +651,7 @@ const MyCalendar = () => {
 						<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 py-4 text-sm text-slate-600">
 							<div className="flex flex-wrap gap-3">
 								<div className="rounded-2xl border border-slate-200 px-3 py-2">
-									<p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">Basileiás</p>
+									<p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">Basileia</p>
 									<p className="text-lg font-semibold text-slate-900">{stats.local}</p>
 								</div>
 								{isGoogleAccount && (

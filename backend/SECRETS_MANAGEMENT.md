@@ -36,8 +36,8 @@ npm install @aws-sdk/client-secrets-manager
 ```bash
 # Via AWS CLI
 aws secretsmanager create-secret \
-  --name Basileiás/production \
-  --description "Basileiás production secrets" \
+  --name Basileia/production \
+  --description "Basileia production secrets" \
   --secret-string '{
     "JWT_SECRET_KEY": "your-jwt-secret-here",
     "MONGO_URL": "mongodb+srv://...",
@@ -56,7 +56,7 @@ O via AWS Console:
    - `JWT_SECRET_KEY`: (tu valor)
    - `MONGO_URL`: (tu valor)
    - etc.
-4. Name: `Basileiás/production`
+4. Name: `Basileia/production`
 5. Region: `us-east-1` (o tu región)
 
 #### 3. Configurar credenciales AWS
@@ -74,7 +74,7 @@ O via AWS Console:
         "secretsmanager:GetSecretValue",
         "secretsmanager:DescribeSecret"
       ],
-      "Resource": "arn:aws:secretsmanager:us-east-1:*:secret:Basileiás/production-*"
+      "Resource": "arn:aws:secretsmanager:us-east-1:*:secret:Basileia/production-*"
     }
   ]
 }
@@ -92,7 +92,7 @@ export AWS_REGION=us-east-1
 # .env (en producción)
 SECRETS_BACKEND=aws
 AWS_REGION=us-east-1
-AWS_SECRET_NAME=Basileiás/production
+AWS_SECRET_NAME=Basileia/production
 NODE_ENV=production
 ```
 
@@ -117,7 +117,7 @@ npm install node-vault
 vault server -dev
 
 # Escribir secretos
-vault kv put secret/Basileiás/config \
+vault kv put secret/Basileia/config \
   JWT_SECRET_KEY="..." \
   MONGO_URL="..." \
   GOOGLE_CLIENT_ID="..."
@@ -129,7 +129,7 @@ vault kv put secret/Basileiás/config \
 SECRETS_BACKEND=vault
 VAULT_ADDR=https://vault.tu-empresa.com
 VAULT_TOKEN=hvs.XXXXXXXXXXXXXXXXXXXXXX
-VAULT_PATH=secret/Basileiás
+VAULT_PATH=secret/Basileia
 NODE_ENV=production
 ```
 
@@ -146,13 +146,13 @@ npm install @azure/keyvault-secrets @azure/identity
 ```bash
 # Via Azure CLI
 az keyvault create \
-  --name Basileiás-kv \
-  --resource-group Basileiás-rg \
+  --name Basileia-kv \
+  --resource-group Basileia-rg \
   --location eastus
 
 # Agregar secretos
 az keyvault secret set \
-  --vault-name Basileiás-kv \
+  --vault-name Basileia-kv \
   --name JWT-SECRET-KEY \
   --value "tu-secret-aqui"
 ```
@@ -161,7 +161,7 @@ az keyvault secret set \
 ```bash
 # .env
 SECRETS_BACKEND=azure
-AZURE_KEY_VAULT_NAME=Basileiás-kv
+AZURE_KEY_VAULT_NAME=Basileia-kv
 NODE_ENV=production
 ```
 
@@ -179,11 +179,11 @@ npm install @google-cloud/secret-manager
 # Via gcloud CLI
 gcloud secrets create JWT_SECRET_KEY \
   --data-file=/tmp/jwt-secret.txt \
-  --project=Basileiás-prod
+  --project=Basileia-prod
 
 # Dar acceso a la service account
 gcloud secrets add-iam-policy-binding JWT_SECRET_KEY \
-  --member="serviceAccount:Basileiás@Basileiás-prod.iam.gserviceaccount.com" \
+  --member="serviceAccount:Basileia@Basileia-prod.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
 
@@ -191,7 +191,7 @@ gcloud secrets add-iam-policy-binding JWT_SECRET_KEY \
 ```bash
 # .env
 SECRETS_BACKEND=gcp
-GCP_PROJECT_ID=Basileiás-prod
+GCP_PROJECT_ID=Basileia-prod
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 NODE_ENV=production
 ```
@@ -232,7 +232,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```bash
 # Actualizar secreto
 aws secretsmanager update-secret \
-  --secret-id Basileiás/production \
+  --secret-id Basileia/production \
   --secret-string file://new-secrets.json
 
 # O via AWS Console: Rotate secret immediately
@@ -255,7 +255,7 @@ SECRETS_BACKEND=local npm run start-dev
 # Test AWS (requiere credenciales)
 SECRETS_BACKEND=aws \
 AWS_REGION=us-east-1 \
-AWS_SECRET_NAME=Basileiás/production \
+AWS_SECRET_NAME=Basileia/production \
 npm start
 ```
 
@@ -298,7 +298,7 @@ Response:
 
 ### Error: "Missing required secret: JWT_SECRET_KEY"
 - Verifica que el secreto existe en el backend configurado
-- Para AWS: `aws secretsmanager get-secret-value --secret-id Basileiás/production`
+- Para AWS: `aws secretsmanager get-secret-value --secret-id Basileia/production`
 - Para local: verifica que `.env.local` contiene `JWT_SECRET_KEY=...`
 
 ### Error: "Cannot find module '@aws-sdk/client-secrets-manager'"

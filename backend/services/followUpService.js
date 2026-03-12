@@ -58,7 +58,7 @@ const sendFollowUpSurvey = async (booking) => {
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
           <p style="color: #999; font-size: 12px;">
-            Este es un mensaje automático de Basileiás. Tu respuesta es opcional pero muy valiosa.
+            Este es un mensaje automático de Basileia. Tu respuesta es opcional pero muy valiosa.
           </p>
         </div>
       `
@@ -115,7 +115,7 @@ const sendHealthMetricsReminder = async (booking) => {
 
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
           <p style="color: #999; font-size: 12px;">
-            Recordatorio automático de Basileiás.
+            Recordatorio automático de Basileia.
           </p>
         </div>
       `
@@ -283,7 +283,7 @@ const scheduleNextAppointmentReminder = () => {
 
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
               <p style="color: #999; font-size: 12px;">
-                Este es un recordatorio amistoso de Basileiás para apoyar tu bienestar.
+                Este es un recordatorio amistoso de Basileia para apoyar tu bienestar.
               </p>
             </div>
           `

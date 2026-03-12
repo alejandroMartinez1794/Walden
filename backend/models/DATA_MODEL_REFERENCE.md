@@ -1,8 +1,8 @@
-# Basileiás Data Models - Complete Reference
+# Basileia Data Models - Complete Reference
 
 ## Executive Summary
 
-This document provides field-level descriptions and rationale for all Basileiás data models. The architecture prioritizes **legal defensibility**, **patient privacy**, and **clinical utility**.
+This document provides field-level descriptions and rationale for all Basileia data models. The architecture prioritizes **legal defensibility**, **patient privacy**, and **clinical utility**.
 
 ---
 
