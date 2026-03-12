@@ -19,6 +19,9 @@
     "optimize-db": "node scripts/optimizeIndexes.js",
     "validate-production": "node scripts/validateProduction.js"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "author": "Bogobyte",
   "license": "ISC",
   "dependencies": {

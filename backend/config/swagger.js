@@ -55,7 +55,7 @@ const options = {
       },
       {
         url: 'https://api.basileias.app',
-        description: 'Production server (Railway)',
+        description: 'Production server (Heroku)',
       },
     ],
     components: {

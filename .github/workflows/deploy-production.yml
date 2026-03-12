@@ -10,16 +10,16 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      
+
       - name: Ejecutar tests backend
         working-directory: ./backend
         run: |
@@ -27,26 +27,26 @@ jobs:
           npm test -- --forceExit
         env:
           NODE_ENV: test
-  
+
   build:
     needs: tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      
+
       - name: Build Backend
         working-directory: ./backend
         run: |
           npm ci --only=production
           echo "✅ Backend listo para producción"
-      
+
       - name: Build Frontend
         working-directory: ./Frontend
         run: |
@@ -54,7 +54,7 @@ jobs:
           npm run build
         env:
           VITE_API_URL: ${{ secrets.PRODUCTION_API_URL }}
-      
+
       - name: Crear artifact
         uses: actions/upload-artifact@v4
         with:
@@ -63,38 +63,24 @@ jobs:
             backend/
             Frontend/dist/
           retention-days: 7
-  
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
-      - name: Descargar artifact
-        uses: actions/download-artifact@v4
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Deploy Backend a Heroku
+        if: ${{ secrets.HEROKU_API_KEY }}
+        uses: akhileshns/heroku-deploy@v3.13.15
         with:
-          name: production-build
-      
-      # Configurar según tu proveedor de hosting
-      
-      # Opción 1: Railway
-      - name: Deploy a Railway
-        if: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          npm install -g @railway/cli
-          railway up --service backend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        continue-on-error: true
-      
-      # Opción 2: Render
-      - name: Deploy a Render
-        if: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
-        continue-on-error: true
-      
-      # Opción 3: Vercel (Frontend)
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+
       - name: Deploy Frontend a Vercel
         if: ${{ secrets.VERCEL_TOKEN }}
         working-directory: ./Frontend
@@ -102,12 +88,12 @@ jobs:
           npm install -g vercel
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
         continue-on-error: true
-      
+
       - name: Verificar deploy
         run: |
           echo "✅ Deploy a producción completado"
           echo "🌐 URL: ${{ secrets.PRODUCTION_URL || 'https://basileias.com' }}"
-      
+
       - name: Notificar en caso de fallo
         if: failure()
         run: |

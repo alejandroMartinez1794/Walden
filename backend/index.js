@@ -133,7 +133,7 @@ app.get('/', (req, res) => {
 });
 
 // ============= HEALTH CHECK ENDPOINTS =============
-// Used by Railway, Vercel, UptimeRobot for monitoring
+// Used by Heroku, Vercel, UptimeRobot for monitoring
 app.get('/health', async (req, res) => {
     const healthCheck = {
         status: 'ok',

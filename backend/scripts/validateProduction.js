@@ -297,7 +297,7 @@ async function main() {
     console.log('');
     log.info('Next steps:');
     log.info('1. Review DEPLOYMENT_GUIDE.md');
-    log.info('2. Deploy to Railway (backend)');
+    log.info('2. Deploy to Heroku (backend)');
     log.info('3. Deploy to Vercel (frontend)');
     log.info('4. Configure domain DNS');
     log.info('5. Run health checks');

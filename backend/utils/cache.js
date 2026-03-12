@@ -1,9 +1,9 @@
 /**
  * Redis Cache Service
- * 
- * Railway provides Redis through Railway Redis add-on (free tier available)
- * Local development: Use Railway dev or Docker (docker run -d -p 6379:6379 redis:alpine)
- * 
+ *
+ * Heroku provides Redis through the Heroku Data for Redis addon (free with Student Pack credits)
+ * Local development: Use Docker (docker run -d -p 6379:6379 redis:alpine)
+ *
  * Benefits:
  * - Faster response times for frequently accessed data
  * - Reduced database load
@@ -269,14 +269,13 @@ export default {
  * 1. Local development with Docker:
  *    docker run -d -p 6379:6379 --name redis redis:alpine
  * 
- * 2. Railway (Production):
- *    - Add Redis plugin in Railway dashboard
- *    - Copy REDIS_URL from plugin variables
- *    - Add to Railway environment variables
- * 
+ * 2. Heroku (Production):
+ *    - Add Heroku Data for Redis addon in Heroku dashboard
+ *    - REDIS_URL is automatically set by Heroku
+ *
  * 3. Add to .env:
  *    REDIS_URL=redis://localhost:6379
- *    # Railway: redis://default:password@host:port
+ *    # Heroku: redis://default:password@host:port
  * 
  * 4. Initialize in index.js:
  *    import { initRedis, closeRedis } from './utils/cache.js';

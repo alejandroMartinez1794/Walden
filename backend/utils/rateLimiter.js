@@ -222,7 +222,7 @@ export default {
  * - New Relic shows request rate patterns
  * 
  * PRODUCTION NOTES:
- * - Railway automatically provides REDIS_URL when Redis plugin is added
+ * - Heroku automatically provides REDIS_URL when Heroku Data for Redis addon is added
  * - Cloudflare can provide additional DDoS protection at edge
  * - Consider implementing exponential backoff on client side
  * - Add custom headers to inform clients of rate limit status

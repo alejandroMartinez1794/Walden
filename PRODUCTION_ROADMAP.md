@@ -288,7 +288,7 @@ npm test
 
 3. **deploy-staging.yml** - Deploy a Staging
    - ✅ Build y deploy automático
-   - ✅ Soporte Railway/Render/Vercel
+   - ✅ Soporte Heroku/Render/Vercel
    - **Trigger:** Push a branch `develop`
 
 4. **deploy-production.yml** - Deploy a Producción
@@ -350,7 +350,7 @@ STAGING_API_URL
 STAGING_URL
 PRODUCTION_API_URL
 PRODUCTION_URL
-RAILWAY_TOKEN (si usa Railway)
+HEROKU_API_KEY (si usa Heroku)
 RENDER_DEPLOY_HOOK (si usa Render)
 VERCEL_TOKEN (si usa Vercel)
 SNYK_TOKEN (opcional)
@@ -811,7 +811,7 @@ jobs:
 - Spaces para archivos estáticos
 - Built-in CI/CD
 
-**Opción 3: Render/Railway (Más fácil, menos configuración)**
+**Opción 3: Render/Heroku (Más fácil, menos configuración)**
 - Auto-deploy desde GitHub
 - Built-in SSL
 - Logs automáticos

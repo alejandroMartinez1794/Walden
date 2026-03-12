@@ -13,3 +13,5 @@ Frontend/node_modules/
 # Root environment
 *.log
 *.env
+# Claude Code temp files
+tmpclaude-*

@@ -4,10 +4,10 @@ Guía completa para desplegar Basileiás en producción usando el stack gratuito
 
 ## 📋 Stack de Producción (100% Gratuito)
 
-- **Backend**: Railway (512MB RAM, $5/mes en créditos gratis)
+- **Backend**: Heroku (Eco dynos, $13/mes en créditos Student Pack)
 - **Frontend**: Vercel (sin límites, gratis permanente)
 - **Base de Datos**: MongoDB Atlas M0 (512MB, gratis permanente)
-- **Cache**: Railway Redis (opcional, free tier)
+- **Cache**: Heroku Data for Redis (opcional, con créditos Student Pack)
 - **Storage**: Cloudinary (25GB, gratis permanente)
 - **Monitoring**: New Relic (gratis con Student Pack)
 - **Error Tracking**: Sentry (50K errores/mes, gratis con Student Pack)
@@ -69,7 +69,7 @@ BREVO_API_KEY=xkeysib-<tu-api-key>
 EMAIL_FROM=noreply@Basileiás.app
 EMAIL_BCC=admin@Basileiás.app
 
-# Redis (opcional - Railway lo proporciona automáticamente)
+# Redis (opcional - Heroku lo proporciona via addon)
 REDIS_URL=redis://default:password@host:port
 
 # Wompi
@@ -103,7 +103,7 @@ HCAPTCHA_SECRET=<tu-secret>
    - Built-in Role: `Atlas Admin`
 
 2. **Network Access** → Add IP Address
-   - `0.0.0.0/0` (permite desde cualquier IP - Railway cambia IPs)
+   - `0.0.0.0/0` (permite desde cualquier IP - Heroku cambia IPs)
    - ⚠️ **IMPORTANTE**: Esto es seguro porque requiere credenciales
 
 ### 2.3 Obtener Connection String
@@ -126,7 +126,7 @@ npm run optimize-db
 
 ---
 
-## 🚂 FASE 3: Railway Deployment (Backend)
+## 🟣 FASE 3: Heroku Deployment (Backend)
 
 ### 3.1 Preparar Repositorio
 
@@ -142,66 +142,76 @@ git pull origin Cambios
 # node_modules/
 ```
 
-### 3.2 Crear Proyecto en Railway
+### 3.2 Activar Heroku Student Pack
 
-1. Ir a [Railway.app](https://railway.app)
-2. Sign up with GitHub
-3. New Project → Deploy from GitHub repo
-4. Seleccionar: `alejandroMartinez1794/Walden`
-5. Branch: `Cambios`
-6. Root Directory: `/backend`
+1. Activar GitHub Student Pack: [education.github.com/pack](https://education.github.com/pack)
+2. Ir a [Heroku Student Pack](https://www.heroku.com/github-students)
+3. Conectar cuenta GitHub → Obtener créditos ($13/mes por 24 meses)
 
-### 3.3 Configurar Variables de Entorno
-
-En Railway Dashboard → Variables:
+### 3.3 Crear App en Heroku
 
 ```bash
-NODE_ENV=production
-PORT=8000
+# Instalar Heroku CLI
+npm install -g heroku
 
-# Copiar todas las variables de .env.production
-MONGO_URL=mongodb+srv://...
-JWT_SECRET_KEY=...
-ENCRYPTION_KEY=...
-# ... (todas las demás)
+# Login
+heroku login
+
+# Crear app
+heroku create basileias-api
+
+# Configurar para monorepo (backend está en /backend)
+heroku buildpacks:set heroku/nodejs
 ```
 
-**TIP**: Usar Railway CLI para bulk import:
+### 3.4 Configurar Variables de Entorno
+
 ```bash
-npm install -g @railway/cli
-railway login
-railway link <project-id>
-railway variables set -f .env.production
+# Configurar todas las variables de producción
+heroku config:set NODE_ENV=production
+heroku config:set PORT=8000
+heroku config:set MONGO_URL="mongodb+srv://..."
+heroku config:set JWT_SECRET_KEY="..."
+heroku config:set ENCRYPTION_KEY="..."
+# ... (todas las demás variables de .env.production)
 ```
 
-### 3.4 Agregar Redis Plugin (Opcional)
+**TIP**: Bulk import desde archivo:
+```bash
+cat .env.production | xargs heroku config:set
+```
 
-1. Railway Dashboard → New → Database → Redis
-2. Railway automáticamente agrega `REDIS_URL` a variables
-3. Reiniciar servicio backend
+### 3.5 Agregar Redis Addon (Opcional)
 
-### 3.5 Configurar Build
-
-Railway detecta automáticamente Node.js. Verificar en Settings:
-
-- **Build Command**: `npm install`
-- **Start Command**: `npm start`
-- **Watch Paths**: `/backend/**`
+```bash
+heroku addons:create heroku-redis:mini
+# Heroku automáticamente agrega REDIS_URL a variables
+```
 
 ### 3.6 Deploy
 
-1. Deploy automático al hacer push:
-   ```bash
-   git push origin Cambios
-   ```
+```bash
+# Deploy desde GitHub
+git push heroku Cambios:main
 
-2. Ver logs en Railway Dashboard → Deployments
+# O conectar GitHub para auto-deploy:
+# Heroku Dashboard → Deploy → GitHub → Connect
+# Enable Automatic Deploys desde branch main
+```
 
-3. Obtener URL pública:
-   - Settings → Generate Domain
-   - Copiar URL: `https://Basileiás-backend.up.railway.app`
-   - **IMPORTANTE**: Agregar custom domain en Settings → Domains:
-     - `api.Basileiás.app`
+### 3.7 Verificar
+
+```bash
+# Ver logs
+heroku logs --tail
+
+# Obtener URL pública
+heroku info
+# URL: https://basileias-api.herokuapp.com
+
+# Configurar custom domain
+heroku domains:add api.basileias.app
+```
 
 ---
 
@@ -283,18 +293,18 @@ Answer: cname.vercel-dns.com.
 TTL: 300
 ```
 
-#### Para Railway (Backend API):
+#### Para Heroku (Backend API):
 ```
 Type: CNAME
 Host: api
-Answer: <tu-railway-domain>.up.railway.app.
+Answer: <tu-heroku-app>.herokuapp.com.
 TTL: 300
 ```
 
 ### 5.3 Verificar SSL
 
 - Vercel: SSL automático (Let's Encrypt)
-- Railway: SSL automático
+- Heroku: SSL automático
 - Verificar: `https://Basileiás.app` y `https://api.Basileiás.app`
 
 ---
@@ -389,7 +399,7 @@ curl https://api.Basileiás.app/api/v1/doctors?isApproved=approved
 ### 7.3 Verificar Servicios
 
 - ✅ **MongoDB**: Ver conexiones en Atlas
-- ✅ **Redis**: Railway → Redis → Metrics
+- ✅ **Redis**: Heroku Dashboard → Redis → Metrics
 - ✅ **New Relic**: Ver APM dashboard
 - ✅ **Sentry**: Ver errores (debe estar vacío)
 - ✅ **Brevo**: Probar envío de email (registro)
@@ -410,7 +420,7 @@ curl https://api.Basileiás.app/api/v1/doctors?isApproved=approved
 1. Panel Wompi → Configuración → Webhooks
 2. URL: `https://api.Basileiás.app/api/v1/payment/webhook`
 
-### 8.2 Habilitar Rate Limiting en Railway
+### 8.2 Habilitar Rate Limiting en Heroku
 
 Variables ya configuradas en Phase 6 con Redis.
 
@@ -455,7 +465,7 @@ Usar [UptimeRobot](https://uptimerobot.com/) (gratis):
 
 Ver workflows en `.github/workflows/`:
 - `test.yml` - Tests automáticos
-- `deploy-production.yml` - Deploy a Railway/Vercel
+- `deploy-production.yml` - Deploy a Heroku/Vercel
 
 ### 10.2 Workflow de Deploy
 
@@ -468,7 +478,7 @@ git push origin Cambios
 
 # 2. GitHub Actions corre tests automáticamente
 
-# 3. Si tests pasan, Railway auto-deploy
+# 3. Si tests pasan, Heroku auto-deploy
 
 # 4. Merge a main cuando esté listo para producción
 git checkout main
@@ -486,18 +496,18 @@ git push origin main
 - Verificar password no tiene caracteres especiales sin codificar
 
 ### Error: "Redis connection failed"
-- Normal si no hay Redis plugin en Railway
+- Normal si no hay Redis addon en Heroku
 - App funciona sin Redis (graceful degradation)
-- Agregar Redis plugin si quieres caching
+- Agregar Redis addon: heroku addons:create heroku-redis:mini
 
 ### Error: "CORS policy blocked"
 - Verificar `CORS_ORIGINS` incluye frontend URL
 - Verificar `FRONTEND_URL` correcto en .env
-- Reiniciar backend en Railway
+- Reiniciar backend: heroku restart
 
 ### Error: "New Relic not reporting"
 - Verificar `NEW_RELIC_LICENSE_KEY` correcto
-- Ver logs en Railway: "New Relic: Initialized"
+- Ver logs: heroku logs --tail | grep "New Relic"
 - Puede tardar 5-10 min en aparecer data
 
 ### Error: "Emails no se envían"
@@ -511,7 +521,7 @@ git push origin main
 
 ### Año 1 (con Student Pack):
 - MongoDB Atlas M0: **$0/mes**
-- Railway: **$0/mes** ($5 en créditos)
+- Heroku: **$0/mes** ($13/mes en créditos Student Pack)
 - Vercel: **$0/mes**
 - Cloudinary: **$0/mes**
 - New Relic: **$0/mes** (Student Pack)
@@ -523,7 +533,7 @@ git push origin main
 ### Año 2+ (sin Student Pack):
 - Domain: ~$15/año ($1.25/mes)
 - MongoDB: $0/mes (M0 siempre gratis)
-- Railway: $5/mes en créditos (probablemente suficiente)
+- Heroku: $7/mes (Eco dynos, después de Student Pack)
 - Vercel: $0/mes (siempre gratis)
 - Cloudinary: $0/mes (siempre gratis)
 - New Relic: $0/mes (tier gratuito 100GB/mes)
@@ -541,7 +551,7 @@ git push origin main
 ## ✅ Checklist Final
 
 - [ ] MongoDB Atlas cluster creado y funcionando
-- [ ] Railway backend deployed y accesible
+- [ ] Heroku backend deployed y accesible
 - [ ] Vercel frontend deployed y accesible
 - [ ] Dominio configurado (Basileiás.app)
 - [ ] SSL activo en ambos dominios
@@ -561,7 +571,7 @@ git push origin main
 
 Tu aplicación Basileiás ahora está en producción con:
 - ✅ 100% Gratuito (primer año con Student Pack)
-- ✅ Escalable (Railway + Vercel)
+- ✅ Escalable (Heroku + Vercel)
 - ✅ Monitoreado (New Relic + Sentry)
 - ✅ Seguro (HTTPS, rate limiting, encryption)
 - ✅ Compliant (Ley 1581, Resolución 2654)

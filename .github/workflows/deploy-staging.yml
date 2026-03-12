@@ -9,20 +9,20 @@ jobs:
   deploy-staging:
     runs-on: ubuntu-latest
     environment: staging
-    
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      
+
       - name: Instalar dependencias Backend
         working-directory: ./backend
         run: npm ci --only=production
-      
+
       - name: Build Frontend
         working-directory: ./Frontend
         run: |
@@ -30,24 +30,16 @@ jobs:
           npm run build
         env:
           VITE_API_URL: ${{ secrets.STAGING_API_URL }}
-      
-      # Ejemplo con Railway/Render (ajustar según plataforma)
-      - name: Deploy a Railway
-        if: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          npm install -g @railway/cli
-          railway up --service backend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy Backend a Heroku (Staging)
+        if: ${{ secrets.HEROKU_API_KEY }}
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_STAGING_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
         continue-on-error: true
-      
-      # Ejemplo con Render
-      - name: Deploy a Render
-        if: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
-        continue-on-error: true
-      
+
       - name: Notificar deploy exitoso
         if: success()
         run: |

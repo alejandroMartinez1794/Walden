@@ -29,7 +29,7 @@ Este documento describe el pipeline de CI/CD implementado para el proyecto Basil
 **Trigger:** Push a branch `develop`
 
 **Ambiente:** staging
-**Soporta:** Railway, Render, Vercel
+**Soporta:** Heroku, Render, Vercel
 
 ### 4. **deploy-production.yml** - Deploy a Producción
 **Trigger:** Push a `main` o tags `v*.*.*`
@@ -69,7 +69,7 @@ ENCRYPTION_KEY          # Key de 32 bytes para encriptación
 ```
 STAGING_API_URL         # URL del API de staging
 STAGING_URL             # URL del frontend de staging
-RAILWAY_TOKEN           # Token de Railway (si usa Railway)
+HEROKU_API_KEY          # API Key de Heroku (si usa Heroku)
 RENDER_DEPLOY_HOOK      # Webhook de Render (si usa Render)
 ```
 
@@ -166,6 +166,6 @@ Los workflows generan métricas automáticamente:
 
 - [GitHub Actions Docs](https://docs.github.com/en/actions)
 - [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [Railway Deployment](https://docs.railway.app/)
+- [Heroku Deployment](https://devcenter.heroku.com/)
 - [Render Deployment](https://render.com/docs)
 - [Vercel Deployment](https://vercel.com/docs)

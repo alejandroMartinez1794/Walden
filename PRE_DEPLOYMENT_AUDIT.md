@@ -91,7 +91,7 @@ WOMPI_INTEGRITY_SECRET=<tu-integrity-secret>
 
 ### 🔴 **CRÍTICO #2: Frontend Config Hardcodeada**
 
-**Problema:** Frontend usa `BASE_URL` con puerto 8000 que NO coincide con Railway (5000)
+**Problema:** Frontend usa `BASE_URL` con puerto 8000 que NO coincide con producción (Heroku)
 
 **Impacto:** Frontend NO se conecta al backend en producción
 
@@ -105,7 +105,7 @@ WOMPI_INTEGRITY_SECRET=<tu-integrity-secret>
 export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000/api/v1';
 ```
 
-**Problema:** Backend usa PORT=5000 en `.env.local.example` pero Railway usa 8000
+**Problema:** Backend usa PORT=5000 en `.env.local.example` pero Heroku usa PORT env var
 
 **Solución:**
 ```javascript
@@ -113,8 +113,8 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:80
 // backend/.env.example: PORT=8000
 // Frontend/.env.example: VITE_BACKEND_URL=http://localhost:8000/api/v1
 
-// Opción 2: Railway detecta PORT automático, usar variable
-// Railway inject PORT env var
+// Opción 2: Heroku detecta PORT automático, usar variable
+// Heroku inject PORT env var
 ```
 
 **Acción:** ✏️ Estandarizar puerto 8000 en toda la documentación
@@ -125,7 +125,7 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:80
 
 **Problema:** Código tiene console.log que genera ruido en producción
 
-**Impacto:** Performance degradado + logs innecesarios en Railway/Vercel
+**Impacto:** Performance degradado + logs innecesarios en Heroku/Vercel
 
 **Archivos encontrados:**
 - `backend/newrelic.js` línea 13, 17
@@ -252,7 +252,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 ### 🟢 **NICE-TO-HAVE #3: Health Check Endpoint**
 
-**Problema:** No hay endpoint `/health` para Railway/Vercel
+**Problema:** No hay endpoint `/health` para Heroku/Vercel
 
 **Recomendación:** Agregar:
 ```javascript
@@ -325,7 +325,7 @@ CLOUDINARY_API_SECRET=your_api_secret
   - [ ] BACKEND_URL=https://api.Basileiás.app
   - [ ] FRONTEND_URL=https://Basileiás.app
   - [ ] CORS_ORIGINS=https://Basileiás.app
-  - [ ] REDIS_URL (Railway lo genera automático)
+  - [ ] REDIS_URL (Heroku lo genera via addon)
   - [ ] HCAPTCHA_SECRET (de hCaptcha dashboard)
 
 - [ ] **Actualizar Frontend `.env.production`**
@@ -356,7 +356,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 ### Durante Deploy
 
-- [ ] **Railway (Backend)**
+- [ ] **Heroku (Backend)**
   1. [ ] Conectar repositorio GitHub
   2. [ ] Configurar root directory: `/backend`
   3. [ ] Agregar TODAS las variables de entorno
@@ -375,14 +375,14 @@ CLOUDINARY_API_SECRET=your_api_secret
 - [ ] **MongoDB Atlas**
   1. [ ] Crear cluster M0 (São Paulo region)
   2. [ ] Crear usuario admin
-  3. [ ] Whitelist IP: 0.0.0.0/0 (Railway cambia IPs)
+  3. [ ] Whitelist IP: 0.0.0.0/0 (Heroku cambia IPs)
   4. [ ] Obtener connection string
-  5. [ ] Verificar conexión desde Railway
+  5. [ ] Verificar conexión desde Heroku
 
 - [ ] **Name.com DNS**
   1. [ ] A record: @ → 76.76.21.21 (Vercel)
   2. [ ] CNAME: www → cname.vercel-dns.com
-  3. [ ] CNAME: api → <railway-domain>.up.railway.app
+  3. [ ] CNAME: api → <heroku-app>.herokuapp.com
   4. [ ] Esperar propagación (5-30 min)
 
 ### Post-Deploy
@@ -501,7 +501,7 @@ find . -name "*.js" -not -path "*/node_modules/*" -exec sed -i 's/console\.warn/
 **Agregar después de línea 132 (antes de setupSwagger):**
 ```javascript
 // ============= HEALTH CHECK ENDPOINT =============
-// Used by Railway, Vercel, UptimeRobot for monitoring
+// Used by Heroku, Vercel, UptimeRobot for monitoring
 app.get('/health', (req, res) => {
     const healthCheck = {
         status: 'ok',

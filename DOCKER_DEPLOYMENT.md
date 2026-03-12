@@ -185,11 +185,12 @@ docker-compose up -d
 # Ver ejemplo en nginx/nginx-reverse-proxy.conf
 ```
 
-### Opción 2: Railway
+### Opción 2: Heroku
 
 ```bash
-# Railway detecta Dockerfile automáticamente
-railway up
+# Heroku detecta Dockerfile automáticamente
+heroku container:push web
+heroku container:release web
 ```
 
 ### Opción 3: Render
