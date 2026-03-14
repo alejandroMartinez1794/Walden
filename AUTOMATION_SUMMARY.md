@@ -1,6 +1,6 @@
 # 🎉 Sistema de Automatización Implementado
 
-## ✅ Resumen de Cambios
+## ✅ Resumen de basileia
 
 Se ha implementado un **sistema de automatización nativo completo** en Node.js que elimina la necesidad de N8N para tu plataforma médica.
 

@@ -131,9 +131,9 @@ npm run optimize-db
 ### 3.1 Preparar Repositorio
 
 ```bash
-# Asegurarse de estar en branch Cambios
-git checkout Cambios
-git pull origin Cambios
+# Asegurarse de estar en branch basileia
+git checkout basileia
+git pull origin basileia
 
 # Verificar que .gitignore incluya:
 # .env
@@ -192,7 +192,7 @@ heroku addons:create heroku-redis:mini
 
 ```bash
 # Deploy desde GitHub
-git push heroku Cambios:main
+git push heroku basileia:main
 
 # O conectar GitHub para auto-deploy:
 # Heroku Dashboard → Deploy → GitHub → Connect
@@ -470,11 +470,11 @@ Ver workflows en `.github/workflows/`:
 ### 10.2 Workflow de Deploy
 
 ```bash
-# 1. Desarrollar en branch Cambios
-git checkout Cambios
+# 1. Desarrollar en branch basileia
+git checkout basileia
 # ... hacer cambios ...
 git commit -m "feat: nueva funcionalidad"
-git push origin Cambios
+git push origin basileia
 
 # 2. GitHub Actions corre tests automáticamente
 
@@ -482,7 +482,7 @@ git push origin Cambios
 
 # 4. Merge a main cuando esté listo para producción
 git checkout main
-git merge Cambios
+git merge basileia
 git push origin main
 ```
 

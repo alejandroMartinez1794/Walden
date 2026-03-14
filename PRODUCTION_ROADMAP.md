@@ -277,7 +277,7 @@ npm test
    - ✅ Frontend build check
    - ✅ Security audit
    - ✅ Coverage report (Codecov)
-   - **Trigger:** Push a main/Cambios/develop, PRs
+   - **Trigger:** Push a main/basileia/develop, PRs
 
 2. **pr-checks.yml** - Validación de Pull Requests
    - ✅ Tests completos
@@ -359,7 +359,7 @@ SNYK_TOKEN (opcional)
 ### 3.5 Próximos Pasos
 
 #### Para activar CI/CD:
-1. [ ] Hacer push del branch `Cambios` a GitHub
+1. [ ] Hacer push del branch `basileia` a GitHub
 2. [ ] Los workflows se ejecutarán automáticamente
 3. [ ] Verificar que tests pasan en GitHub Actions
 4. [ ] Configurar secrets necesarios en GitHub Settings

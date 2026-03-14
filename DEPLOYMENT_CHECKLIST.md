@@ -253,7 +253,7 @@ heroku addons:create heroku-redis:hobby-dev --app Basileia-api
 
 ```bash
 # Desde la raíz del proyecto
-git push heroku Cambios:main
+git push heroku basileia:main
 ```
 
 ### F. Verificar

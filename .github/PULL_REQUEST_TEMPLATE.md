@@ -43,8 +43,8 @@ Fixes #(issue number)
 
 ## 🔒 Compliance Colombia
 
-- [ ] Cambios cumplen con Ley 1581/2012 (Protección de Datos)
-- [ ] Cambios cumplen con Resolución 2654/2019 (Telemedicina)
+- [ ] basileia cumplen con Ley 1581/2012 (Protección de Datos)
+- [ ] basileia cumplen con Resolución 2654/2019 (Telemedicina)
 - [ ] Datos sensibles están encriptados
 - [ ] Audit logs implementados para acciones críticas
 - [ ] Consentimientos actualizados si es necesario

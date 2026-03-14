@@ -84,7 +84,7 @@ await blacklistAllUserTokens(userId, 'PASSWORD_CHANGE');
 #### Archivos Modificados:
 - `backend/Controllers/authController.js` - Mejoras en validación
 
-#### Cambios:
+#### basileia:
 - ✅ **Mínimo 12 caracteres** (antes: 8) - NIST SP 800-63B
 - ✅ Requiere: mayúsculas, minúsculas, números, símbolos especiales
 - ✅ **Prevención de contraseñas comunes** (password, Admin123!, etc.)

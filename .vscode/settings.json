@@ -1,5 +1,7 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "heroku": true
+        "heroku": true,
+        "refactor:": true,
+        "EOF": true
     }
 }

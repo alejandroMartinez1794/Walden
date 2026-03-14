@@ -5,7 +5,7 @@ Este documento describe el pipeline de CI/CD implementado para el proyecto Basil
 ## 📋 Workflows Implementados
 
 ### 1. **test.yml** - Tests Automáticos
-**Trigger:** Push a main/Cambios/develop, Pull Requests a main
+**Trigger:** Push a main/basileia/develop, Pull Requests a main
 
 **Jobs:**
 - ✅ **backend-tests**: Ejecuta todos los tests del backend (312 tests)
