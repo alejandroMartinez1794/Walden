@@ -32,7 +32,7 @@ jobs:
           VITE_BACKEND_URL: ${{ secrets.STAGING_API_URL }}
 
       - name: Deploy Backend a Heroku (Staging)
-        if: ${{ secrets.HEROKU_API_KEY }}
+
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
