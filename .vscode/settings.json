@@ -2,6 +2,23 @@
     "chat.tools.terminal.autoApprove": {
         "heroku": true,
         "refactor:": true,
-        "EOF": true
+        "EOF": true,
+        "git filter-branch": true,
+        "git remote": true,
+        "anthropic": true,
+        "git fetch": true,
+        "git stash": true,
+        "git reset": true,
+        "git rev-list": true,
+        "git update-index": true,
+        ".git/hooks/commit-msg": true,
+        "Get-Item": true,
+        "git config": true,
+        "New-Item": true,
+        "Out-Null": true,
+        "git shortlog": true,
+        "Get-Unique": true,
+        "git rev-parse": true,
+        "git checkout": true
     }
 }

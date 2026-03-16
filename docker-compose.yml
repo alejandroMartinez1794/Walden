@@ -11,7 +11,7 @@ services:
       - NODE_ENV=production
       - PORT=8000
       - MONGO_URL=${MONGO_URL}
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -40,7 +40,7 @@ services:
     build:
       context: ./Frontend
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL:-http://localhost:8000/api/v1}
     container_name: basileia-frontend
     ports:
       - "80:80"

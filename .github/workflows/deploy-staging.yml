@@ -29,7 +29,7 @@ jobs:
           npm ci
           npm run build
         env:
-          VITE_API_URL: ${{ secrets.STAGING_API_URL }}
+          VITE_BACKEND_URL: ${{ secrets.STAGING_API_URL }}
 
       - name: Deploy Backend a Heroku (Staging)
         if: ${{ secrets.HEROKU_API_KEY }}

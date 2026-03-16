@@ -50,7 +50,7 @@ CSRF_SECRET=<generar-con-openssl-rand-hex-32>
 # Google OAuth & Calendar
 GOOGLE_CLIENT_ID=<tu-client-id>.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=<tu-client-secret>
-GOOGLE_REDIRECT_URI=https://api.Basileia.app/api/v1/calendar/google-callback
+GOOGLE_REDIRECT_URI=https://api.Basileia.app/api/v1/calendar/google/callback
 
 # URLs
 BACKEND_URL=https://api.Basileia.app
@@ -414,7 +414,7 @@ curl https://api.Basileia.app/api/v1/doctors?isApproved=approved
 1. [console.cloud.google.com](https://console.cloud.google.com)
 2. APIs & Services → Credentials
 3. OAuth 2.0 Client → Authorized redirect URIs:
-   - Agregar: `https://api.Basileia.app/api/v1/calendar/google-callback`
+   - Agregar: `https://api.Basileia.app/api/v1/calendar/google/callback`
 
 #### Wompi Webhooks:
 1. Panel Wompi → Configuración → Webhooks

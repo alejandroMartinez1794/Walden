@@ -61,13 +61,13 @@ Configure estos secrets en GitHub Settings > Secrets and variables > Actions:
 ### Básicos
 ```
 MONGO_URL_TEST          # MongoDB para tests (opcional - usa in-memory si no existe)
-JWT_SECRET              # Secret para JWT
+JWT_SECRET_KEY          # Secret para JWT
 ENCRYPTION_KEY          # Key de 32 bytes para encriptación
 ```
 
 ### Staging
 ```
-STAGING_API_URL         # URL del API de staging
+STAGING_API_URL         # URL base del API de staging (incluye /api/v1)
 STAGING_URL             # URL del frontend de staging
 HEROKU_API_KEY          # API Key de Heroku (si usa Heroku)
 RENDER_DEPLOY_HOOK      # Webhook de Render (si usa Render)
@@ -75,7 +75,7 @@ RENDER_DEPLOY_HOOK      # Webhook de Render (si usa Render)
 
 ### Producción
 ```
-PRODUCTION_API_URL      # URL del API de producción
+PRODUCTION_API_URL      # URL base del API de producción (incluye /api/v1)
 PRODUCTION_URL          # URL del frontend de producción
 VERCEL_TOKEN            # Token de Vercel (si usa Vercel)
 ```
@@ -96,7 +96,7 @@ docker build -t Basileia-backend .
 
 # Frontend
 cd Frontend
-docker build --build-arg VITE_API_URL=http://localhost:8000 -t Basileia-frontend .
+docker build --build-arg VITE_BACKEND_URL=http://localhost:8000/api/v1 -t Basileia-frontend .
 ```
 
 ### Docker Compose

@@ -24,7 +24,7 @@ user = patient || doctor;
 ## Google Calendar Integration
 
 **Two-step OAuth flow**:
-1. **Auth**: `/api/v1/calendar/google-auth` → redirects to Google → callback at `/api/v1/calendar/google-callback`
+1. **Auth**: `/api/v1/calendar/google-auth` → redirects to Google → callback at `/api/v1/calendar/google/callback`
 2. **Storage**: Tokens saved in `GoogleTokenSchema` (per-user), reloaded via `config/google.js`
 3. **Usage**: `getOAuthClientWithUserTokens()` helper fetches user-specific tokens for calendar operations
 
@@ -84,7 +84,7 @@ Autenticación y roles (crítico)
 - El middleware `restrict(roles)` valida que el usuario exista (revisa `User` y `Doctor`) y luego verifica el rol.
 
 Integración con Google Calendar
-- Endpoints de OAuth: `/api/v1/calendar/google-auth` y `/api/v1/calendar/google-callback` (ver `backend/config/google.js`).
+- Endpoints de OAuth: `/api/v1/calendar/google-auth` y `/api/v1/calendar/google/callback` (ver `backend/config/google.js`).
 - Los tokens se persisten por usuario en `GoogleTokenSchema` y `getOAuthClientWithUserTokens(userId)` carga el cliente con esos tokens; hay hooks que reescriben los tokens refrescados en MongoDB.
 - Los `Booking` se sincronizan con eventos de calendario (revisar campo `calendarEventId` en `BookingSchema.js`).
 

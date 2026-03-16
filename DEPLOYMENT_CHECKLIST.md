@@ -87,7 +87,7 @@ CSRF_SECRET=3478c228c1c445b5f23c17ab6c9616d4c257a95daf5126db585ccf2cd47396da
    - Name: `Basileia Backend`
    - Authorized redirect URIs:
      - Click "+ ADD URI"
-     - `https://Basileia-api.herokuapp.com/api/v1/calendar/google-callback`
+       - `https://Basileia-api.herokuapp.com/api/v1/calendar/google/callback`
    - Click "CREATE"
    - **COPIA**:
      - Client ID: `xxxxx.apps.googleusercontent.com`
