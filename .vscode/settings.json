@@ -19,6 +19,7 @@
         "git shortlog": true,
         "Get-Unique": true,
         "git rev-parse": true,
-        "git checkout": true
+        "git checkout": true,
+        "git merge": true
     }
 }
