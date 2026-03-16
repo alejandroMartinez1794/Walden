@@ -20,6 +20,7 @@
         "Get-Unique": true,
         "git rev-parse": true,
         "git checkout": true,
-        "git merge": true
+        "git merge": true,
+        "npm run build": true
     }
 }
