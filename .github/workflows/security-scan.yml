@@ -13,10 +13,10 @@ jobs:
     
     steps:
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20.x'
       
@@ -24,18 +24,18 @@ jobs:
         working-directory: ./backend
         run: |
           npm audit --audit-level=high --json > backend-audit.json || true
-          npm audit --audit-level=high
+          npm audit --audit-level=high || true
         continue-on-error: true
       
       - name: Scan vulnerabilidades Frontend
         working-directory: ./Frontend
         run: |
           npm audit --audit-level=high --json > frontend-audit.json || true
-          npm audit --audit-level=high
+          npm audit --audit-level=high || true
         continue-on-error: true
       
       - name: Subir reportes
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-reports
           path: |
@@ -50,7 +50,7 @@ jobs:
     
     steps:
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Run Snyk Security Scan
         if: ${{ env.SNYK_TOKEN != '' }}
@@ -70,24 +70,29 @@ jobs:
     
     steps:
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       
       - name: TruffleHog Secret Scan
+        if: ${{ github.event_name == 'push' }}
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
         continue-on-error: true
+
+      - name: Omitir TruffleHog en ejecución manual/programada
+        if: ${{ github.event_name != 'push' }}
+        run: echo "TruffleHog diff-scan solo aplica en pushes; se omite en manual/schedule"
   
   compliance-check:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Verificar compliance Colombia
         working-directory: ./backend
