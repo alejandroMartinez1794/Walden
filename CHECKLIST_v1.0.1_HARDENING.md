@@ -18,7 +18,7 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 - [x] Validar logs sin PII en errores, especialmente tokens y correos.
 
 ## 3) Integraciones externas
-- [ ] Google OAuth: validar que solo existan redirect URIs oficiales.
+- [x] Google OAuth: validar que solo existan redirect URIs oficiales.
 - [ ] MongoDB Atlas: restringir Network Access progresivamente (evitar 0.0.0.0/0 permanente).
 - [x] Verificar expiracion/refresh de tokens de Google por usuario sin errores silenciosos.
 
