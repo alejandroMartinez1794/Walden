@@ -254,8 +254,14 @@ if (process.env.USE_HTTPS === 'true') {
 
 // 2. Seguridad (Helmet - headers HTTP)
 app.use(helmet({
-    contentSecurityPolicy: false, // Desactivado para no ralentizar
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'none'"], // Backend estricto
+            scriptSrc: ["'none'"],
+        }
+    },
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" } // Permite solicitudes CORS de Vercel
 }));
 
 // 3. Sanitización (solo esencial para performance)
@@ -295,8 +301,10 @@ if (process.env.NODE_ENV !== 'test') {
     app.use('/api/v1/auth/forgot-password', passwordResetRateLimiter);
     app.use('/api/v1/auth/reset-password', passwordResetRateLimiter);
     
-    // Strict rate limiting for expensive operations
+    // Strict rate limiting for expensive or sensitive operations
     app.use('/api/v1/bookings', strictRateLimiter);
+    app.use('/api/v1/calendar/create-event', strictRateLimiter);
+    app.use('/api/v1/calendar/update-event', strictRateLimiter);
 }
 
 // ------------------------------------------------

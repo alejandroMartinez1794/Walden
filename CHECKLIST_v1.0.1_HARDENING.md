@@ -13,8 +13,8 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 
 ## 2) Seguridad de runtime (backend)
 - [x] Forzar CORS solo a dominios de produccion (Vercel) y staging aprobado.
-- [ ] Revisar headers de seguridad en Express (Helmet + CSP coherente).
-- [ ] Limitar rate por IP en endpoints sensibles (auth, booking, calendar).
+- [x] Revisar headers de seguridad en Express (Helmet + CSP coherente).
+- [x] Limitar rate por IP en endpoints sensibles (auth, booking, calendar).
 - [x] Validar logs sin PII en errores, especialmente tokens y correos.
 
 ## 3) Integraciones externas
