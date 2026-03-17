@@ -20,7 +20,7 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 ## 3) Integraciones externas
 - [ ] Google OAuth: validar que solo existan redirect URIs oficiales.
 - [ ] MongoDB Atlas: restringir Network Access progresivamente (evitar 0.0.0.0/0 permanente).
-- [ ] Verificar expiracion/refresh de tokens de Google por usuario sin errores silenciosos.
+- [x] Verificar expiracion/refresh de tokens de Google por usuario sin errores silenciosos.
 
 ## 4) CI/CD y calidad
 - [x] Mantener workflows en verde en main: Tests, Deploy a Produccion, Security Scan.
