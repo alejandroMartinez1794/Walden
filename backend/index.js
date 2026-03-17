@@ -120,9 +120,22 @@ const allowedOrigins = (process.env.CORS_ORIGINS || '')
 
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        // Permitir solicitudes sin origen (como curl, Postman o el mismo servidor)
+        if (!origin) {
             return callback(null, true);
         }
+        
+        // Política Deny-by-default: Si CORS_ORIGINS no está configurado, bloqueamos todo lo externo
+        if (allowedOrigins.length === 0) {
+            logger.warn(`Bloqueo CORS interceptado para: ${origin}. Variable CORS_ORIGINS no configurada.`);
+            return callback(new Error('Bloqueado por política estricta CORS'));
+        }
+        
+        // Validación de lista blanca
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
