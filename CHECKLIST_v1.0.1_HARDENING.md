@@ -7,7 +7,7 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 
 ## 1) Secretos y credenciales
 - [ ] Rotar HEROKU_API_KEY y VERCEL_TOKEN despues del release v1.0.0.
-- [ ] Rotar JWT_SECRET_KEY de produccion y documentar fecha de rotacion.
+- [x] Rotar JWT_SECRET_KEY de produccion y documentar fecha de rotacion (Actualizado 2026-03-17).
 - [x] Verificar que no existan secretos hardcodeados en Frontend/src ni backend/.
 - [ ] Confirmar que SNYK_TOKEN exista en GitHub Actions (Repository secrets).
 
