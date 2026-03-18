@@ -21,6 +21,7 @@
         "git rev-parse": true,
         "git checkout": true,
         "git merge": true,
-        "npm run build": true
+        "npm run build": true,
+        "Test-Path": true
     }
 }

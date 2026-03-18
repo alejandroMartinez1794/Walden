@@ -62,6 +62,11 @@ await initRateLimitRedis();
  * @returns {Function} Express middleware
  */
 function createRateLimiter(options = {}) {
+  // Disable rate limiting during tests
+  if (process.env.NODE_ENV === 'test') {
+    return (req, res, next) => next();
+  }
+
   const defaultOptions = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per windowMs
