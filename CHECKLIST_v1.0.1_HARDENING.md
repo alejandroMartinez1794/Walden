@@ -29,7 +29,7 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 - [x] Confirmar que staging no rompa pipelines cuando falten secretos (skip controlado).
 
 ## 5) Observabilidad y respuesta
-- [ ] Definir alertas minimas: uptime API, tasa de error 5xx, latencia p95.
+- [x] Definir alertas minimas: uptime API, tasa de error 5xx, latencia p95 (Integrado via Datadog APM).
 - [ ] Crear runbook corto para incidentes: rollback, verificacion post-rollback, comunicacion.
 - [ ] Registrar version desplegada (tag) en monitoreo o log de arranque.
 
