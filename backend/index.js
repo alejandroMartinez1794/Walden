@@ -1,5 +1,6 @@
 // ============= MONITORING & OBSERVABILITY =============
-// CRITICAL: New Relic MUST be loaded FIRST before any other modules
+// CRITICAL: Datadog & New Relic MUST be loaded FIRST before any other modules
+import './datadog.js';
 import './newrelic.js';
 
 import express from 'express';
