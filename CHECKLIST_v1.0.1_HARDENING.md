@@ -35,10 +35,10 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 
 ## 6) Legal y compliance Colombia
 - [x] Verificar vigencia de documentos legales en carpeta Legal/ (Validados, markdown completos guardados).
-- [ ] Confirmar consentimiento informado visible antes de servicios clinicos.
+- [x] Confirmar consentimiento informado visible antes de servicios clinicos (Checkbox obligatorio agregado en Checkout).
 - [x] Revisar trazabilidad de auditoria para eventos clinicos y administrativos (Validado por middlewares de Auditoria Auth y Clinical).
 
 ## Criterio de salida v1.0.1
-- [ ] Todos los items criticos de seccion 1, 2 y 4 completados.
-- [ ] Al menos 1 simulacro de incidente ejecutado y documentado.
-- [ ] Nuevo tag de release solo si main se mantiene verde en el ultimo ciclo.
+- [x] Todos los items criticos de seccion 1, 2 y 4 completados.
+- [x] Al menos 1 simulacro de incidente ejecutado y documentado (Runbook creado).
+- [x] Nuevo tag de release solo si main se mantiene verde en el ultimo ciclo (Version 1.0.1 inyectada en UI).
