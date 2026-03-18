@@ -35,7 +35,7 @@ jobs:
           # cache-dependency-path: backend/package-lock.json
       
       - name: Instalar dependencias
-        run: npm ci || npm install
+        run: npm install
       
       - name: Ejecutar tests
         run: npm test -- --forceExit --detectOpenHandles
