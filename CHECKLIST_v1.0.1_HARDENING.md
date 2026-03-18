@@ -30,7 +30,7 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 
 ## 5) Observabilidad y respuesta
 - [x] Definir alertas minimas: uptime API, tasa de error 5xx, latencia p95 (Integrado via Datadog APM).
-- [ ] Crear runbook corto para incidentes: rollback, verificacion post-rollback, comunicacion.
+- [x] Crear runbook corto para incidentes: rollback, verificacion post-rollback, comunicacion.
 - [ ] Registrar version desplegada (tag) en monitoreo o log de arranque.
 
 ## 6) Legal y compliance Colombia
