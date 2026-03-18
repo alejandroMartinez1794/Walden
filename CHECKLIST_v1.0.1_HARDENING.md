@@ -34,9 +34,9 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 - [ ] Registrar version desplegada (tag) en monitoreo o log de arranque.
 
 ## 6) Legal y compliance Colombia
-- [ ] Verificar vigencia de documentos legales en carpeta Legal/.
+- [x] Verificar vigencia de documentos legales en carpeta Legal/ (Validados, markdown completos guardados).
 - [ ] Confirmar consentimiento informado visible antes de servicios clinicos.
-- [ ] Revisar trazabilidad de auditoria para eventos clinicos y administrativos.
+- [x] Revisar trazabilidad de auditoria para eventos clinicos y administrativos (Validado por middlewares de Auditoria Auth y Clinical).
 
 ## Criterio de salida v1.0.1
 - [ ] Todos los items criticos de seccion 1, 2 y 4 completados.
