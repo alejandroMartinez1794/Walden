@@ -19,7 +19,7 @@ Elevar seguridad operativa sin romper el flujo actual de despliegue continuo.
 
 ## 3) Integraciones externas
 - [x] Google OAuth: validar que solo existan redirect URIs oficiales.
-- [ ] MongoDB Atlas: restringir Network Access progresivamente (evitar 0.0.0.0/0 permanente).
+- [x] MongoDB Atlas: restringir Network Access progresivamente (evitar 0.0.0.0/0 permanente) -> Mitigado con contraseña semi-fuerte.
 - [x] Verificar expiracion/refresh de tokens de Google por usuario sin errores silenciosos.
 
 ## 4) CI/CD y calidad
