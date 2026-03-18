@@ -36,6 +36,9 @@ jobs:
       
       - name: Instalar dependencias
         run: npm install
+
+      - name: Hotfix gopd para runner Linux
+        run: npm install gopd@1.1.0 --no-save
       
       - name: Ejecutar tests
         run: npm test -- --forceExit --detectOpenHandles

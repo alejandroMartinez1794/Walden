@@ -36,6 +36,7 @@ jobs:
         working-directory: ./backend
         run: |
           npm install
+          npm install gopd@1.1.0 --no-save
           npm test -- --forceExit
         env:
           NODE_ENV: test
