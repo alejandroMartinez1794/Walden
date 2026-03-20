@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   pr-info:
     runs-on: ubuntu-latest
@@ -30,7 +35,8 @@ jobs:
       - name: Instalar y testear Backend
         working-directory: ./backend
         run: |
-          npm ci
+          npm install
+          npm install gopd@1.1.0 --no-save
           npm test -- --forceExit
         env:
           NODE_ENV: test
@@ -103,21 +109,25 @@ jobs:
             const tests = '${{ needs.tests.result }}';
             const lint = '${{ needs.lint-commit.result }}';
             const size = '${{ needs.size-check.result }}';
-            
+
             let body = '## 📊 Resumen de Checks\n\n';
             body += `- Tests: ${tests === 'success' ? '✅' : '❌'} ${tests}\n`;
             body += `- Lint: ${lint === 'success' ? '✅' : '⚠️'} ${lint}\n`;
             body += `- Size: ${size === 'success' ? '✅' : '⚠️'} ${size}\n`;
-            
+
             if (tests === 'success' && lint === 'success') {
               body += '\n✅ **Este PR está listo para revisión**';
             } else {
               body += '\n⚠️ **Este PR necesita correcciones antes de merge**';
             }
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });
+
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } catch (error) {
+              core.warning(`No se pudo comentar en el PR: ${error.message}`);
+            }

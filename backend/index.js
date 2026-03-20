@@ -1,5 +1,6 @@
 // ============= MONITORING & OBSERVABILITY =============
-// CRITICAL: New Relic MUST be loaded FIRST before any other modules
+// CRITICAL: Datadog & New Relic MUST be loaded FIRST before any other modules
+import './datadog.js';
 import './newrelic.js';
 
 import express from 'express';
@@ -120,9 +121,22 @@ const allowedOrigins = (process.env.CORS_ORIGINS || '')
 
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        // Permitir solicitudes sin origen (como curl, Postman o el mismo servidor)
+        if (!origin) {
             return callback(null, true);
         }
+        
+        // Política Deny-by-default: Si CORS_ORIGINS no está configurado, bloqueamos todo lo externo
+        if (allowedOrigins.length === 0) {
+            logger.warn(`Bloqueo CORS interceptado para: ${origin}. Variable CORS_ORIGINS no configurada.`);
+            return callback(new Error('Bloqueado por política estricta CORS'));
+        }
+        
+        // Validación de lista blanca
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -241,8 +255,14 @@ if (process.env.USE_HTTPS === 'true') {
 
 // 2. Seguridad (Helmet - headers HTTP)
 app.use(helmet({
-    contentSecurityPolicy: false, // Desactivado para no ralentizar
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'none'"], // Backend estricto
+            scriptSrc: ["'none'"],
+        }
+    },
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" } // Permite solicitudes CORS de Vercel
 }));
 
 // 3. Sanitización (solo esencial para performance)
@@ -282,8 +302,10 @@ if (process.env.NODE_ENV !== 'test') {
     app.use('/api/v1/auth/forgot-password', passwordResetRateLimiter);
     app.use('/api/v1/auth/reset-password', passwordResetRateLimiter);
     
-    // Strict rate limiting for expensive operations
+    // Strict rate limiting for expensive or sensitive operations
     app.use('/api/v1/bookings', strictRateLimiter);
+    app.use('/api/v1/calendar/create-event', strictRateLimiter);
+    app.use('/api/v1/calendar/update-event', strictRateLimiter);
 }
 
 // ------------------------------------------------

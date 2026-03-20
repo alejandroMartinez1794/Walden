@@ -11,6 +11,7 @@ const SidePanel = ({ doctorId, ticketPrice, timeSlots }) => {
     const [loading, setLoading] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('card');
+    const [consentGiven, setConsentGiven] = useState(false);
     const navigate = useNavigate();
 
     const convertTime = (time) => {
@@ -43,6 +44,10 @@ const SidePanel = ({ doctorId, ticketPrice, timeSlots }) => {
     const bookingHandler = async () => {
         if (!selectedSlot) {
             return toast.error("Por favor selecciona un horario disponible");
+        }
+        
+        if (!consentGiven) {
+            return toast.error("Debes aceptar el Consentimiento Informado para agendar.");
         }
 
         if (!token) {
@@ -142,9 +147,23 @@ const SidePanel = ({ doctorId, ticketPrice, timeSlots }) => {
                 </select>
             </div>
 
-            <button 
-                onClick={bookingHandler} 
-                disabled={loading}
+            <div className="mt-4">
+                <label className="text-[14px] leading-6 text-textColor font-semibold flex items-start gap-2">
+                    <input 
+                        type="checkbox" 
+                        checked={consentGiven} 
+                        onChange={(e) => setConsentGiven(e.target.checked)}
+                        className="mt-1"
+                    />
+                    <span>
+                        He leído y acepto el <a href="/terms-of-service" target="_blank" className="text-primaryColor underline hover:text-blue-700">Consentimiento Informado y Política de Datos</a> de Colombia.
+                    </span>
+                </label>
+            </div>
+
+            <button
+                onClick={bookingHandler}
+                disabled={loading || !consentGiven}
                 className='btn px-2 w-full rounded-md mt-5 disabled:bg-gray-400 disabled:cursor-not-allowed'
             >
                 {loading ? 'Procesando...' : 'Agendar Cita'}

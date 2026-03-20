@@ -35,7 +35,10 @@ jobs:
           # cache-dependency-path: backend/package-lock.json
       
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install
+
+      - name: Hotfix gopd para runner Linux
+        run: npm install gopd@1.1.0 --no-save
       
       - name: Ejecutar tests
         run: npm test -- --forceExit --detectOpenHandles

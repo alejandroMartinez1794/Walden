@@ -169,9 +169,15 @@ const Footer = () => {
                                 </li>
                             ))}
                         </ul>
-                    </div>      
-                </div>                
-            </div>            
+                    </div>
+                </div>
+                {/* VERSION TAG PARA OBSERVABILIDAD DE PRODUCCIÓN */}
+                <div className="flex justify-center mt-8 pt-4 border-t border-solid border-[#181A1E]">
+                    <p className="text-[12px] leading-7 font-[400] text-gray-400">
+                        Basileia v1.0.1 🛡️ Hardened Build
+                    </p>
+                </div>
+            </div>
         </footer>
     );
 };

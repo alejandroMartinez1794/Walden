@@ -14,8 +14,8 @@ export const getOAuthClientWithUserTokens = async (userId) => {
   // Buscar los tokens en la base de datos
   const tokenDoc = await GoogleToken.findOne({ userId });
 
-  // Agregar un console.log para verificar si se encontraron los tokens
-  logger.info("🔍 Token encontrado para el usuario:", userId, tokenDoc);
+  // Registro seguro: solo indicamos si se encontró el token, SIN exponer su contenido
+  logger.info(`🔍 Búsqueda de token de Google para usuario ${userId}: ${tokenDoc ? 'Encontrado' : 'No encontrado'}`);
 
   if (!tokenDoc) {
     throw new Error('❌ No se encontraron tokens de Google para este usuario');
