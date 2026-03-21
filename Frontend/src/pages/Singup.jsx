@@ -302,9 +302,13 @@ const Signup   = () => {
 
                             <div className='mt-7'>
                                 <button
-                                    disabled={loading || photoUploading}
+                                    disabled={loading || photoUploading || (isCaptchaEnabled && !captchaToken)}
                                     type="submit"
-                                    className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
+                                    className={`w-full text-white text-[18px] leading-[30px] rounded-lg px-4 py-3 ${
+                                        loading || photoUploading || (isCaptchaEnabled && !captchaToken)
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-primaryColor hover:bg-blue-700'
+                                    }`}
                                 >
                                     {loading ? (
                                         <HashLoader size={25} color="#ffffff"/> 

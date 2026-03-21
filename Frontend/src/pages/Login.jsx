@@ -164,6 +164,12 @@ const Login = () => {
     }
   };
   const handleGoogleLogin = () => {
+    // Verificar captcha antes de redirigir a Google
+    if (isCaptchaEnabled && !captchaToken) {
+      toast.error('Por seguridad, completa el captcha primero.');
+      return;
+    }
+    
     // Usar la constante BASE_URL del frontend en lugar de depender de VITE_BACKEND_URL
     // Evita rutas como /undefined/calendar/google-auth cuando la variable de entorno no está definida
     window.location.href = `${BASE_URL}/calendar/google-auth`;
@@ -248,7 +254,12 @@ const Login = () => {
           <div className='mt-7'>
             <button
               type="submit"
-              className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 px-3"
+              disabled={loading || (isCaptchaEnabled && !captchaToken)}
+              className={`w-full text-white text-[18px] leading-[30px] rounded-lg px-4 px-3 ${
+                loading || (isCaptchaEnabled && !captchaToken) 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-primaryColor hover:bg-blue-700'
+              }`}
             >
               {loading ? <Hashloader size={25} color="#fff" /> : "Login"}
             </button>
@@ -275,12 +286,17 @@ const Login = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:shadow-md transition"
+              disabled={isCaptchaEnabled && !captchaToken}
+              className={`w-full flex items-center justify-center gap-3 py-2 rounded-lg transition border ${
+                isCaptchaEnabled && !captchaToken
+                  ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-white border-gray-300 text-gray-700 font-medium hover:shadow-md'
+              }`}
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google icon"
-                className="w-6 h-6"
+                className={`w-6 h-6 ${isCaptchaEnabled && !captchaToken ? 'opacity-50' : ''}`}
               />
               <span>Continuar con Google</span>
             </button>
