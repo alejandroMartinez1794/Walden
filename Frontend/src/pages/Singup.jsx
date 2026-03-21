@@ -28,6 +28,7 @@ const Signup   = () => {
 
     const navigate = useNavigate();
     const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
+    const isProduction = import.meta.env.PROD;
     const isCaptchaEnabled = Boolean(hcaptchaSiteKey);
 
     const normalizeEmail = value => value.trim().toLowerCase();
@@ -119,6 +120,10 @@ const Signup   = () => {
         }
         if (!isStrongPassword(formData.password)) {
             toast.error('Contraseña débil: min 8 caracteres, mayúscula, minúscula, número y símbolo.');
+            return;
+        }
+        if (isProduction && !isCaptchaEnabled) {
+            toast.error('Captcha no configurado en producción. Contacta al administrador.');
             return;
         }
         if (isCaptchaEnabled && !captchaToken) {
@@ -318,7 +323,11 @@ const Signup   = () => {
                                         onExpire={() => setCaptchaToken(null)}
                                     />
                                 ) : (
-                                    <p className="text-sm text-amber-600">Captcha desactivado temporalmente por configuración</p>
+                                    <p className="text-sm text-red-500">
+                                        {isProduction
+                                            ? 'Captcha requerido en producción: configura VITE_HCAPTCHA_SITE_KEY'
+                                            : 'Captcha desactivado temporalmente por configuración'}
+                                    </p>
                                 )}
                             </div>
 

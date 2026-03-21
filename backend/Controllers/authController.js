@@ -108,48 +108,56 @@ const EMAIL_VERIFICATION_TTL_MINUTES = Number(process.env.EMAIL_VERIFICATION_TTL
 const TOKEN_EXPIRY = '24h'; // Reducido de 15d a 24h por seguridad médica
 
 const HCAPTCHA_VERIFY_URL = process.env.HCAPTCHA_VERIFY_URL || 'https://hcaptcha.com/siteverify';
+const ALLOW_INSECURE_CAPTCHA_BYPASS = process.env.ALLOW_INSECURE_CAPTCHA_BYPASS === 'true';
 
 const verifyCaptchaToken = async (token, remoteip) => {
-    // Desarrollo: Bypass captcha
-    return true; 
-    
-    /* 
-    if (!token) return false;
+    // En tests permitimos bypass para estabilidad de CI.
+    if (process.env.NODE_ENV === 'test') {
+        return true;
+    }
+
+    // Bypass explícito solo para desarrollo local con bandera consciente.
+    if (process.env.NODE_ENV !== 'production' && ALLOW_INSECURE_CAPTCHA_BYPASS) {
+        logger.warn('Captcha bypass habilitado por ALLOW_INSECURE_CAPTCHA_BYPASS=true (solo desarrollo)');
+        return true;
+    }
+
+    if (!token) {
+        return false;
+    }
+
     const secret = process.env.HCAPTCHA_SECRET;
-    if (!secret) return false;
+    if (!secret) {
+        logger.error('HCAPTCHA_SECRET no configurado; se rechaza la autenticación por seguridad.');
+        return false;
+    }
 
     const params = new URLSearchParams();
     params.append('secret', secret);
     params.append('response', token);
-    params.append('remoteip', remoteip);
+    if (remoteip) {
+        params.append('remoteip', remoteip);
+    }
 
     try {
         const response = await fetch(HCAPTCHA_VERIFY_URL, {
             method: 'POST',
-            body: params,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString(),
         });
+
+        if (!response.ok) {
+            logger.warn(`hCaptcha respondió con estado inesperado: ${response.status}`);
+            return false;
+        }
+
         const data = await response.json();
-        return data.success;
+        return Boolean(data?.success);
     } catch (err) {
         logger.error('Captcha verification error:', err);
         return false;
     }
-    */
 };
-
-/* Original Code Backup - Removed to fix Syntax Error
-    if (remoteip) params.append('remoteip', remoteip);
-
-    const response = await fetch(HCAPTCHA_VERIFY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
-    });
-
-    const data = await response.json();
-    return Boolean(data?.success);
-};
-*/
 
 const createEmailVerificationToken = () => {
     const rawToken = crypto.randomBytes(32).toString('hex');
