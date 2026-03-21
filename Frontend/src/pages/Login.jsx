@@ -1,6 +1,6 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BASE_URL } from '../config';
 import { toast } from 'react-toastify';
 import { authContext } from '../context/AuthContext.jsx';
@@ -21,10 +21,21 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { dispatch } = useContext(authContext);
   const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
   const isProduction = import.meta.env.PROD;
   const isCaptchaEnabled = Boolean(hcaptchaSiteKey);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    if (error === 'captcha_required') {
+      toast.error('Acceso denegado: Debes completar el captcha para ingresar con Google.');
+      // Limpiar URL sin recargar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [location]);
 
   const normalizeEmail = value => value.trim().toLowerCase();
   const isValidEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);

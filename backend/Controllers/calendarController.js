@@ -24,15 +24,11 @@ export const getGoogleAuthUrl = async (req, res) => {
     if (isProduction || (process.env.REQUIRE_CAPTCHA_FOR_GOOGLE === 'true')) {
         const isValid = await verifyCaptchaToken(captchaToken, req.ip);
         if (!isValid) {
-            return res.status(400).send(`
-                <html>
-                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                        <h1 style="color: #e11d48;">Acceso Denegado</h1>
-                        <p>No se pudo verificar que seas humano. Por favor, regresa e intenta nuevamente completando el captcha.</p>
-                        <a href="${process.env.FRONTEND_URL || '/'}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Volver</a>
-                    </body>
-                </html>
-            `);
+            // Manejo estándar: Redirigir al login con parámetro de error para que el frontend lo muestre
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            // Validar si frontendUrl termina en '/', para no duplicar slash
+            const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+            return res.redirect(`${redirectBase}/login?error=captcha_required`);
         }
     }
 
