@@ -9,24 +9,50 @@ import jwt from 'jsonwebtoken';
 import {getOAuthClientWithUserTokens} from '../utils/getOAuthClientWithUserTokens.js';
 import Booking from '../models/BookingSchema.js';
 import logger from '../utils/logger.js';
+import { verifyCaptchaToken } from './authController.js';
 
 /**
  * 🔗 Genera URL de autenticación de Google
  */
-export const getGoogleAuthUrl = (req, res) => {
-  const scopes = [
-    'https://www.googleapis.com/auth/calendar',
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-  ];
+export const getGoogleAuthUrl = async (req, res) => {
+  try {
+    const { captchaToken } = req.query;
+    
+    // Captcha es obligatorio para iniciar el flujo de Google Auth (seguridad)
+    // Se ignora en development si se requiere para pruebas locales sin captcha
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction || (process.env.REQUIRE_CAPTCHA_FOR_GOOGLE === 'true')) {
+        const isValid = await verifyCaptchaToken(captchaToken, req.ip);
+        if (!isValid) {
+            return res.status(400).send(`
+                <html>
+                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                        <h1 style="color: #e11d48;">Acceso Denegado</h1>
+                        <p>No se pudo verificar que seas humano. Por favor, regresa e intenta nuevamente completando el captcha.</p>
+                        <a href="${process.env.FRONTEND_URL || '/'}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Volver</a>
+                    </body>
+                </html>
+            `);
+        }
+    }
 
-  const url = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    prompt: 'consent',
-    scope: scopes,
-  });
+    const scopes = [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+    ];
 
-  res.redirect(url);
+    const url = oAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        prompt: 'consent',
+        scope: scopes,
+    });
+
+    res.redirect(url);
+  } catch (error) {
+      logger.error('Error en getGoogleAuthUrl:', error);
+      res.status(500).send('Error interno del servidor');
+  }
 };
 
 /**

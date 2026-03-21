@@ -110,7 +110,7 @@ const TOKEN_EXPIRY = '24h'; // Reducido de 15d a 24h por seguridad médica
 const HCAPTCHA_VERIFY_URL = process.env.HCAPTCHA_VERIFY_URL || 'https://hcaptcha.com/siteverify';
 const ALLOW_INSECURE_CAPTCHA_BYPASS = process.env.ALLOW_INSECURE_CAPTCHA_BYPASS === 'true';
 
-const verifyCaptchaToken = async (token, remoteip) => {
+export const verifyCaptchaToken = async (token, remoteip) => {
     // En tests permitimos bypass para estabilidad de CI.
     if (process.env.NODE_ENV === 'test') {
         return true;

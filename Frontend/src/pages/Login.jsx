@@ -172,7 +172,12 @@ const Login = () => {
     
     // Usar la constante BASE_URL del frontend en lugar de depender de VITE_BACKEND_URL
     // Evita rutas como /undefined/calendar/google-auth cuando la variable de entorno no está definida
-    window.location.href = `${BASE_URL}/calendar/google-auth`;
+    // Se agrega el token del captcha para validación en backend
+    const authUrl = new URL(`${BASE_URL}/calendar/google-auth`);
+    if (captchaToken) {
+      authUrl.searchParams.append('captchaToken', captchaToken);
+    }
+    window.location.href = authUrl.toString();
   };
 
   if (show2FA) {
