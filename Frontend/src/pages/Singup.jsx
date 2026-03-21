@@ -28,6 +28,7 @@ const Signup   = () => {
 
     const navigate = useNavigate();
     const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
+    const isCaptchaEnabled = Boolean(hcaptchaSiteKey);
 
     const normalizeEmail = value => value.trim().toLowerCase();
     const isValidEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -120,7 +121,7 @@ const Signup   = () => {
             toast.error('Contraseña débil: min 8 caracteres, mayúscula, minúscula, número y símbolo.');
             return;
         }
-        if (!captchaToken) {
+        if (isCaptchaEnabled && !captchaToken) {
             toast.error('Completa el captcha.');
             return;
         }
@@ -317,7 +318,7 @@ const Signup   = () => {
                                         onExpire={() => setCaptchaToken(null)}
                                     />
                                 ) : (
-                                    <p className="text-sm text-red-500">Falta configurar VITE_HCAPTCHA_SITE_KEY</p>
+                                    <p className="text-sm text-amber-600">Captcha desactivado temporalmente por configuración</p>
                                 )}
                             </div>
 

@@ -23,6 +23,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { dispatch } = useContext(authContext);
   const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
+  const isCaptchaEnabled = Boolean(hcaptchaSiteKey);
 
   const normalizeEmail = value => value.trim().toLowerCase();
   const isValidEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -90,7 +91,7 @@ const Login = () => {
       setLoading(false);
       return;
     }
-    if (!captchaToken) {
+    if (isCaptchaEnabled && !captchaToken) {
       toast.error('Completa el captcha');
       setLoading(false);
       return;
@@ -255,7 +256,7 @@ const Login = () => {
                 onExpire={() => setCaptchaToken(null)}
               />
             ) : (
-              <p className="text-sm text-red-500">Falta configurar VITE_HCAPTCHA_SITE_KEY</p>
+              <p className="text-sm text-amber-600">Captcha desactivado temporalmente por configuración</p>
             )}
           </div>
 
