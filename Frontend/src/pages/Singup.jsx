@@ -337,7 +337,7 @@ const Signup   = () => {
 
                             <p className='mt-8 text-textColor text-center'>
                                 Already have an account? 
-                                <Link to= "/Login" 
+                                <Link to= "/login" 
                                 className='text-primaryColor font-medium ml-1'> 
                                     Login
                                 </Link>
