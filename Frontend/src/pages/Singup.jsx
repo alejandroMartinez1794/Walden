@@ -28,6 +28,8 @@ const Signup   = () => {
 
     const navigate = useNavigate();
     const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
+    const isProduction = import.meta.env.PROD;
+    const isCaptchaEnabled = Boolean(hcaptchaSiteKey);
 
     const normalizeEmail = value => value.trim().toLowerCase();
     const isValidEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -120,7 +122,11 @@ const Signup   = () => {
             toast.error('Contraseña débil: min 8 caracteres, mayúscula, minúscula, número y símbolo.');
             return;
         }
-        if (!captchaToken) {
+        if (isProduction && !isCaptchaEnabled) {
+            toast.error('Captcha no configurado en producción. Contacta al administrador.');
+            return;
+        }
+        if (isCaptchaEnabled && !captchaToken) {
             toast.error('Completa el captcha.');
             return;
         }
@@ -296,9 +302,13 @@ const Signup   = () => {
 
                             <div className='mt-7'>
                                 <button
-                                    disabled={loading || photoUploading}
+                                    disabled={loading || photoUploading || (isCaptchaEnabled && !captchaToken)}
                                     type="submit"
-                                    className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
+                                    className={`w-full text-white text-[18px] leading-[30px] rounded-lg px-4 py-3 ${
+                                        loading || photoUploading || (isCaptchaEnabled && !captchaToken)
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-primaryColor hover:bg-blue-700'
+                                    }`}
                                 >
                                     {loading ? (
                                         <HashLoader size={25} color="#ffffff"/> 
@@ -317,13 +327,17 @@ const Signup   = () => {
                                         onExpire={() => setCaptchaToken(null)}
                                     />
                                 ) : (
-                                    <p className="text-sm text-red-500">Falta configurar VITE_HCAPTCHA_SITE_KEY</p>
+                                    <p className="text-sm text-red-500">
+                                        {isProduction
+                                            ? 'Captcha requerido en producción: configura VITE_HCAPTCHA_SITE_KEY'
+                                            : 'Captcha desactivado temporalmente por configuración'}
+                                    </p>
                                 )}
                             </div>
 
                             <p className='mt-8 text-textColor text-center'>
                                 Already have an account? 
-                                <Link to= "/Login" 
+                                <Link to= "/login" 
                                 className='text-primaryColor font-medium ml-1'> 
                                     Login
                                 </Link>
