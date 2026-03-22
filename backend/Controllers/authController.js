@@ -135,6 +135,8 @@ export const verifyCaptchaToken = async (token, remoteip) => {
     const params = new URLSearchParams();
     params.append('secret', secret);
     params.append('response', token);
+    // RemoteIP se envía solo si se proporciona, aunque suele causar problemas 
+    // en entornos con proxies (como Heroku) si trust proxy no estaba bien configurado.
     if (remoteip) {
         params.append('remoteip', remoteip);
     }
@@ -152,6 +154,9 @@ export const verifyCaptchaToken = async (token, remoteip) => {
         }
 
         const data = await response.json();
+        if (!data.success) {
+            logger.warn('hCaptcha verification failed:', data);
+        }
         return Boolean(data?.success);
     } catch (err) {
         logger.error('Captcha verification error:', err);

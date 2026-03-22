@@ -102,6 +102,9 @@ if (process.env.NODE_ENV !== 'test') {
 
 const app = express();
 
+// Set trust proxy for rate limiting and IP resolution behind Heroku's router
+app.set('trust proxy', 1);
+
 // ============= SENTRY INITIALIZATION =============
 // MUST be called BEFORE any middleware or routes
 initSentry(app);

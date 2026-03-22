@@ -34,6 +34,9 @@ const Login = () => {
       toast.error('Acceso denegado: Debes completar el captcha para ingresar con Google.');
       // Limpiar URL sin recargar
       window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (error === 'captcha_failed_server') {
+      toast.error('Error de verificación: El captcha no fue aprobado por el servidor o ha expirado. Inténtalo de nuevo.');
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [location]);
 

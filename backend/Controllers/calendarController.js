@@ -22,13 +22,15 @@ export const getGoogleAuthUrl = async (req, res) => {
     // Se ignora en development si se requiere para pruebas locales sin captcha
     const isProduction = process.env.NODE_ENV === 'production';
     if (isProduction || (process.env.REQUIRE_CAPTCHA_FOR_GOOGLE === 'true')) {
-        const isValid = await verifyCaptchaToken(captchaToken, req.ip);
+        // Enviar req.ip puede fallar si está detrás de un proxy complejo como Heroku sin trust proxy,
+        // así que omitimos pasarlo por seguridad para evitar falsos negativos.
+        const isValid = await verifyCaptchaToken(captchaToken);
         if (!isValid) {
             // Manejo estándar: Redirigir al login con parámetro de error para que el frontend lo muestre
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             // Validar si frontendUrl termina en '/', para no duplicar slash
             const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
-            return res.redirect(`${redirectBase}/login?error=captcha_required`);
+            return res.redirect(`${redirectBase}/login?error=captcha_failed_server`);
         }
     }
 
