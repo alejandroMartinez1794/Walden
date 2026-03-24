@@ -4,6 +4,7 @@ import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
 import { authContext } from '../../context/AuthContext';
 import { BASE_URL } from '../../config';
+import logoHeader from '../../assets/images/basileia_logo_header.png';
 
 const navLinks = [
   { path: '/home', display: 'Inicio' },
@@ -102,34 +103,17 @@ const Header = () => {
       <div className="container">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="py-3">
+          <div className="flex flex-col justify-center py-2 h-full">
             <Link 
               to="/home" 
-              className="group block transition-opacity duration-200 hover:opacity-80"
+              className="block flex items-center h-full"
             >
-              <div className="flex flex-col justify-center">
-                <span 
-                  className="text-[2.5rem] font-normal tracking-tight leading-none text-slate-900"
-                  style={{ 
-                    fontFamily: "'Cormorant Garamond', 'Libre Baskerville', 'Crimson Text', Georgia, serif",
-                    fontWeight: 500,
-                    letterSpacing: '-0.01em',
-                    lineHeight: 1
-                  }}
-                >
-                  Βασιλειάς
-                </span>
-                <span 
-                  className="text-[0.6rem] font-medium tracking-[0.35em] text-slate-500 uppercase mt-1.5 ml-1 block"
-                  style={{ 
-                    fontFamily: "'Inter', 'SF Pro Display', -apple-system, sans-serif",
-                    fontWeight: 500,
-                    lineHeight: 1
-                  }}
-                >
-                  BASILEIA
-                </span>
-              </div>
+              <img
+                src={logoHeader}
+                alt="Basileia Centro Psicológico"
+                className="h-[75px] w-auto md:h-[90px] object-contain mix-blend-multiply"
+                style={{ filter: "brightness(1.08) contrast(1.1)" }}
+              />
             </Link>
           </div>
 

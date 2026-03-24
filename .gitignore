@@ -15,3 +15,5 @@ Frontend/node_modules/
 *.env
 # Claude Code temp files
 tmpclaude-*
+.vercel
+.env*.local
