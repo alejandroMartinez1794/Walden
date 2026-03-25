@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import aboutimg from '../../assets/images/about.png';
 import aboutCardimg from '../../assets/images/about-card.png';
 import { Link } from 'react-router-dom';
@@ -35,4 +35,4 @@ const About = () => {
     );
 };
 
-export default About;
+export default memo(About);

@@ -26,6 +26,40 @@
             "approve": true,
             "matchCommandLine": true
         },
-        "rename-item": true
+        "rename-item": true,
+        "git restore": true,
+        "/^New-Item -Path \"Frontend\\\\optimize_memo\\.cjs\" -Value @\"\nconst fs = require\\('fs'\\);\nconst path = require\\('path'\\);\n\nconst filesToMemoize = \\[\n  'src/components/Header/header\\.jsx',\n  'src/components/Footer/footer\\.jsx',\n  'src/components/About/About\\.jsx',\n  'src/components/Brand/BrandLogo\\.jsx'\n\\];\n\nfunction memoizeComponent\\(filePath\\) \\{\n  const fullPath = path\\.join\\(__dirname, filePath\\);\n  if \\(!fs\\.existsSync\\(fullPath\\)\\) return;\n  \n  let content = fs\\.readFileSync\\(fullPath, 'utf8'\\);\n  \n  // if already using React\\.memo, skip\n  if \\(content\\.includes\\('export default React\\.memo'\\) \\|\\| content\\.includes\\('export default memo\\('\\)\\) \\{\n    console\\.log\\('Skipping ' \\+ filePath \\+ ' \\(already memoized\\)'\\);\n    return;\n  \\}\n\n  // Find the default export e\\.g\\. export default Header;\n  const exportMatch = content\\.match\\(/export default \\(\\[a-zA-Z0-9_\\]\\+\\);/\\);\n  if \\(exportMatch\\) \\{\n    const componentName = exportMatch\\[1\\];\n    \n    // Ensure \\{ memo \\} is imported or React is in scope\n    if \\(!content\\.includes\\(\"import \\{ memo \\}\"\\) && !content\\.includes\\(\"import React, \\{ memo \\}\"\\) && !content\\.includes\\(\"import React,\\{memo\\}\"\\)\\) \\{\n      content = content\\.replace\\(/\\(import React\\.\\*\\?from\\\\s\\+\\['\"\\]react\\['\"\\];\\?\\)/, \"\\\\\\$1\\\\nimport \\{ memo \\} from 'react';\"\\);\n      // Fallback if import React isn't there:\n      if\\(!content\\.includes\\(\"import \\{ memo \\} from 'react'\"\\)\\) \\{\n         content = \"import \\{ memo \\} from 'react';\\\\n\" \\+ content;\n      \\}\n    \\}\n\n    // Replace the export\n    content = content\\.replace\\(exportMatch\\[0\\], `export default memo\\(\\\\\\$\\{componentName\\}\\);`\\);\n    fs\\.writeFileSync\\(fullPath, content, 'utf8'\\);\n    console\\.log\\('Memoized ' \\+ filePath\\);\n  \\}\n\\}\n\nfilesToMemoize\\.forEach\\(memoizeComponent\\);\n\"@ -Force; node Frontend\\\\optimize_memo\\.cjs\n$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "memo": true,
+        "\\\\n\\\"": true,
+        "npx lighthouse": true,
+        "Get-Command": true,
+        "/^node -e \"const fs=require\\('fs'\\);const p='lighthouse-local-after\\.json';const j=JSON\\.parse\\(fs\\.readFileSync\\(p,'utf8'\\)\\);const a=j\\.audits;const c=j\\.categories\\.performance\\.score\\*100;const out=\\{performance:Math\\.round\\(c\\),FCP:a\\['first-contentful-paint'\\]\\.displayValue,LCP:a\\['largest-contentful-paint'\\]\\.displayValue,SI:a\\['speed-index'\\]\\.displayValue,TBT:a\\['total-blocking-time'\\]\\.displayValue,CLS:a\\['cumulative-layout-shift'\\]\\.displayValue,TTI:a\\['interactive'\\]\\.displayValue,transfer:a\\['total-byte-weight'\\]\\.displayValue,requests:a\\['network-requests'\\]\\?\\.details\\?\\.items\\?\\.length\\};console\\.log\\(JSON\\.stringify\\(out,null,2\\)\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"const fs=require\\('fs'\\);const files=\\['lighthouse-performance\\.json','lighthouse-performance-2\\.json','Frontend/lighthouse-local-after\\.json'\\];for\\(const p of files\\)\\{const j=JSON\\.parse\\(fs\\.readFileSync\\(p,'utf8'\\)\\);const a=j\\.audits;const c=Math\\.round\\(j\\.categories\\.performance\\.score\\*100\\);const o=\\{file:p,performance:c,FCP:a\\['first-contentful-paint'\\]\\.displayValue,LCP:a\\['largest-contentful-paint'\\]\\.displayValue,SI:a\\['speed-index'\\]\\.displayValue,TBT:a\\['total-blocking-time'\\]\\.displayValue,CLS:a\\['cumulative-layout-shift'\\]\\.displayValue,TTI:a\\['interactive'\\]\\.displayValue,transfer:a\\['total-byte-weight'\\]\\.displayValue,requests:a\\['network-requests'\\]\\?\\.details\\?\\.items\\?\\.length\\};console\\.log\\(JSON\\.stringify\\(o\\)\\);\\}\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"const fs=require\\('fs'\\);const files=\\['\\.\\./lighthouse-performance\\.json','\\.\\./lighthouse-performance-2\\.json','lighthouse-local-after\\.json'\\];for\\(const p of files\\)\\{const j=JSON\\.parse\\(fs\\.readFileSync\\(p,'utf8'\\)\\);const a=j\\.audits;const c=Math\\.round\\(j\\.categories\\.performance\\.score\\*100\\);const o=\\{file:p,performance:c,FCP:a\\['first-contentful-paint'\\]\\.displayValue,LCP:a\\['largest-contentful-paint'\\]\\.displayValue,SI:a\\['speed-index'\\]\\.displayValue,TBT:a\\['total-blocking-time'\\]\\.displayValue,CLS:a\\['cumulative-layout-shift'\\]\\.displayValue,TTI:a\\['interactive'\\]\\.displayValue,transfer:a\\['total-byte-weight'\\]\\.displayValue,requests:a\\['network-requests'\\]\\?\\.details\\?\\.items\\?\\.length\\};console\\.log\\(JSON\\.stringify\\(o\\)\\);\\}\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"const fs=require\\('fs'\\);for\\(const p of \\['\\.\\./lighthouse-performance\\.json','\\.\\./lighthouse-performance-2\\.json'\\]\\)\\{const j=JSON\\.parse\\(fs\\.readFileSync\\(p,'utf8'\\)\\);console\\.log\\(p\\+': '\\+\\(j\\.finalUrl\\|\\|j\\.requestedUrl\\|\\|'N/A'\\)\\);\\}\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"const fs=require\\('fs'\\);const files=\\['\\.\\./lighthouse-performance\\.json','\\.\\./lighthouse-performance-2\\.json','\\.\\./lighthouse-production-after\\.json','lighthouse-local-after\\.json'\\];for\\(const p of files\\)\\{const j=JSON\\.parse\\(fs\\.readFileSync\\(p,'utf8'\\)\\);const a=j\\.audits;const c=Math\\.round\\(j\\.categories\\.performance\\.score\\*100\\);const o=\\{file:p,url:j\\.finalUrl\\|\\|j\\.requestedUrl\\|\\|'',performance:c,FCP:a\\['first-contentful-paint'\\]\\.displayValue,LCP:a\\['largest-contentful-paint'\\]\\.displayValue,SI:a\\['speed-index'\\]\\.displayValue,TBT:a\\['total-blocking-time'\\]\\.displayValue,CLS:a\\['cumulative-layout-shift'\\]\\.displayValue,TTI:a\\['interactive'\\]\\.displayValue,transfer:a\\['total-byte-weight'\\]\\.displayValue,requests:a\\['network-requests'\\]\\?\\.details\\?\\.items\\?\\.length\\};console\\.log\\(JSON\\.stringify\\(o\\)\\);\\}\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^vercel link --project basileia-app --scope alejandromartinez1794s-projects --yes$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "vercel": true
     }
 }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import { createContext, useEffect, useMemo, useReducer } from "react";
 
 const parseStoredJSON = (value) => {
     if (!value) return null;
@@ -53,6 +53,14 @@ const authReducer = (state, action) => {
 export const AuthContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(authReducer, initialState);
 
+    const contextValue = useMemo(() => ({
+        user: state.user,
+        token: state.token,
+        role: state.role,
+        authProvider: state.authProvider,
+        dispatch,
+    }), [state.user, state.token, state.role, state.authProvider, dispatch]);
+
     useEffect(() => {
         sessionStorage.setItem("user", JSON.stringify(state.user));
         if (state.token) {
@@ -80,13 +88,7 @@ export const AuthContextProvider = ({ children }) => {
 
     return (
         <authContext.Provider
-            value={{
-                user: state.user,
-                token: state.token,
-                role: state.role,
-                authProvider: state.authProvider,
-                dispatch,
-            }}
+            value={contextValue}
         >
             {children}
         </authContext.Provider>
