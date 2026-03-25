@@ -135,3 +135,73 @@ CORS_ORIGINS=https://Basileia.com,https://app.Basileia.com
 
 **Última actualización**: 20 de enero, 2026
 **Versión del backend**: 1.0.0 (optimizada)
+
+## ✅ Frontend - Enero/Marzo 2026
+
+### 1. **Code Splitting (React Router)**
+- Implementación de `React.lazy` y `Suspense` en `Frontend/src/routes/Routers.jsx`.
+- **Impacto**: Reducción del bundle inicial JS. Módulos pesados (dashboards y evaluaciones) ahora cargan bajo demanda.
+
+### 2. **Optimización de Imágenes (LCP / Lazy Loading)**
+- Priorización de imágenes críticas del hero en `Frontend/src/pages/Home.jsx` con `fetchpriority="high"` y `loading="eager"`.
+- Carga diferida para imágenes secundarias con `loading="lazy"` y `decoding="async"`.
+- Integración visual del logo en header/footer con `mix-blend-multiply` y ajuste fino de contraste.
+
+### 3. **Memoización de Componentes (Completado)**
+- `React.memo` aplicado a componentes estructurales:
+   - `Frontend/src/components/Header/header.jsx`
+   - `Frontend/src/components/Footer/footer.jsx`
+   - `Frontend/src/components/About/About.jsx`
+   - `Frontend/src/components/Brand/BrandLogo.jsx`
+- `useCallback` y `useMemo` en `Header` para estabilizar handlers y valores derivados.
+- `useMemo` en `AuthContextProvider` para estabilizar el objeto `value` del provider.
+
+### 4. **Render Blocking + LCP (Marzo 2026)**
+- Eliminada carga global de script externo no critico en `Frontend/index.html`.
+- Carga de Google Fonts convertida a patron no bloqueante (preload + swap).
+- Removidos backgrounds pesados en CSS critico (`hero-bg.png`, `mask.png`) y reemplazados por gradientes en `Frontend/src/index.css`.
+- Ajustada estrategia de prioridad de imagenes en `Frontend/src/pages/Home.jsx`:
+   - Solo imagen principal del hero con prioridad alta.
+   - Imagenes secundarias diferidas (`lazy`) con `decoding="async"` y dimensiones explicitas.
+
+### 5. **Validacion Lighthouse (Antes vs Despues)**
+
+| Metrica | Antes 1 (prod) | Antes 2 (prod) | Despues (local preview) |
+|--------|-----------------|----------------|--------------------------|
+| Performance | 62 | 33 | **75** |
+| FCP | 3.7s | 3.5s | **2.3s** |
+| LCP | 12.1s | 15.9s | **6.4s** |
+| Speed Index | 4.1s | 7.3s | **2.3s** |
+| TBT | 210ms | 2060ms | **50ms** |
+| CLS | 0.000 | 0.018 | **0.000** |
+| TTI | 12.1s | 16.2s | **6.5s** |
+| Transferencia | 3039KiB | 3039KiB | **1506KiB** |
+| Requests | 29 | 29 | **20** |
+
+Notas de lectura:
+- Los valores "Antes" provienen de `lighthouse-performance.json` y `lighthouse-performance-2.json`.
+- El valor "Despues" proviene de `Frontend/lighthouse-local-after.json`.
+- La comparacion es orientativa porque el baseline previo fue en entorno productivo remoto y la nueva medicion es local preview.
+
+### 6. **Validacion en Produccion (Marzo 2026)**
+
+Se ejecutaron corridas contra `https://www.basileia.tech/` antes y despues del deploy del frontend optimizado:
+- `lighthouse-production-after.json` (pre-deploy)
+- `lighthouse-production-after-deploy.json` (post-deploy)
+
+| Metrica | Baseline Prod 1 | Baseline Prod 2 | Prod Pre-Deploy | Prod Post-Deploy |
+|--------|------------------|------------------|------------------|------------------|
+| Performance | 62 | 33 | 63 | **84** |
+| FCP | 3.7s | 3.5s | 3.3s | **2.8s** |
+| LCP | 12.1s | 15.9s | 12.0s | **3.6s** |
+| Speed Index | 4.1s | 7.3s | 6.6s | **3.6s** |
+| TBT | 210ms | 2060ms | 60ms | **10ms** |
+| CLS | 0.000 | 0.018 | 0.018 | **0.000** |
+| TTI | 12.1s | 16.2s | 12.0s | **3.8s** |
+| Transferencia | 3039KiB | 3039KiB | 3039KiB | **1508KiB** |
+| Requests | 29 | 29 | 29 | **20** |
+
+Conclusion operativa:
+- El frontend optimizado ya esta desplegado en produccion (`www.basileia.tech`) y las mejoras quedaron reflejadas en Lighthouse.
+- La mejora principal esta en LCP, TTI, TBT y peso total transferido.
+

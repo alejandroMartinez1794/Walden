@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import brandImage from '../../assets/images/logo_principal_basileia.png';
 
 const BrandLogo = ({ variant = 'header', className = '' }) => {
@@ -57,4 +57,5 @@ const BrandLogo = ({ variant = 'header', className = '' }) => {
   );
 };
 
-export default BrandLogo;
+export default memo(BrandLogo);
+

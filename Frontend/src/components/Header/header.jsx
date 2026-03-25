@@ -1,4 +1,4 @@
-import { useEffect, useRef, useContext, useState } from 'react';
+import { memo, useEffect, useRef, useContext, useState, useCallback, useMemo } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
@@ -34,24 +34,24 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => {
+  const toggleMenu = useCallback(() => {
     menuRef.current?.classList.toggle('show_menu');
-  };
+  }, []);
 
-  const handleNavClick = () => {
+  const handleNavClick = useCallback(() => {
     // Solo cerrar el menú si el ancho de la ventana es menor a 768px (mobile)
     if (window.innerWidth < 768) {
       toggleMenu();
     }
-  };
+  }, [toggleMenu]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     navigate('/login');
-  };
+  }, [dispatch, navigate]);
 
 
   useEffect(() => {
@@ -84,19 +84,20 @@ const Header = () => {
     fetchDoctorAvatar();
   }, [role, token]);
 
-  const userDashboardLink =
-    role?.toLowerCase() === 'doctor' || role?.toLowerCase() === 'admin'
-      ? '/doctors/profile/me'
-      : role?.toLowerCase() === 'paciente'
-      ? '/users/profile/me'
-      : '/login';
+  const userDashboardLink = useMemo(() => {
+    const normalizedRole = role?.toLowerCase();
+    if (normalizedRole === 'doctor' || normalizedRole === 'admin') return '/doctors/profile/me';
+    if (normalizedRole === 'paciente') return '/users/profile/me';
+    return '/login';
+  }, [role]);
 
-  const resolvedAvatar =
-    doctorAvatar ||
-    (user?.name
-      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0B1226&color=fff&size=512`
-      : null);
-  const therapistShortName = user?.name?.split(' ')[0] || 'Profesional';
+  const resolvedAvatar = useMemo(() => {
+    if (doctorAvatar) return doctorAvatar;
+    if (!user?.name) return null;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0B1226&color=fff&size=512`;
+  }, [doctorAvatar, user?.name]);
+
+  const therapistShortName = useMemo(() => user?.name?.split(' ')[0] || 'Profesional', [user?.name]);
 
   return (
     <header className="header flex items-center" ref={headerRef}>
@@ -206,4 +207,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default memo(Header);
