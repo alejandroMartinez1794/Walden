@@ -39,8 +39,8 @@ _Asegúrate de habilitarla en Vercel para Producción (Production)._
 ## Nivel 4: Configuración Externa (Seguridad)
 
 ### MongoDB Atlas
-- [ ] **Acceso de Red (Seguridad):** Ve a _Network Access_ y permite conexiones **solo desde orígenes confiables**. Para producción, **prefiere una allowlist de IPs específicas** o **private networking / peering** si tu plan lo permite.
-- [ ] **Prueba inicial (temporal):** Si necesitas validar conectividad en un smoke test y aún no tienes IP fija, puedes usar `0.0.0.0/0` **únicamente de forma temporal**, con advertencia explícita de que expone la base de datos a Internet. **Retíralo inmediatamente** después de comprobar conexión y reemplázalo por una allowlist restringida.
+- [ ] **Acceso de Red:** Ve a _Network Access_ y permite conexiones **solo desde orígenes confiables**. Para producción, **prefiere una allowlist de IPs específicas** o **private networking / peering** si tu plan lo permite. **No uses `0.0.0.0/0` como configuración por defecto en producción**.
+- [ ] **Prueba inicial (solo temporal):** Si necesitas validar conectividad y no dispones aún de IP fija, puedes usar `0.0.0.0/0` **únicamente de forma temporal para un smoke test**, con una advertencia explícita de que expone la base de datos a Internet. **Retíralo inmediatamente** después de comprobar la conexión y reemplázalo por una allowlist restringida o red privada.
 
 ### Google Cloud Console (OAuth 2.0)
 En tu cliente OAuth (Credenciales ID de cliente de OAuth 2.0):
