@@ -123,7 +123,7 @@ describe('🔒 Secure Logout - Token Blacklisting', () => {
       token, 
       user._id, 
       new Date(decoded.exp * 1000), 
-      'MANUAL_TEST'
+      'LOGOUT'
     );
     
     // Intentar usar el token
@@ -211,7 +211,7 @@ describe('🧹 Token Blacklist Cleanup', () => {
       expiredToken,
       user._id,
       new Date(Date.now() + 1000), // Expira en 1 segundo
-      'TEST_EXPIRED'
+      'LOGOUT'
     );
     
     // Esperar a que expire
