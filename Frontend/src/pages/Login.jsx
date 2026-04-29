@@ -1,6 +1,6 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BASE_URL } from '../config';
 import { toast } from 'react-toastify';
 import { authContext } from '../context/AuthContext.jsx';
@@ -21,8 +21,24 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { dispatch } = useContext(authContext);
   const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
+  const isProduction = import.meta.env.PROD;
+  const isCaptchaEnabled = Boolean(hcaptchaSiteKey);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    if (error === 'captcha_required') {
+      toast.error('Acceso denegado: Debes completar el captcha para ingresar con Google.');
+      // Limpiar URL sin recargar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (error === 'captcha_failed_server') {
+      toast.error('Error de verificación: El captcha no fue aprobado por el servidor o ha expirado. Inténtalo de nuevo.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [location]);
 
   const normalizeEmail = value => value.trim().toLowerCase();
   const isValidEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -90,7 +106,12 @@ const Login = () => {
       setLoading(false);
       return;
     }
-    if (!captchaToken) {
+    if (isProduction && !isCaptchaEnabled) {
+      toast.error('Captcha no configurado en producción. Contacta al administrador.');
+      setLoading(false);
+      return;
+    }
+    if (isCaptchaEnabled && !captchaToken) {
       toast.error('Completa el captcha');
       setLoading(false);
       return;
@@ -157,9 +178,20 @@ const Login = () => {
     }
   };
   const handleGoogleLogin = () => {
+    // Verificar captcha antes de redirigir a Google
+    if (isCaptchaEnabled && !captchaToken) {
+      toast.error('Por seguridad, completa el captcha primero.');
+      return;
+    }
+    
     // Usar la constante BASE_URL del frontend en lugar de depender de VITE_BACKEND_URL
     // Evita rutas como /undefined/calendar/google-auth cuando la variable de entorno no está definida
-    window.location.href = `${BASE_URL}/calendar/google-auth`;
+    // Se agrega el token del captcha para validación en backend
+    const authUrl = new URL(`${BASE_URL}/calendar/google-auth`);
+    if (captchaToken) {
+      authUrl.searchParams.append('captchaToken', captchaToken);
+    }
+    window.location.href = authUrl.toString();
   };
 
   if (show2FA) {
@@ -241,7 +273,12 @@ const Login = () => {
           <div className='mt-7'>
             <button
               type="submit"
-              className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 px-3"
+              disabled={loading || (isCaptchaEnabled && !captchaToken)}
+              className={`w-full text-white text-[18px] leading-[30px] rounded-lg px-4 px-3 ${
+                loading || (isCaptchaEnabled && !captchaToken) 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-primaryColor hover:bg-blue-700'
+              }`}
             >
               {loading ? <Hashloader size={25} color="#fff" /> : "Login"}
             </button>
@@ -255,7 +292,11 @@ const Login = () => {
                 onExpire={() => setCaptchaToken(null)}
               />
             ) : (
-              <p className="text-sm text-red-500">Falta configurar VITE_HCAPTCHA_SITE_KEY</p>
+              <p className="text-sm text-red-500">
+                {isProduction
+                  ? 'Captcha requerido en producción: configura VITE_HCAPTCHA_SITE_KEY'
+                  : 'Captcha desactivado temporalmente por configuración'}
+              </p>
             )}
           </div>
 
@@ -264,12 +305,17 @@ const Login = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:shadow-md transition"
+              disabled={isCaptchaEnabled && !captchaToken}
+              className={`w-full flex items-center justify-center gap-3 py-2 rounded-lg transition border ${
+                isCaptchaEnabled && !captchaToken
+                  ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-white border-gray-300 text-gray-700 font-medium hover:shadow-md'
+              }`}
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google icon"
-                className="w-6 h-6"
+                className={`w-6 h-6 ${isCaptchaEnabled && !captchaToken ? 'opacity-50' : ''}`}
               />
               <span>Continuar con Google</span>
             </button>

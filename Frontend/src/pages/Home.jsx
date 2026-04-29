@@ -90,12 +90,12 @@ const Home = () => {
                         <div className="lg:w-6/12 flex items-center justify-end">
                             <div className="flex items-center gap-8 lg:gap-10">
                                 <div className="w-[280px] sm:w-[360px] md:w-[440px] lg:w-[560px]">
-                                    <img src={heroImg01} alt="Imagen principal" className="w-full h-auto rounded-lg shadow-lg object-cover" />
+                                    <img src={heroImg01} fetchpriority="high" loading="eager" decoding="async" width="560" height="560" alt="Imagen principal" className="w-full h-auto rounded-lg shadow-lg object-cover" />
                                 </div>
 
                                 <div className="flex flex-col gap-6 pt-6 lg:pt-0">
-                                    <img src={heroImg02} alt="Secundaria 1" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
-                                    <img src={heroImg03} alt="Secundaria 2" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
+                                    <img src={heroImg02} fetchpriority="low" loading="lazy" decoding="async" width="240" height="240" alt="Secundaria 1" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
+                                    <img src={heroImg03} fetchpriority="low" loading="lazy" decoding="async" width="240" height="240" alt="Secundaria 2" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
                                 </div>
                             </div>
                         </div>
@@ -119,7 +119,7 @@ const Home = () => {
 
                         <div className="py-[30px] px-5">
                             <div className="flex item-center justify-center">
-                                <img src={icon01} alt=""/>
+                                <img src={icon01} loading="lazy" decoding="async" alt="Ícono fase exploratoria"/>
                             </div>
 
                             <div className="mt-[30px]">
@@ -138,7 +138,7 @@ const Home = () => {
 
                         <div className="py-[30px] px-5">
                             <div className="flex item-center justify-center">
-                                <img src={icon02} alt=""/>
+                                <img src={icon02} loading="lazy" decoding="async" alt="Ícono conexión virtual"/>
                             </div>
 
                             <div className="mt-[30px]">
@@ -157,7 +157,7 @@ const Home = () => {
 
                         <div className="py-[30px] px-5">
                             <div className="flex item-center justify-center">
-                                <img src={icon03} alt=""/>
+                                <img src={icon03} loading="lazy" decoding="async" alt="Ícono agendamiento"/>
                             </div>
 
                             <div className="mt-[30px]">
@@ -217,7 +217,7 @@ const Home = () => {
 
                                 {/*---feature image---*/}
                         <div className="relative z-10 xl:w-[770px] flex justify-end mt-[50px] lg:mt-0">
-                            <img src={featureimg} className="w-3/4" alt=""/>
+                            <img src={featureimg} loading="lazy" decoding="async" width="560" height="560" className="w-3/4" alt=""/>
 
                             <div className="w-[150px] lg:w-[248px] bg-white absolute bottom-[50px] left-0 md:bottom-[100px] md:left-5 z-20 p-2
                             pb-3 lg:pt-4 lg:px-4 lg:pb-[26px] rounded-[10px]">
@@ -232,7 +232,7 @@ const Home = () => {
                                     </div>
                                     <span className="w-5 h-5 lg:w-[34px] lg:h-[34px] flex items-center justify-center bg-yellowColor rounded
                                     py-1 px-[6px] lg:py-3 lg:px-[9px]">
-                                        <img src={videoIcon} alt=""/>
+                                        <img src={videoIcon} loading="lazy" decoding="async" width="24" height="24" alt=""/>
                                     </span>
                                 </div>
                                 
@@ -242,7 +242,7 @@ const Home = () => {
                                 </div>                                
 
                                 <div className="flex items-center gap-[6px] lg:gap[10px] mt-2 lg:mt-[18px]">
-                                    <img src={avatarIcon} alt="" />
+                                    <img src={avatarIcon} loading="lazy" decoding="async" alt="" />
                                     <h4 className="text-[10px] leading-3 lg:text-[16px] lg:leading-[22px] font-[700] text-headingColor"> 
                                         Dra. Laura Gómez                                         
                                     </h4>
@@ -263,7 +263,7 @@ const Home = () => {
                 <div className="container">
                     <div className="flex justify-between gap-[50px] lg:gap:0">
                         <div className="w-1/2 hidden md:block">
-                            <img src={faqimg} alt=""/>
+                            <img src={faqimg} loading="lazy" decoding="async" width="500" height="500" alt=""/>
                         </div>
 
                         <div className="w-full md:w-1/2">

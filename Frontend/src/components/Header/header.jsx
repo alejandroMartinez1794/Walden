@@ -1,9 +1,10 @@
-import { useEffect, useRef, useContext, useState } from 'react';
+import { memo, useEffect, useRef, useContext, useState, useCallback, useMemo } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
 import { authContext } from '../../context/AuthContext';
 import { BASE_URL } from '../../config';
+import logoHeader from '../../assets/images/basileia_logo_header.png';
 
 const navLinks = [
   { path: '/home', display: 'Inicio' },
@@ -33,24 +34,24 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => {
+  const toggleMenu = useCallback(() => {
     menuRef.current?.classList.toggle('show_menu');
-  };
+  }, []);
 
-  const handleNavClick = () => {
+  const handleNavClick = useCallback(() => {
     // Solo cerrar el menú si el ancho de la ventana es menor a 768px (mobile)
     if (window.innerWidth < 768) {
       toggleMenu();
     }
-  };
+  }, [toggleMenu]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     navigate('/login');
-  };
+  }, [dispatch, navigate]);
 
 
   useEffect(() => {
@@ -83,53 +84,37 @@ const Header = () => {
     fetchDoctorAvatar();
   }, [role, token]);
 
-  const userDashboardLink =
-    role?.toLowerCase() === 'doctor' || role?.toLowerCase() === 'admin'
-      ? '/doctors/profile/me'
-      : role?.toLowerCase() === 'paciente'
-      ? '/users/profile/me'
-      : '/login';
+  const userDashboardLink = useMemo(() => {
+    const normalizedRole = role?.toLowerCase();
+    if (normalizedRole === 'doctor' || normalizedRole === 'admin') return '/doctors/profile/me';
+    if (normalizedRole === 'paciente') return '/users/profile/me';
+    return '/login';
+  }, [role]);
 
-  const resolvedAvatar =
-    doctorAvatar ||
-    (user?.name
-      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0B1226&color=fff&size=512`
-      : null);
-  const therapistShortName = user?.name?.split(' ')[0] || 'Profesional';
+  const resolvedAvatar = useMemo(() => {
+    if (doctorAvatar) return doctorAvatar;
+    if (!user?.name) return null;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0B1226&color=fff&size=512`;
+  }, [doctorAvatar, user?.name]);
+
+  const therapistShortName = useMemo(() => user?.name?.split(' ')[0] || 'Profesional', [user?.name]);
 
   return (
     <header className="header flex items-center" ref={headerRef}>
       <div className="container">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="py-3">
+          <div className="flex flex-col justify-center py-2 h-full">
             <Link 
               to="/home" 
-              className="group block transition-opacity duration-200 hover:opacity-80"
+              className="block flex items-center h-full"
             >
-              <div className="flex flex-col justify-center">
-                <span 
-                  className="text-[2.5rem] font-normal tracking-tight leading-none text-slate-900"
-                  style={{ 
-                    fontFamily: "'Cormorant Garamond', 'Libre Baskerville', 'Crimson Text', Georgia, serif",
-                    fontWeight: 500,
-                    letterSpacing: '-0.01em',
-                    lineHeight: 1
-                  }}
-                >
-                  Βασιλειάς
-                </span>
-                <span 
-                  className="text-[0.6rem] font-medium tracking-[0.35em] text-slate-500 uppercase mt-1.5 ml-1 block"
-                  style={{ 
-                    fontFamily: "'Inter', 'SF Pro Display', -apple-system, sans-serif",
-                    fontWeight: 500,
-                    lineHeight: 1
-                  }}
-                >
-                  BASILEIA
-                </span>
-              </div>
+              <img
+                src={logoHeader}
+                alt="Basileia Centro Psicológico"
+                className="h-[75px] w-auto md:h-[90px] object-contain mix-blend-multiply"
+                style={{ filter: "brightness(1.08) contrast(1.1)" }}
+              />
             </Link>
           </div>
 
@@ -222,4 +207,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default memo(Header);

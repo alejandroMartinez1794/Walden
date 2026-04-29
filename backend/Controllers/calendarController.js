@@ -9,24 +9,48 @@ import jwt from 'jsonwebtoken';
 import {getOAuthClientWithUserTokens} from '../utils/getOAuthClientWithUserTokens.js';
 import Booking from '../models/BookingSchema.js';
 import logger from '../utils/logger.js';
+import { verifyCaptchaToken } from './authController.js';
 
 /**
  * 🔗 Genera URL de autenticación de Google
  */
-export const getGoogleAuthUrl = (req, res) => {
-  const scopes = [
-    'https://www.googleapis.com/auth/calendar',
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-  ];
+export const getGoogleAuthUrl = async (req, res) => {
+  try {
+    const { captchaToken } = req.query;
+    
+    // Captcha es obligatorio para iniciar el flujo de Google Auth (seguridad)
+    // Se ignora en development si se requiere para pruebas locales sin captcha
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction || (process.env.REQUIRE_CAPTCHA_FOR_GOOGLE === 'true')) {
+        // Enviar req.ip puede fallar si está detrás de un proxy complejo como Heroku sin trust proxy,
+        // así que omitimos pasarlo por seguridad para evitar falsos negativos.
+        const isValid = await verifyCaptchaToken(captchaToken);
+        if (!isValid) {
+            // Manejo estándar: Redirigir al login con parámetro de error para que el frontend lo muestre
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            // Validar si frontendUrl termina en '/', para no duplicar slash
+            const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+            return res.redirect(`${redirectBase}/login?error=captcha_failed_server`);
+        }
+    }
 
-  const url = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    prompt: 'consent',
-    scope: scopes,
-  });
+    const scopes = [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+    ];
 
-  res.redirect(url);
+    const url = oAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        prompt: 'consent',
+        scope: scopes,
+    });
+
+    res.redirect(url);
+  } catch (error) {
+      logger.error('Error en getGoogleAuthUrl:', error);
+      res.status(500).send('Error interno del servidor');
+  }
 };
 
 /**

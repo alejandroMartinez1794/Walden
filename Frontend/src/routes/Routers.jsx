@@ -1,58 +1,59 @@
-import React from 'react'
+import React, { Suspense } from 'react';
+import Loading from '../components/Loader/Loading';
 import Home from '../pages/Home'
-import Testimonios from '../pages/Testimonios';
-import Services from '../pages/Services';
+const Testimonios = React.lazy(() => import('../pages/Testimonios'));
+const Services = React.lazy(() => import('../pages/Services'));
 import Login from '../pages/Login';
 import Signup from '../pages/Singup';
-import Contact from '../pages/Contact';
-import DoctorDetails from '../pages/Doctors/DoctorsDetails';
-import InformedConsent from '../pages/Legal/InformedConsent';
-import Myaccount from '../Dashboard/user-account/MyAccount';
-import Dashboard from '../Dashboard/doctor-account/Dashboard';
-import PsychologyDashboard from '../Dashboard/psychology/PsychologyDashboard';
-import PatientList from '../Dashboard/psychology/PatientList';
-import PatientFile from '../Dashboard/psychology/patients/PatientFile';
-import NewPatientForm from '../Dashboard/psychology/patients/NewPatientForm';
-import ClinicalHistoryForm from '../Dashboard/psychology/patients/ClinicalHistoryForm';
-import ClinicalHistoryList from '../Dashboard/psychology/clinical-history/ClinicalHistoryList';
-import AssessmentSelector from '../Dashboard/psychology/assessments/AssessmentSelector';
-import PHQ9Form from '../Dashboard/psychology/assessments/PHQ9Form';
-import GAD7Form from '../Dashboard/psychology/assessments/GAD7Form';
-import PCL5Form from '../Dashboard/psychology/assessments/PCL5/PCL5Form';
-import OCIRForm from '../Dashboard/psychology/assessments/OCIR/OCIRForm';
-import SUDSForm from '../Dashboard/psychology/assessments/CBT/SUDSForm';
-import ThoughtRecordForm from '../Dashboard/psychology/assessments/CBT/ThoughtRecordForm';
-import CognitiveDistortionsForm from '../Dashboard/psychology/assessments/CBT/CognitiveDistortionsForm';
-import CoreBeliefsForm from '../Dashboard/psychology/assessments/CBT/CoreBeliefsForm';
-import AvoidanceBehaviorsForm from '../Dashboard/psychology/assessments/CBT/AvoidanceBehaviorsForm';
-import BehavioralActivationForm from '../Dashboard/psychology/assessments/CBT/BehavioralActivationForm';
-import CaseFormulationForm from '../Dashboard/psychology/assessments/CBT/CaseFormulationForm';
-import WHO5Form from '../Dashboard/psychology/assessments/WHO5Form';
-import AUDITForm from '../Dashboard/psychology/assessments/AUDITForm';
-import PHQ15Form from '../Dashboard/psychology/assessments/PHQ15Form';
-import PCPTSD5Form from '../Dashboard/psychology/assessments/PCPTSD5Form';
-import K10Form from '../Dashboard/psychology/assessments/K10Form';
-import K6Form from '../Dashboard/psychology/assessments/K6Form';
-import LicenseLocked from '../Dashboard/psychology/assessments/LicenseLocked';
-import SessionForm from '../Dashboard/psychology/sessions/SessionForm';
+const Contact = React.lazy(() => import('../pages/Contact'));
+const DoctorDetails = React.lazy(() => import('../pages/Doctors/DoctorsDetails'));
+const InformedConsent = React.lazy(() => import('../pages/Legal/InformedConsent'));
+const Myaccount = React.lazy(() => import('../Dashboard/user-account/MyAccount'));
+const Dashboard = React.lazy(() => import('../Dashboard/doctor-account/Dashboard'));
+const PsychologyDashboard = React.lazy(() => import('../Dashboard/psychology/PsychologyDashboard'));
+const PatientList = React.lazy(() => import('../Dashboard/psychology/PatientList'));
+const PatientFile = React.lazy(() => import('../Dashboard/psychology/patients/PatientFile'));
+const NewPatientForm = React.lazy(() => import('../Dashboard/psychology/patients/NewPatientForm'));
+const ClinicalHistoryForm = React.lazy(() => import('../Dashboard/psychology/patients/ClinicalHistoryForm'));
+const ClinicalHistoryList = React.lazy(() => import('../Dashboard/psychology/clinical-history/ClinicalHistoryList'));
+const AssessmentSelector = React.lazy(() => import('../Dashboard/psychology/assessments/AssessmentSelector'));
+const PHQ9Form = React.lazy(() => import('../Dashboard/psychology/assessments/PHQ9Form'));
+const GAD7Form = React.lazy(() => import('../Dashboard/psychology/assessments/GAD7Form'));
+const PCL5Form = React.lazy(() => import('../Dashboard/psychology/assessments/PCL5/PCL5Form'));
+const OCIRForm = React.lazy(() => import('../Dashboard/psychology/assessments/OCIR/OCIRForm'));
+const SUDSForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/SUDSForm'));
+const ThoughtRecordForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/ThoughtRecordForm'));
+const CognitiveDistortionsForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/CognitiveDistortionsForm'));
+const CoreBeliefsForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/CoreBeliefsForm'));
+const AvoidanceBehaviorsForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/AvoidanceBehaviorsForm'));
+const BehavioralActivationForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/BehavioralActivationForm'));
+const CaseFormulationForm = React.lazy(() => import('../Dashboard/psychology/assessments/CBT/CaseFormulationForm'));
+const WHO5Form = React.lazy(() => import('../Dashboard/psychology/assessments/WHO5Form'));
+const AUDITForm = React.lazy(() => import('../Dashboard/psychology/assessments/AUDITForm'));
+const PHQ15Form = React.lazy(() => import('../Dashboard/psychology/assessments/PHQ15Form'));
+const PCPTSD5Form = React.lazy(() => import('../Dashboard/psychology/assessments/PCPTSD5Form'));
+const K10Form = React.lazy(() => import('../Dashboard/psychology/assessments/K10Form'));
+const K6Form = React.lazy(() => import('../Dashboard/psychology/assessments/K6Form'));
+const LicenseLocked = React.lazy(() => import('../Dashboard/psychology/assessments/LicenseLocked'));
+const SessionForm = React.lazy(() => import('../Dashboard/psychology/sessions/SessionForm'));
 
 import GoogleAuthRedirect from '../pages/GoogleAuthRedirect'; // ✅ IMPORTACIÓN
-import DataProtection from '../pages/Legal/DataProtection';
-import TermsOfService from '../pages/Legal/TermsOfService';
+const DataProtection = React.lazy(() => import('../pages/Legal/DataProtection'));
+const TermsOfService = React.lazy(() => import('../pages/Legal/TermsOfService'));
 
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute';
 
 const Routers = () => {
     return (
-        <Routes>
+        <Suspense fallback={<Loading />}><Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/doctors/:id" element={<DoctorDetails />} />
-            <Route path="/Login" element={<Login />} />
-            <Route path="/Register" element={<Signup />} />
-            <Route path="/Contact" element={<Contact />} />
-            <Route path="/Services" element={<Services />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Signup />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/testimonios" element={<Testimonios />} />
             <Route path="/data-protection" element={<DataProtection />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -376,7 +377,7 @@ const Routers = () => {
             
             {/* ✅ NUEVA RUTA PARA REDIRECCIÓN DESDE GOOGLE */}
             <Route path="/google-auth-redirect" element={<GoogleAuthRedirect />} />
-        </Routes>
+        </Routes></Suspense>
     );
 };
 

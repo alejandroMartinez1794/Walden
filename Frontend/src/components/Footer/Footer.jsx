@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 import {Link} from 'react-router-dom';
 import {RiLinkedinFill} from 'react-icons/ri';
 import {AiFillYoutube, AiFillGithub, AiOutlineInstagram} from 'react-icons/ai';
+import BrandLogo from '../Brand/BrandLogo';
 
 
 const socialLinks = [
@@ -70,27 +71,7 @@ const Footer = () => {
                 <div className="flex justify-between flex-col md:flex-row flex-wrap gap-[30px]">
                     <div>
                         <div className="mb-8">
-                            <div className="flex flex-col">
-                                <span 
-                                    className="text-[2.25rem] font-normal tracking-tight leading-none text-slate-900"
-                                    style={{ 
-                                        fontFamily: "'Cormorant Garamond', 'Libre Baskerville', 'Crimson Text', Georgia, serif",
-                                        fontWeight: 500,
-                                        letterSpacing: '-0.01em'
-                                    }}
-                                >
-                                    Βασιλειάς
-                                </span>
-                                <span 
-                                    className="text-[0.55rem] font-medium tracking-[0.35em] text-slate-500 uppercase mt-1 ml-0.5"
-                                    style={{ 
-                                        fontFamily: "'Inter', 'SF Pro Display', -apple-system, sans-serif",
-                                        fontWeight: 500
-                                    }}
-                                >
-                                    BASILEIA
-                                </span>
-                            </div>
+                            <BrandLogo variant="footer" className="items-start md:items-center" />
                             
                             <div className="mt-4 pl-1 border-l-2 border-slate-200">
                                 <p 
@@ -182,4 +163,4 @@ const Footer = () => {
     );
 };
 
-export default Footer ;
+export default memo(Footer);
