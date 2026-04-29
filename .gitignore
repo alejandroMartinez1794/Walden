@@ -13,6 +13,15 @@ Frontend/node_modules/
 # Root environment
 *.log
 *.env
+.env.local
+
+# Vercel and workspace temp
+.vercel/
+Frontend/.vercel/
+
+# Custom agents and temp files
+.github/agents/
+
 # Claude Code temp files
 tmpclaude-*
 .vercel
