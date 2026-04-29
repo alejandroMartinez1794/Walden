@@ -15,6 +15,11 @@ Frontend/node_modules/
 *.env
 .env.local
 
+# Log and error files (local test outputs)
+backend/*error*.txt
+backend/*test*.txt
+backend/*.log
+
 # Vercel and workspace temp
 .vercel/
 Frontend/.vercel/
