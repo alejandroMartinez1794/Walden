@@ -5,7 +5,11 @@
     "node": "20.x"
   },
   "scripts": {
-    "heroku-postbuild": "cd backend && npm ci --only=production"
+    "heroku-postbuild": "cd backend && npm ci --only=production",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3"
   },
   "dependencies": {
     "react-calendar": "^5.1.0",
