@@ -103,7 +103,7 @@ export const createTestDoctor = async (Doctor, overrides = {}) => {
     specialization: 'Psicologia',
     ticketPrice: 50,
     bio: 'Test doctor bio',
-    isApproved: true,
+    isApproved: 'approved', // Must be enum: "pending" | "approved" | "cancelled"
     ...overrides
   };
 

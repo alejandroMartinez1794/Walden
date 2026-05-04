@@ -48,7 +48,8 @@ export const createTreatmentPlan = async (req, res) => {
   try {
     const { patientId, theoreticalOrientation, initialGoals } = req.body;
 
-    const plan = await TreatmentPlan.create({
+    // Create with audit context - captured automatically by lifecycle plugin
+    const plan = new TreatmentPlan({
       patient: patientId,
       patientId,
       psychologist: req.userId,
@@ -65,6 +66,14 @@ export const createTreatmentPlan = async (req, res) => {
         },
       ],
     });
+    plan.$locals.clinicalAuditActor = {
+      userId: req.userId,
+      role: 'Doctor', // Must match ClinicalAuditLogSchema enum: ['User', 'Doctor', 'Admin', 'system', 'unknown']
+      email: req.user?.email,
+      ip: req.ip,
+      userAgent: req.get('user-agent')
+    };
+    await plan.save();
 
     res.status(201).json({
       success: true,
@@ -121,6 +130,14 @@ export const progressPhase = async (req, res) => {
       clinicianNotes: overrideReason ? `Override: ${overrideReason}` : assessment.reasoning,
     });
 
+    // Inject clinical audit context before save
+    plan.$locals.clinicalAuditActor = {
+      userId: req.userId,
+      role: 'Doctor', // Must match ClinicalAuditLogSchema enum: ['User', 'Doctor', 'Admin', 'system', 'unknown']
+      email: req.user?.email,
+      ip: req.ip,
+      userAgent: req.get('user-agent')
+    };
     await plan.save();
 
     res.status(200).json({
