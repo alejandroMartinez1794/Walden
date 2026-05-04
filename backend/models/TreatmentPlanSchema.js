@@ -1,5 +1,6 @@
 // backend/models/TreatmentPlanSchema.js
 import mongoose from 'mongoose';
+import { applyClinicalLifecycle, sanitizeClinicalText } from '../utils/clinicalLifecyclePlugin.js';
 
 /**
  * TreatmentPlan Schema - The Master Clinical Record (ENHANCED CBT VERSION)
@@ -66,7 +67,7 @@ const treatmentPlanSchema = new mongoose.Schema({
       phase: String,
       enteredAt: { type: Date, default: Date.now },
       exitedAt: Date,
-      clinicianNotes: String,
+      clinicianNotes: { type: String, trim: true, maxlength: 2000, set: sanitizeClinicalText },
     },
   ],
 
@@ -79,10 +80,10 @@ const treatmentPlanSchema = new mongoose.Schema({
   },
   riskFactors: [
     {
-      factor: String,
+      factor: { type: String, trim: true, maxlength: 500, set: sanitizeClinicalText },
       severity: { type: String, enum: ['LOW', 'MODERATE', 'HIGH'] },
       identifiedAt: { type: Date, default: Date.now },
-      mitigationPlan: String,
+      mitigationPlan: { type: String, trim: true, maxlength: 2000, set: sanitizeClinicalText },
     },
   ],
   lastRiskAssessment: {
@@ -119,7 +120,7 @@ const treatmentPlanSchema = new mongoose.Schema({
     default: 'ACTIVE',
     index: true,
   },
-  statusReason: String,
+  statusReason: { type: String, trim: true, maxlength: 2000, set: sanitizeClinicalText },
 
   // ============= NEW: ADHERENCE TRACKING =============
   adherenceMetrics: {
@@ -144,11 +145,11 @@ const treatmentPlanSchema = new mongoose.Schema({
 
   // Objetivos terapéuticos (criterios SMART)
   goals: [{
-    description: { type: String, required: true },
-    specific: String, // ¿Qué específicamente quiere lograr?
-    measurable: String, // ¿Cómo se medirá el progreso?
+    description: { type: String, required: true, trim: true, maxlength: 500, set: sanitizeClinicalText },
+    specific: { type: String, trim: true, maxlength: 1000, set: sanitizeClinicalText }, // ¿Qué específicamente quiere lograr?
+    measurable: { type: String, trim: true, maxlength: 1000, set: sanitizeClinicalText }, // ¿Cómo se medirá el progreso?
     achievable: Boolean,
-    timeframe: String, // Ej: "3 meses", "6 sesiones"
+    timeframe: { type: String, trim: true, maxlength: 120, set: sanitizeClinicalText }, // Ej: "3 meses", "6 sesiones"
     status: { 
       type: String, 
       enum: ['not-started', 'in-progress', 'achieved', 'revised'], 
@@ -176,46 +177,65 @@ const treatmentPlanSchema = new mongoose.Schema({
         'other'
       ],
     },
-    description: String,
-    targetSymptom: String,
+    description: { type: String, trim: true, maxlength: 1000, set: sanitizeClinicalText },
+    targetSymptom: { type: String, trim: true, maxlength: 500, set: sanitizeClinicalText },
   }],
 
   // Frecuencia y duración del tratamiento
   sessionFrequency: {
     type: String,
+    enum: ['weekly', 'biweekly', 'monthly', 'custom'],
     default: 'weekly', // 'weekly', 'biweekly', 'monthly'
   },
-  estimatedDuration: String, // Ej: "12-16 sesiones", "3-6 meses"
+  estimatedDuration: { type: String, trim: true, maxlength: 120, set: sanitizeClinicalText }, // Ej: "12-16 sesiones", "3-6 meses"
   
   // Criterios de alta
   dischargeCriteria: [{
-    criterion: String,
+    criterion: { type: String, trim: true, maxlength: 500, set: sanitizeClinicalText },
     met: { type: Boolean, default: false },
   }],
 
   // Seguimiento del progreso
   progressReviews: [{
     date: Date,
-    summary: String,
-    adjustments: String, // Ajustes al plan
+    summary: { type: String, trim: true, maxlength: 2000, set: sanitizeClinicalText },
+    adjustments: { type: String, trim: true, maxlength: 2000, set: sanitizeClinicalText }, // Ajustes al plan
   }],
 
   // Obstáculos y plan de contingencia
-  potentialBarriers: String,
-  contingencyPlan: String,
-
-  // Estado del plan
-  status: {
-    type: String,
-    enum: ['active', 'completed', 'revised', 'discontinued'],
-    default: 'active',
-  },
+  potentialBarriers: { type: String, trim: true, maxlength: 2000, set: sanitizeClinicalText },
+  contingencyPlan: { type: String, trim: true, maxlength: 4000, set: sanitizeClinicalText },
 
   // Fechas
-  startDate: { type: Date, default: Date.now },
-  endDate: Date,
+  startDate: {
+    type: Date,
+    default: Date.now,
+    validate: {
+      validator: (value) => !value || value <= new Date(),
+      message: 'Treatment start date cannot be in the future',
+    },
+  },
+  endDate: {
+    type: Date,
+    validate: {
+      validator: function (value) {
+        if (!value || !this.startDate) return true;
+        return value >= this.startDate;
+      },
+      message: 'Treatment end date cannot be earlier than the start date',
+    },
+  },
 
 }, { timestamps: true });
+
+treatmentPlanSchema.index({ psychologist: 1, status: 1, currentPhase: 1, isDeleted: 1, updatedAt: -1 });
+treatmentPlanSchema.index({ patient: 1, psychologist: 1, isDeleted: 1, updatedAt: -1 });
+treatmentPlanSchema.index({ riskLevel: 1, status: 1, isDeleted: 1 });
+
+applyClinicalLifecycle(treatmentPlanSchema, {
+  entityName: 'TreatmentPlan',
+  retentionYears: 8,
+});
 
 export default mongoose.models.TreatmentPlan || 
   mongoose.model('TreatmentPlan', treatmentPlanSchema);
