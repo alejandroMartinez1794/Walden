@@ -16,6 +16,7 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import jwt from 'jsonwebtoken';
+import { destroyTokenBlacklistCache } from '../../services/tokenBlacklist.js';
 
 let mongoServer;
 
@@ -39,11 +40,8 @@ export const setupTestDB = async () => {
   });
   const uri = mongoServer.getUri();
 
-  // Conectar mongoose
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  });
+  // Conectar mongoose (deprecated options removed - not needed in driver v4+)
+  await mongoose.connect(uri);
 };
 
 /**
@@ -57,6 +55,9 @@ export const teardownTestDB = async () => {
   if (mongoServer) {
     await mongoServer.stop();
   }
+
+  // Limpiar cache de tokenBlacklist
+  destroyTokenBlacklistCache();
 };
 
 /**
