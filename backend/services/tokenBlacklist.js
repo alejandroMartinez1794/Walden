@@ -81,6 +81,7 @@ class TokenBlacklistCache {
     
     // Limpieza periódica cada 5 minutos
     this.cleanupInterval = setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    this.cleanupInterval.unref?.();
   }
 
   add(token, expiresAt) {
@@ -130,7 +131,10 @@ class TokenBlacklistCache {
   }
 
   destroy() {
-    clearInterval(this.cleanupInterval);
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
     this.clear();
   }
 }
@@ -288,6 +292,14 @@ export const getBlacklistStats = async () => {
   }
 };
 
+/**
+ * Destruir el cache (útil para testing/cleanup)
+ * Limpia el interval y vacía la memoria
+ */
+export const destroyTokenBlacklistCache = () => {
+  cache.destroy();
+};
+
 // Cleanup al shutdown
 process.on('SIGTERM', () => {
   cache.destroy();
@@ -302,5 +314,6 @@ export default {
   isTokenBlacklisted,
   blacklistAllUserTokens,
   cleanupExpiredTokens,
-  getBlacklistStats
+  getBlacklistStats,
+  destroyTokenBlacklistCache
 };

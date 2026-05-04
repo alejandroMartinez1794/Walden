@@ -9,6 +9,8 @@
  * - Global setup para mocks y helpers
  */
 
+const isCI = ['1', 'true'].includes((process.env.CI || '').toLowerCase());
+
 export default {
   testEnvironment: 'node',
   coverageDirectory: 'coverage',
@@ -23,7 +25,7 @@ export default {
     '**/tests/**/*.test.js'
   ],
   verbose: true,
-  testTimeout: 30000,
+  testTimeout: isCI ? 600000 : 180000, // 3 min local, 10 min in CI (for slow downloads)
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   coverageThreshold: {
     global: {
