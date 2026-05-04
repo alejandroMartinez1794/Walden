@@ -91,7 +91,16 @@ export const getMyRecords = async (req, res) => {
 
 export const createRecord = async (req, res) => {
   try {
-    const record = await MedicalRecord.create({ user: req.user.id, ...req.body });
+    // Create with audit context - captured automatically by lifecycle plugin
+    const record = new MedicalRecord({ user: req.user.id, ...req.body });
+    record.$locals.clinicalAuditActor = {
+      userId: req.userId,
+      role: 'Doctor', // Must match ClinicalAuditLogSchema enum: ['User', 'Doctor', 'Admin', 'system', 'unknown']
+      email: req.user?.email,
+      ip: req.ip,
+      userAgent: req.get('user-agent')
+    };
+    await record.save();
     res.status(201).json({ success: true, data: record });
   } catch (e) {
     res.status(400).json({ success: false, message: 'Failed to create record' });

@@ -347,10 +347,20 @@ export const updateTreatmentPlan = async (req, res) => {
     const { id } = req.params;
     const psychologistId = req.userId;
     
+    // Inject clinical audit context - captured automatically by lifecycle plugin
     const updatedPlan = await TreatmentPlan.findOneAndUpdate(
       { _id: id, psychologist: psychologistId },
       { $set: req.body },
-      { new: true }
+      {
+        new: true,
+        clinicalAuditActor: {
+          userId: req.userId,
+          role: 'Doctor', // Must match ClinicalAuditLogSchema enum: ['User', 'Doctor', 'Admin', 'system', 'unknown']
+          email: req.user?.email,
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      }
     );
     
     if (!updatedPlan) {
@@ -426,23 +436,23 @@ export const upsertClinicalHistory = async (req, res) => {
     const { patientId } = req.params;
     const payload = { ...req.body, patient: patientId, psychologist: psychologistId };
 
+    // Inject clinical audit context - captured automatically by lifecycle plugin
     const updated = await PsychologicalClinicalHistory.findOneAndUpdate(
       { patient: patientId, psychologist: psychologistId },
       { $set: payload },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+        clinicalAuditActor: {
+          userId: req.userId,
+          role: 'Doctor', // Must match ClinicalAuditLogSchema enum: ['User', 'Doctor', 'Admin', 'system', 'unknown']
+          email: req.user?.email,
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      }
     );
-
-    // Auditoría Clínica
-    try {
-      await ClinicalLog.create({
-        actor: { userId: psychologistId, role: 'Doctor', ip: req.ip, userAgent: req.get('User-Agent') },
-        action: 'UPDATE',
-        resource: { entity: 'PsychologicalClinicalHistory', entityId: updated._id },
-        context: { status: 'SUCCESS' }
-      });
-    } catch (logError) {
-      logger.error('Error creando log de auditoría:', logError);
-    }
 
     res.status(200).json({ success: true, message: 'Historia clínica guardada', data: updated });
   } catch (error) {
