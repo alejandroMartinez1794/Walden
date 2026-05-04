@@ -33,6 +33,7 @@ import bookingRoute from './Routes/booking.js';
 import psychologyRoute from './Routes/psychology.js';
 import healthRoute from './Routes/health.js';
 import clinicalRoutes from './Routes/clinical.js';
+import clinicalArcoRoutes from './Routes/clinical/arco.js';
 import twoFactorRoutes from './Routes/2fa.js';
 import paymentRoutes from './Routes/payment.js';
 import clinicalTreatmentRoutes from './Routes/clinical/treatment.js';
@@ -179,6 +180,7 @@ export function createApp() {
   app.use('/api/v1/bookings', bookingRoute);
   app.use('/api/v1/psychology', psychologyRoute);
   app.use('/api/v1/health', healthRoute);
+  app.use('/api/v1/clinical/arco', clinicalArcoRoutes);
   app.use('/api/v1/clinical', clinicalRoutes);
   app.use('/api/v1/clinical/treatment', clinicalTreatmentRoutes);
   app.use('/api/v1/clinical/alerts', clinicalAlertRoutes);
