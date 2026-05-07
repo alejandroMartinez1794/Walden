@@ -1,11 +1,12 @@
 /**
- * Advanced Rate Limiting with Redis
+ * Advanced Adaptive Rate Limiting with Redis
  * 
  * Benefits over in-memory rate limiting:
  * - Works across multiple server instances (horizontal scaling)
  * - Persists between restarts
  * - More accurate limiting
  * - Better DoS protection
+ * - Adaptive limits based on request type and user role
  * 
  * If Redis is not available, falls back to in-memory rate limiting
  */
@@ -17,6 +18,7 @@ import logger from './logger.js';
 
 let redisClient = null;
 let isRedisAvailable = false;
+let _rateLimitRedisErrorLogged = false;
 
 /**
  * Initialize Redis client for rate limiting
@@ -32,12 +34,17 @@ async function initRateLimitRedis() {
       url: process.env.REDIS_URL,
       socket: {
         connectTimeout: 5000,
+        // Disable automatic reconnects for the rate-limit client so failures are handled deterministically
+        reconnectStrategy: false,
       },
     });
 
+    // Log Redis connection errors
     redisClient.on('error', (err) => {
       logger.warn('Rate limit Redis error (falling back to memory)', { error: err.message });
       isRedisAvailable = false;
+      // Mark client as unusable; avoid calling quit() here since the client may already be closed
+      redisClient = null;
     });
 
     redisClient.on('ready', () => {
@@ -45,10 +52,39 @@ async function initRateLimitRedis() {
       logger.info('Rate limit Redis: Connected');
     });
 
-    await redisClient.connect();
-    return redisClient;
+    // Attempt to connect, but if it fails quickly, fall back to in-memory limiter.
+    // Attempt to connect, but catch any rejection explicitly to avoid unhandled AggregateError
+    try {
+      await redisClient.connect();
+    } catch (connErr) {
+      logger.warn('Rate limit Redis: connection failed (using in-memory)', { error: connErr?.message || String(connErr) });
+      try {
+        if (redisClient && typeof redisClient.quit === 'function') {
+          await redisClient.quit();
+        }
+      } catch (e) {
+        // ignore
+      }
+      redisClient = null;
+      return null;
+    }
+
+    // Verify client is open
+    if (redisClient && redisClient.isOpen) {
+      return redisClient;
+    }
+    // fallback
+    if (redisClient && typeof redisClient.quit === 'function') {
+      try { await redisClient.quit(); } catch (e) { /* ignore */ }
+    }
+    redisClient = null;
+    return null;
   } catch (error) {
     logger.warn('Rate limit Redis: Not available (using in-memory)', { error: error.message });
+    if (redisClient && typeof redisClient.quit === 'function') {
+      try { await redisClient.quit(); } catch (e) { /* ignore */ }
+    }
+    redisClient = null;
     return null;
   }
 }
@@ -98,13 +134,17 @@ function createRateLimiter(options = {}) {
  * Strict rate limiter for authentication endpoints
  * Prevents brute force attacks
  */
+/**
+ * Enhanced auth rate limiter with stricter limits and better tracking
+ * Prevents brute force attacks with sliding window approach
+ */
 export const authRateLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Max 10 login attempts per IP
+  windowMs: 5 * 60 * 1000, // 5 minutes (shorter window for stricter control)
+  max: 3, // Max 3 login attempts per IP per window - stricter than before
   skipSuccessfulRequests: true, // Don't count successful logins
   message: {
     success: false,
-    message: 'Too many authentication attempts. Account temporarily locked for security.',
+    message: 'Demasiados intentos de inicio de sesión. Cuenta temporalmente bloqueada por seguridad.',
   },
 });
 
@@ -127,7 +167,7 @@ export const passwordResetRateLimiter = createRateLimiter({
  */
 export const apiRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 minutes
+  max: 50, // 50 requests per 15 minutes for public tier
   message: {
     success: false,
     message: 'Too many requests from this IP. Please slow down.',
@@ -144,6 +184,19 @@ export const strictRateLimiter = createRateLimiter({
   message: {
     success: false,
     message: 'Rate limit exceeded for this operation. Please try again later.',
+  },
+});
+
+/**
+ * Clinical endpoints rate limiter
+ * Higher limit for clinical operations
+ */
+export const clinicalRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute for clinical operations
+  message: {
+    success: false,
+    message: 'Too many requests from this IP for clinical operations. Please slow down.',
   },
 });
 
@@ -176,6 +229,17 @@ export const createCustomRateLimiter = (max, windowMinutes = 15, message = null)
 };
 
 /**
+ * Auth endpoints with 5 req/min limit
+ */
+/**
+ * Auth endpoints with very strict 3 req/5min limit
+ */
+export const authLimitedRateLimiter = createCustomRateLimiter(3, 5, {
+  success: false,
+  message: 'Demasiados intentos de autenticación. Por favor espere 5 minutos antes de volver a intentar.'
+});
+
+/**
  * Close Redis client on shutdown
  */
 export async function closeRateLimitRedis() {
@@ -194,8 +258,10 @@ export default {
   passwordResetRateLimiter,
   apiRateLimiter,
   strictRateLimiter,
+  clinicalRateLimiter,
   adminRateLimiter,
   createCustomRateLimiter,
+  authLimitedRateLimiter,
   closeRateLimitRedis,
 };
 
@@ -216,7 +282,8 @@ export default {
  *    app.post('/api/v1/upload', uploadLimiter, uploadController);
  * 
  * 4. Different limits for different routes:
- *    app.post('/api/v1/auth/login', authRateLimiter, loginController);
+ *    app.post('/api/v1/auth/login', authLimitedRateLimiter, loginController); // 5 req/min
+ *    app.post('/api/v1/psychology', clinicalRateLimiter, psychologyController); // 100 req/min
  *    app.post('/api/v1/auth/forgot-password', passwordResetRateLimiter, resetController);
  *    app.post('/api/v1/bookings', strictRateLimiter, createBookingController);
  * 

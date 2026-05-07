@@ -23,7 +23,7 @@ const Medications = () => {
 
   useEffect(() => {
     const fetchMedications = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/health/medications`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -80,7 +80,7 @@ const Medications = () => {
       status: 'active'
     };
     // persist to backend
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/medications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -108,7 +108,7 @@ const Medications = () => {
 
   const handleDeleteMedication = async (id) => {
     if (!window.confirm('¿Seguro que deseas eliminar este medicamento?')) return;
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/medications/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
@@ -128,7 +128,7 @@ const Medications = () => {
   };
 
   const handleUpdateMedication = async () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/medications/${editingMed}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -154,7 +154,7 @@ const Medications = () => {
   };
 
   const handleTakeDose = async (id) => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${BASE_URL}/health/medications/${id}/take-dose`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },

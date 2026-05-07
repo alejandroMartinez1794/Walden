@@ -157,7 +157,7 @@ const SessionForm = () => {
             Authorization: `Bearer ${token}`,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`,
         },
         body: JSON.stringify(formData),
       });

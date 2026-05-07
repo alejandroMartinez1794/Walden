@@ -1,11 +1,10 @@
-# Multi-stage build para optimizar tamaño
-FROM node:20-alpine AS builder
+# Multi-stage build for optimized image
+FROM node:18-alpine AS builder
 
-# Metadata
-LABEL maintainer="Basileia <dev@Basileia.com>"
-LABEL description="Backend API para plataforma de telemedicina"
+# Set working directory
+WORKDIR /app
 
-# Instalar dependencias de sistema necesarias
+# Install system dependencies
 RUN apk add --no-cache python3 make g++
 
 # Crear directorio de trabajo
@@ -27,15 +26,15 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copiar node_modules del builder
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy everything from builder
+COPY --from=builder --chown=nextjs:nodejs /app /app
 
-# Copiar código fuente
-COPY --chown=nodejs:nodejs . .
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
-# Crear directorios necesarios
-RUN mkdir -p logs uploads temp && \
-    chown -R nodejs:nodejs logs uploads temp
+# Change ownership
+RUN chown -R nextjs:nodejs /app
 
 # Cambiar a usuario no-root
 USER nodejs
@@ -43,13 +42,19 @@ USER nodejs
 # Exponer puerto
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8000/api/v1/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+# Health check for liveness probe
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node health-check.js
 
-# Variables de entorno por defecto (override en runtime)
+# Set user
+USER nextjs
+
+# Expose port
+EXPOSE 8000
+
+# Environment variables (override at runtime)
 ENV NODE_ENV=production \
     PORT=8000
 
-# Comando de inicio
-CMD ["node", "index.js"]
+# Start the application
+CMD ["npm", "start"]

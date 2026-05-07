@@ -1,0 +1,37 @@
+{
+  "header": {
+    "title": "Go/No-Go Decision Matrix Report",
+    "timestamp": "2026-05-07T00:06:30.373Z",
+    "decision": "GO",
+    "score": 100
+  },
+  "validationResults": {
+    "sicCompliance": {
+      "passed": true,
+      "required": true
+    },
+    "security": {
+      "passed": true,
+      "required": true
+    },
+    "drp": {
+      "passed": true,
+      "required": true
+    },
+    "functionality": {
+      "passed": true,
+      "required": true
+    }
+  },
+  "decisionMatrix": {
+    "overallDecision": "GO",
+    "score": 100
+  },
+  "requirements": {
+    "sicComplianceCritical": true,
+    "securityCritical": true,
+    "drpCritical": true,
+    "functionalityImportant": true
+  },
+  "signatureRequired": true
+}

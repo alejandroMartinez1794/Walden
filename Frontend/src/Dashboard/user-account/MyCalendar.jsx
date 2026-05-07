@@ -228,7 +228,7 @@ const CBT_EMOTIONS = [
 
 const loadChecklistState = (storageKey) => {
 	try {
-		const raw = localStorage.getItem(storageKey);
+		const raw = sessionStorage.getItem(storageKey);
 		return raw ? JSON.parse(raw) : {};
 	} catch {
 		return {};
@@ -237,7 +237,7 @@ const loadChecklistState = (storageKey) => {
 
 const saveChecklistState = (storageKey, state) => {
 	try {
-		localStorage.setItem(storageKey, JSON.stringify(state));
+		sessionStorage.setItem(storageKey, JSON.stringify(state));
 	} catch {
 		// ignore
 	}

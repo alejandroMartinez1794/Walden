@@ -8,6 +8,7 @@ import {
   shutdownInfrastructure,
 } from './bootstrap.js';
 import { scheduleClinicalWorkersStart, stopClinicalWorkers } from './workers/clinicalWorkers.js';
+import { dataRetentionService } from './services/dataRetentionService.js'; // NEW: Import data retention service
 
 function closeServer(server, label) {
   return new Promise((resolve) => {
@@ -28,6 +29,11 @@ export async function startServer(app) {
   await validateSecurityPrerequisites();
   await initializeInfrastructure();
   await connectDatabase();
+
+  // NEW: Initialize data retention service
+  logger.info('\n🗂️  [6/6] Inicializando servicio de retención de datos...');
+  dataRetentionService.scheduleCleanup();
+  logger.info('   ✓ Servicio de retención de datos iniciado');
 
   const port = process.env.PORT || 8000;
   const useHTTPS = process.env.USE_HTTPS === 'true';

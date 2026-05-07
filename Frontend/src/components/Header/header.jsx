@@ -47,9 +47,6 @@ const Header = () => {
 
   const handleLogout = useCallback(() => {
     dispatch({ type: 'LOGOUT' });
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
     navigate('/login');
   }, [dispatch, navigate]);
 

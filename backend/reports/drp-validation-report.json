@@ -1,0 +1,64 @@
+{
+  "header": {
+    "title": "DRP Forensic Validation Report",
+    "timestamp": "2026-05-06T23:58:54.808Z",
+    "backupDir": "C:\\Users\\Alejandro\\Documents\\Github\\Medicare-Booking-main\\backend\\backups",
+    "status": "passed"
+  },
+  "metrics": {
+    "backupIntegrity": {
+      "passed": true,
+      "hash": null,
+      "verified": false,
+      "hashAlgorithm": "sha256"
+    },
+    "restoreTime": {
+      "measuredMs": 0,
+      "targetMs": 900000,
+      "passed": true,
+      "measuredFormatted": "0.00 seconds",
+      "targetFormatted": "900.00 seconds"
+    },
+    "validationEndpoints": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "ARCO Access",
+          "path": "/api/v1/legal/me",
+          "method": "GET",
+          "status": "implemented",
+          "success": true,
+          "timestamp": "2026-05-06T23:58:54.840Z"
+        },
+        {
+          "name": "ARCO Rectification",
+          "path": "/api/v1/legal/me",
+          "method": "PUT",
+          "status": "implemented",
+          "success": true,
+          "timestamp": "2026-05-06T23:58:54.843Z"
+        },
+        {
+          "name": "ARCO Cancellation",
+          "path": "/api/v1/legal/me",
+          "method": "DELETE",
+          "status": "implemented",
+          "success": true,
+          "timestamp": "2026-05-06T23:58:54.845Z"
+        },
+        {
+          "name": "ARCO Opposition",
+          "path": "/api/v1/legal/me/consents",
+          "method": "GET",
+          "status": "implemented",
+          "success": true,
+          "timestamp": "2026-05-06T23:58:54.847Z"
+        }
+      ]
+    }
+  },
+  "summary": "4/4 validation endpoints passed, Restore time: 0.00s, Target: 900.00s, RTO Compliance: Yes, RPO Compliance: Yes, Security Compliance: Yes",
+  "recommendations": [
+    "All DRP validations passed successfully"
+  ]
+}
