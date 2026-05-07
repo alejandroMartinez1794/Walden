@@ -137,11 +137,61 @@ const psychologicalClinicalHistorySchema = new mongoose.Schema({
   attachments: [
     { url: String, name: String, type: String }
   ],
+  
+  // NEW: Fields for data retention and lifecycle management
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: {
+    type: Date
+  },
+  dataRetentionExpiresAt: {
+    type: Date,
+    default: function() {
+      // Set default to 10 years from creation for clinical data
+      const date = new Date();
+      date.setFullYear(date.getFullYear() + 10);
+      return date;
+    }
+  }
 }, { timestamps: true });
 
+// Basic indexes
 psychologicalClinicalHistorySchema.index({ patient: 1, psychologist: 1, isDeleted: 1 }, { unique: true });
 psychologicalClinicalHistorySchema.index({ psychologist: 1, isDeleted: 1, updatedAt: -1 });
 psychologicalClinicalHistorySchema.index({ patient: 1, isDeleted: 1, updatedAt: -1 });
+
+// NEW: Clinical query-optimized compound indexes
+psychologicalClinicalHistorySchema.index({ 
+  patient: 1, 
+  createdAt: -1 
+}); // For retrieving patient history chronologically
+
+psychologicalClinicalHistorySchema.index({ 
+  psychologist: 1, 
+  'risk.suicidalIdeation': 1, 
+  isDeleted: 1 
+}); // For identifying high-risk patients assigned to a psychologist
+
+psychologicalClinicalHistorySchema.index({ 
+  patient: 1, 
+  'diagnosis.codes.dateAssigned': -1 
+}); // For retrieving latest diagnoses for a patient
+
+psychologicalClinicalHistorySchema.index({ 
+  'risk.suicidalIdeation': 1, 
+  'risk.selfHarm': 1, 
+  'risk.homicideRisk': 1, 
+  createdAt: -1, 
+  isDeleted: 1 
+}); // For emergency/crisis assessment queries
+
+psychologicalClinicalHistorySchema.index({ 
+  patient: 1, 
+  'intake.onsetDate': -1, 
+  isDeleted: 1 
+}); // For tracking problem onset for patients
 
 // ==========================================
 // SEGURIDAD CLÍNICA: ENCRIPTACIÓN DE CAMPOS
@@ -224,8 +274,9 @@ const processFields = (obj, fields, processor) => {
           }
         }
       } catch (e) {
-        // Silenciar errores de criptografía para no romper el flujo, mantener valor original
-        // console.warn(`[ClinicalCrypto] Error processing field ${field}:`, e.message);
+        // Propagate encryption errors instead of silent fallback to ensure PHI remains protected
+        console.error(`[ClinicalCrypto] Error processing field ${field}: ${e.message}`);
+        throw new Error(`Clinical data encryption/decryption failed for field ${field}: ${e.message}`);
       }
     }
   });
@@ -264,3 +315,4 @@ applyClinicalLifecycle(psychologicalClinicalHistorySchema, {
 
 export default mongoose.models.PsychologicalClinicalHistory ||
   mongoose.model('PsychologicalClinicalHistory', psychologicalClinicalHistorySchema);
+

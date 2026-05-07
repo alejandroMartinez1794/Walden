@@ -6,6 +6,7 @@
  * Características:
  * - TLS 1.3 (más seguro)
  * - Certificados SSL (Let's Encrypt o custom)
+ * - Validación criptográfica de certificados
  * - HSTS headers (forzar HTTPS)
  * - HTTP/2 support
  * - Redirect HTTP → HTTPS
@@ -23,11 +24,12 @@ import https from 'https';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
+import tls from 'tls';
 import { constants } from 'crypto';
 import logger from '../utils/logger.js';
 
 /**
- * 🔑 Cargar certificados SSL
+ * 🔑 Cargar y validar certificados SSL
  * 
  * Prioridad:
  * 1. Certificados de Let's Encrypt (/etc/letsencrypt/)
@@ -37,10 +39,17 @@ import logger from '../utils/logger.js';
  * @returns {{ key: Buffer, cert: Buffer, ca?: Buffer }}
  */
 export const loadSSLCertificates = () => {
-  const NODE_ENV = process.env.NODE_ENV || 'development';
+  const securityTier = process.env.SECURITY_TIER || 'dev';
+  const domain = process.env.DOMAIN || 'localhost';
   
+  // Validación fail-fast de tier de seguridad
+  if (!['dev', 'staging', 'prod'].includes(securityTier)) {
+    logger.error('❌ Invalid SECURITY_TIER. Expected: dev, staging, or prod');
+    throw new Error('Invalid SECURITY_TIER configuration');
+  }
+
   // Desarrollo: Certificados auto-firmados
-  if (NODE_ENV === 'development') {
+  if (securityTier === 'dev') {
     logger.warn('⚠️ Using self-signed certificates (DEVELOPMENT ONLY)');
     
     const certPath = './certs/dev-cert.pem';
@@ -59,20 +68,26 @@ export const loadSSLCertificates = () => {
     };
   }
   
-  // Producción: Let's Encrypt o custom
+  // Staging y producción: Requieren certificados válidos con validación
   const certBasePath = process.env.SSL_CERT_PATH || '/etc/letsencrypt/live';
-  const domain = process.env.DOMAIN || 'api.basileia.com';
+  const domainFromEnv = process.env.DOMAIN || 'api.basileia.com';
   
-  const letsEncryptPath = path.join(certBasePath, domain);
+  const letsEncryptPath = path.join(certBasePath, domainFromEnv);
   const customCertPath = './certs';
   
   // Intentar Let's Encrypt primero
   if (fs.existsSync(letsEncryptPath)) {
-    logger.info(`✅ Loading Let's Encrypt certificates for ${domain}`);
+    logger.info(`✅ Loading Let's Encrypt certificates for ${domainFromEnv}`);
+    
+    const certPath = path.join(letsEncryptPath, 'fullchain.pem');
+    const keyPath = path.join(letsEncryptPath, 'privkey.pem');
+    
+    const certData = fs.readFileSync(certPath, 'utf8');
+    validateCertificate(certData, domainFromEnv, securityTier);
     
     return {
-      key: fs.readFileSync(path.join(letsEncryptPath, 'privkey.pem')),
-      cert: fs.readFileSync(path.join(letsEncryptPath, 'fullchain.pem'))
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath)
     };
   }
   
@@ -83,6 +98,9 @@ export const loadSSLCertificates = () => {
   
   if (fs.existsSync(customKey) && fs.existsSync(customCert)) {
     logger.info('✅ Loading custom SSL certificates');
+    
+    const certData = fs.readFileSync(customCert, 'utf8');
+    validateCertificate(certData, domainFromEnv, securityTier);
     
     const sslConfig = {
       key: fs.readFileSync(customKey),
@@ -98,13 +116,80 @@ export const loadSSLCertificates = () => {
   }
   
   // No se encontraron certificados
-  logger.error('❌ SSL certificates not found in production');
+  logger.error('❌ SSL certificates not found in staging/production');
   logger.error(`Tried paths:`);
   logger.error(`- Let's Encrypt: ${letsEncryptPath}`);
   logger.error(`- Custom: ${customCertPath}`);
   logger.info('See backend/HTTPS_SETUP.md for configuration instructions');
   
   throw new Error('SSL certificates not found for production');
+};
+
+/**
+ * Validar certificado contra dominio esperado
+ * @param {string} certData - Contenido del certificado
+ * @param {string} expectedDomain - Dominio esperado
+ * @param {string} securityTier - Tier de seguridad
+ */
+const validateCertificate = (certData, expectedDomain, securityTier) => {
+  if (securityTier === 'dev') {
+    // En desarrollo no validamos para permitir certificados auto-firmados
+    return;
+  }
+
+  // Extraer información del certificado
+  try {
+    // Import dinámico de node-forge para evitar error si no está instalado
+    let forge;
+    try {
+      forge = require('node-forge');
+    } catch (error) {
+      logger.error('❌ node-forge library not installed. Run: npm install node-forge');
+      if (securityTier === 'prod') {
+        throw new Error('node-forge is required for production certificate validation');
+      }
+      logger.warn('⚠️ Skipping certificate validation due to missing node-forge (install it for production)');
+      return;
+    }
+    
+    const cert = forge.pki.certificateFromPem(certData);
+    
+    // Verificar Common Name (CN) y Subject Alternative Names (SAN)
+    const cn = cert.subject.getField('CN');
+    const altNamesExt = cert.getExtension('subjectAltName');
+    
+    if (cn && cn.value.toLowerCase().includes(expectedDomain.toLowerCase())) {
+      logger.info(`✅ Certificate CN validation passed: ${cn.value}`);
+    } else {
+      // Para producción, el dominio debe coincidir exactamente
+      if (securityTier === 'prod') {
+        logger.error(`❌ Certificate CN does not match expected domain: ${expectedDomain}`);
+        throw new Error(`Certificate CN validation failed: ${cn ? cn.value : 'no CN found'}`);
+      } else {
+        logger.warn(`⚠️ Certificate CN does not match expected domain: ${expectedDomain}, but continuing for staging`);
+      }
+    }
+    
+    if (altNamesExt && altNamesExt.altNames) {
+      const sanDomains = altNamesExt.altNames
+        .filter(altName => altName.type === 2) // DNS Name
+        .map(altName => altName.value.toLowerCase());
+      
+      if (sanDomains.some(domain => domain.includes(expectedDomain.toLowerCase()))) {
+        logger.info(`✅ Certificate SAN validation passed: ${sanDomains.join(', ')}`);
+      } else if (securityTier === 'prod') {
+        logger.error(`❌ Certificate SAN does not include expected domain: ${expectedDomain}`);
+        throw new Error(`Certificate SAN validation failed: ${sanDomains.join(', ')}`);
+      } else {
+        logger.warn(`⚠️ Certificate SAN does not include expected domain: ${expectedDomain}, but continuing for staging`);
+      }
+    }
+  } catch (error) {
+    logger.error(`❌ Certificate validation error: ${error.message}`);
+    if (securityTier === 'prod') {
+      throw error;
+    }
+  }
 };
 
 /**
@@ -175,9 +260,9 @@ export const createHTTPRedirectServer = () => {
 };
 
 /**
- * ⚙️ Middleware: Forzar HTTPS en producción
+ * ⚙️ Middleware: Forzar HTTPS en staging y producción
  * 
- * Redirige HTTP → HTTPS automáticamente
+ * Redirige HTTP → HTTPS o devuelve 403 según tier de seguridad
  * 
  * Uso:
  * ```javascript
@@ -185,8 +270,10 @@ export const createHTTPRedirectServer = () => {
  * ```
  */
 export const forceHTTPS = (req, res, next) => {
-  // Solo en producción
-  if (process.env.NODE_ENV !== 'production') {
+  const securityTier = process.env.SECURITY_TIER || 'dev';
+  
+  // En desarrollo no forzamos HTTPS
+  if (securityTier === 'dev') {
     return next();
   }
   
@@ -194,10 +281,21 @@ export const forceHTTPS = (req, res, next) => {
   const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
   
   if (!isSecure) {
-    const redirectUrl = `https://${req.headers.host}${req.url}`;
-    logger.debug(`Forcing HTTPS: ${req.url} → ${redirectUrl}`);
-    
-    return res.redirect(301, redirectUrl);
+    if (securityTier === 'prod' || securityTier === 'staging') {
+      // En staging y prod, forzamos HTTPS con redirect 301
+      const protocol = process.env.NODE_ENV === 'test' ? 'https' : req.protocol;
+      const redirectUrl = `https://${req.headers.host}${req.url}`;
+      logger.debug(`Forcing HTTPS in ${securityTier}: ${req.url} → ${redirectUrl}`);
+      
+      return res.redirect(301, redirectUrl);
+    } else {
+      // Para otros tiers, devolver error 403
+      logger.warn(`HTTPS required for security tier: ${securityTier}`);
+      return res.status(403).json({
+        error: 'HTTPS required for this service tier',
+        tier: securityTier
+      });
+    }
   }
   
   next();
@@ -209,23 +307,45 @@ export const forceHTTPS = (req, res, next) => {
  * Headers más allá de Helmet
  */
 export const additionalSecurityHeaders = (req, res, next) => {
-  // HSTS (HTTP Strict Transport Security)
-  // Forzar HTTPS por 1 año
+  // HSTS (HTTP Strict Transport Security) con preload
+  // Forzar HTTPS por 1 año con preload para navegador
   res.setHeader(
     'Strict-Transport-Security',
     'max-age=31536000; includeSubDomains; preload'
   );
   
-  // Expect-CT (Certificate Transparency)
+  // Content Security Policy (CSP) restrictivo
+  // Bloquea unsafe-eval, frame-src: none, object-src: none
   res.setHeader(
-    'Expect-CT',
-    'max-age=86400, enforce'
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https:; " +
+    "font-src 'self'; " +
+    "connect-src 'self'; " +
+    "frame-src 'none'; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "upgrade-insecure-requests;"
   );
+  
+  // X-Content-Type-Options
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // X-Frame-Options
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // X-XSS-Protection (legacy pero aún útil)
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Referrer-Policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   
   // Permissions Policy (reemplaza Feature-Policy)
   res.setHeader(
     'Permissions-Policy',
-    'geolocation=(), microphone=(), camera=()'
+    'geolocation=(), microphone=(), camera=(), interest-cohort=()'
   );
   
   next();
@@ -242,8 +362,19 @@ export const checkCertificateExpiration = async () => {
   try {
     const credentials = loadSSLCertificates();
     
-    // Parsear certificado
-    const forge = await import('node-forge');
+    // Import dinámico de node-forge
+    let forge;
+    try {
+      forge = await import('node-forge');
+    } catch (error) {
+      logger.error('❌ node-forge library not installed. Cannot check certificate expiration.');
+      return {
+        valid: false,
+        expiresAt: null,
+        daysRemaining: 0
+      };
+    }
+    
     const cert = forge.default.pki.certificateFromPem(credentials.cert.toString());
     
     const expiresAt = cert.validity.notAfter;

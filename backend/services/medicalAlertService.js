@@ -5,7 +5,7 @@ import Doctor from '../models/DoctorSchema.js';
 import Measure from '../models/MeasureSchema.js';
 import sendEmail from '../utils/emailService.js';
 import { getAutomationConfig } from './automationConfig.js';
-import { scheduleTask } from './automationScheduler.js';
+import { scheduleResilientTask, executeTaskWithRetry, taskTracker } from './ResilientTaskRunner.js';
 import logger from '../utils/logger.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -36,6 +36,9 @@ const notifyDoctorAboutCriticalAlert = async (alert) => {
       worsening_trend: 'Empeoramiento de Síntomas',
       other: 'Alerta Médica'
     };
+
+    // Determine if this is a critical alert that should bypass circuit breaker
+    const isCritical = alert.severity === 'critical' || alert.type === 'suicide_risk';
 
     await sendEmail({
       email: doctor.email,
@@ -93,9 +96,20 @@ const notifyDoctorAboutCriticalAlert = async (alert) => {
       `
     });
 
+    // Update alert notification time to prevent duplicate notifications
+    alert.lastNotified = new Date();
+    await alert.save();
+
     logger.info(`✅ Alerta crítica notificada a ${doctor.email}`);
+
+    // Record notification time to prevent alert fatigue
+    if (!alert.alertSentAt) {
+      alert.alertSentAt = new Date();
+      await alert.save();
+    }
   } catch (error) {
     logger.error('❌ Error notificando alerta crítica:', error.message);
+    throw error; // Re-throw to trigger retry mechanism
   }
 };
 
@@ -104,7 +118,7 @@ const notifyDoctorAboutCriticalAlert = async (alert) => {
  * Se ejecuta cada 30 minutos
  */
 const processUnresolvedAlerts = () => {
-  return scheduleTask('*/30 * * * *', 'Alertas críticas no resueltas', async () => {
+  return scheduleResilientTask('*/30 * * * *', 'Alertas críticas no resueltas', async () => {
     try {
       const { maxBatch, emailThrottleMs, alertRenotifyHours } = getAutomationConfig();
       const renotifyWindow = new Date(Date.now() - alertRenotifyHours * 60 * 60 * 1000);
@@ -120,18 +134,31 @@ const processUnresolvedAlerts = () => {
       }).limit(maxBatch);
 
       for (const alert of criticalAlerts) {
-        await notifyDoctorAboutCriticalAlert(alert);
+        // Determine if this is a critical alert that should have higher retry count
+        const isCritical = alert.severity === 'critical' || alert.type === 'suicide_risk';
         
-        // Actualizar timestamp de última notificación
-        alert.lastNotified = new Date();
-        await alert.save();
+        await executeTaskWithRetry(
+          async () => {
+            await notifyDoctorAboutCriticalAlert(alert);
+          },
+          `alert_notification_${alert.type}`,
+          alert._id.toString(),
+          { 
+            maxRetries: isCritical ? 5 : 3,  // More retries for critical alerts
+            baseDelay: 1000, 
+            maxDelay: 10000, 
+            critical: isCritical,  // Bypass circuit breaker for critical alerts
+            scheduledDate: alert.createdAt 
+          }
+        );
         
         await sleep(Math.max(emailThrottleMs, 2000));
       }
     } catch (error) {
       logger.error('❌ Error procesando alertas:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'critical_alert_batch', maxRetries: 2, critical: true });
 };
 
 /**
@@ -139,7 +166,7 @@ const processUnresolvedAlerts = () => {
  * Se ejecuta diariamente a las 2 AM
  */
 const detectRiskPatterns = () => {
-  return scheduleTask('0 2 * * *', 'Detección de patrones clínicos', async () => {
+  return scheduleResilientTask('0 2 * * *', 'Detección de patrones clínicos', async () => {
     try {
       logger.info('🔄 Analizando patrones de riesgo en métricas...');
 
@@ -166,16 +193,24 @@ const detectRiskPatterns = () => {
           });
 
           if (!existingAlert) {
-            await Alert.create({
-              patient: measure.patient._id,
-              clinician: measure.clinician._id,
-              type: 'suicide_risk',
-              severity: 'critical',
-              relatedMeasureId: measure._id,
-              notes: `Detección automática: PHQ-9 score ${measure.phq9Score || 'N/A'}, ideación suicida registrada`
-            });
-            alertsCreated++;
-            logger.info(`🚨 Alerta de riesgo suicida creada para paciente ${patientId}`);
+            await executeTaskWithRetry(
+              async () => {
+                await Alert.create({
+                  patient: measure.patient._id,
+                  clinician: measure.clinician._id,
+                  type: 'suicide_risk',
+                  severity: 'critical',
+                  relatedMeasureId: measure._id,
+                  notes: `Detección automática: PHQ-9 score ${measure.phq9Score || 'N/A'}, ideación suicida registrada`
+                });
+                
+                alertsCreated++;
+                logger.info(`🚨 Alerta de riesgo suicida creada para paciente ${patientId}`);
+              },
+              'suicide_risk_detection',
+              measure.patient._id.toString(),
+              { maxRetries: 5, baseDelay: 1000, maxDelay: 10000, critical: true, scheduledDate: measure.createdAt }
+            );
           }
         }
 
@@ -188,16 +223,24 @@ const detectRiskPatterns = () => {
           });
 
           if (!existingAlert) {
-            await Alert.create({
-              patient: measure.patient._id,
-              clinician: measure.clinician._id,
-              type: 'high_depression',
-              severity: 'high',
-              relatedMeasureId: measure._id,
-              notes: `Detección automática: PHQ-9 score ${measure.phq9Score} (depresión moderadamente severa)`
-            });
-            alertsCreated++;
-            logger.info(`🟠 Alerta de depresión severa creada para paciente ${patientId}`);
+            await executeTaskWithRetry(
+              async () => {
+                await Alert.create({
+                  patient: measure.patient._id,
+                  clinician: measure.clinician._id,
+                  type: 'high_depression',
+                  severity: 'high',
+                  relatedMeasureId: measure._id,
+                  notes: `Detección automática: PHQ-9 score ${measure.phq9Score} (depresión moderadamente severa)`
+                });
+                
+                alertsCreated++;
+                logger.info(`🟠 Alerta de depresión severa creada para paciente ${patientId}`);
+              },
+              'high_depression_detection',
+              measure.patient._id.toString(),
+              { maxRetries: 4, baseDelay: 1000, maxDelay: 10000, critical: true, scheduledDate: measure.createdAt }
+            );
           }
         }
 
@@ -207,8 +250,9 @@ const detectRiskPatterns = () => {
       logger.info(`✅ Análisis de patrones completado: ${alertsCreated} nuevas alertas creadas`);
     } catch (error) {
       logger.error('❌ Error en análisis de patrones:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'risk_detection_batch', maxRetries: 2, critical: true });
 };
 
 /**

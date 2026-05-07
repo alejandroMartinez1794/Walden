@@ -7,6 +7,7 @@ import { initRedis, closeRedis, isRedisAvailable } from './utils/cache.js';
 import { closeRateLimitRedis } from './utils/rateLimiter.js';
 import { createOptimizedIndexes } from './scripts/optimizeIndexes.js';
 import { ensureCriticalIndexes } from './scripts/ensureIndexes.js';
+import { validateSecurityTier } from './scripts/validateSecurityTier.js';
 
 export function loadEnvironment() {
   logger.info('📋 [1/6] Cargando configuracion...');
@@ -23,6 +24,11 @@ export function loadEnvironment() {
 }
 
 export async function validateSecurityPrerequisites() {
+  logger.info('\n🔐 [2/6] Validando tier de seguridad...');
+  
+  // Validate security tier configuration
+  validateSecurityTier();
+
   logger.info('\n🔐 [2/6] Validando secretos de seguridad...');
 
   if (process.env.NODE_ENV === 'test') {

@@ -28,7 +28,7 @@ const MedicalHistory = () => {
 
   useEffect(() => {
     const fetchRecords = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/health/records`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -108,7 +108,7 @@ const MedicalHistory = () => {
         toast.success(`${attachments.length} archivo(s) cargado(s)`);
       }
 
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/health/records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

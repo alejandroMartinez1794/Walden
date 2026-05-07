@@ -4,7 +4,7 @@ import User from '../models/UserSchema.js';
 import Doctor from '../models/DoctorSchema.js';
 import sendEmail from '../utils/emailService.js';
 import { getAutomationConfig } from './automationConfig.js';
-import { scheduleTask } from './automationScheduler.js';
+import { scheduleResilientTask, executeTaskWithRetry, taskTracker } from './ResilientTaskRunner.js';
 import logger from '../utils/logger.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -76,6 +76,7 @@ const sendAppointmentReminder = async (booking, hoursBeforeText) => {
     logger.info(`✅ Recordatorio enviado a ${patient.email} - Cita ${hoursBeforeText}`);
   } catch (error) {
     logger.error('❌ Error enviando recordatorio:', error.message);
+    throw error; // Re-throw to trigger retry mechanism
   }
 };
 
@@ -84,7 +85,7 @@ const sendAppointmentReminder = async (booking, hoursBeforeText) => {
  * Se ejecuta cada hora en minuto 0
  */
 const schedule24HourReminders = () => {
-  return scheduleTask('0 * * * *', 'Recordatorios 24h', async () => {
+  return scheduleResilientTask('0 * * * *', 'Recordatorios 24h', async () => {
     try {
       const { maxBatch, emailThrottleMs } = getAutomationConfig();
 
@@ -103,19 +104,28 @@ const schedule24HourReminders = () => {
       }).limit(maxBatch);
 
       for (const booking of upcomingBookings) {
-        await sendAppointmentReminder(booking, 'es mañana');
-        
-        // Marcar como enviado
-        booking.reminderSent24h = true;
-        await booking.save();
+        // Use the resilient task runner for each individual booking reminder
+        await executeTaskWithRetry(
+          async () => {
+            await sendAppointmentReminder(booking, 'es mañana');
+            
+            // Marcar como enviado
+            booking.reminderSent24h = true;
+            await booking.save();
+          },
+          'appointment_reminder_24h',
+          booking._id.toString(),
+          { maxRetries: 3, baseDelay: 1000, maxDelay: 10000, scheduledDate: booking.appointmentDate }
+        );
         
         // Pequeña pausa para no saturar el servidor de email
         await sleep(emailThrottleMs);
       }
     } catch (error) {
       logger.error('❌ Error en tarea de recordatorios 24h:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'appointment_reminder_batch', maxRetries: 2 });
 };
 
 /**
@@ -123,7 +133,7 @@ const schedule24HourReminders = () => {
  * Se ejecuta cada 10 minutos
  */
 const schedule1HourReminders = () => {
-  return scheduleTask('*/10 * * * *', 'Recordatorios 1h', async () => {
+  return scheduleResilientTask('*/10 * * * *', 'Recordatorios 1h', async () => {
     try {
       const { maxBatch, emailThrottleMs } = getAutomationConfig();
 
@@ -142,18 +152,26 @@ const schedule1HourReminders = () => {
       }).limit(maxBatch);
 
       for (const booking of upcomingBookings) {
-        await sendAppointmentReminder(booking, 'es en 1 hora');
-        
-        // Marcar como enviado
-        booking.reminderSent1h = true;
-        await booking.save();
+        await executeTaskWithRetry(
+          async () => {
+            await sendAppointmentReminder(booking, 'es en 1 hora');
+            
+            // Marcar como enviado
+            booking.reminderSent1h = true;
+            await booking.save();
+          },
+          'appointment_reminder_1h',
+          booking._id.toString(),
+          { maxRetries: 3, baseDelay: 1000, maxDelay: 10000, scheduledDate: booking.appointmentDate }
+        );
         
         await sleep(emailThrottleMs);
       }
     } catch (error) {
       logger.error('❌ Error en tarea de recordatorios 1h:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'appointment_reminder_batch', maxRetries: 2 });
 };
 
 /**

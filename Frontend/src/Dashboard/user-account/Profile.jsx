@@ -52,7 +52,7 @@ const Profile = ({user, onProfileUpdated}) => {
             throw new Error('No se encontró el usuario para actualizar.');
         }
 
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const res = await fetch(`${BASE_URL}/users/${user._id}`, {
             method: 'PUT',
             headers: {
@@ -129,7 +129,7 @@ const Profile = ({user, onProfileUpdated}) => {
                 method: 'put',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}` 
+                    Authorization: `Bearer ${sessionStorage.getItem('token')}` 
                 },
                 body: JSON.stringify(formData)
             });
