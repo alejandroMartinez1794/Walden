@@ -1,10 +1,10 @@
 /**
  * BABEL CONFIG FOR JEST
- * 
+ *
  * Babel configuration that lets Jest process ES modules.
  */
 
-export default {
+module.exports = {
   presets: [
     [
       '@babel/preset-env',
@@ -12,7 +12,7 @@ export default {
         targets: {
           node: 'current',
         },
-        modules: 'commonjs', // Transform ES Modules to CommonJS for Node execution
+        modules: 'commonjs',
       },
     ],
   ],
