@@ -1,0 +1,28 @@
+name: Clinical Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deployment gate
+        run: |
+          bash scripts/verify-pr11.sh
+          bash scripts/audit-sic-compliance.sh
+
+      - name: Run backup restore smoke test
+        run: |
+          bash scripts/dr-restore-test.sh
+
+      - name: Rollback gate
+        run: |
+          echo "rollback"

@@ -7,6 +7,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 
+const isDev = import.meta.env.DEV;
+
 /**
  * Generates a trace ID
  */
@@ -76,19 +78,21 @@ export const clinicalFetch = async (url, options = {}) => {
     const response = await fetch(url, fetchOptions);
     const duration = Date.now() - startTime;
 
-    // Log the request with timing
-    console.groupCollapsed(`🔍 Clinical Fetch: ${options.method || 'GET'} ${url}`);
-    console.log({
-      url,
-      method: options.method || 'GET',
-      traceId,
-      spanId,
-      requestId,
-      duration: `${duration}ms`,
-      status: response.status,
-      statusText: response.statusText,
-    });
-    console.groupEnd();
+    if (isDev) {
+      // Log the request with timing only in development
+      console.groupCollapsed(`🔍 Clinical Fetch: ${options.method || 'GET'} ${url}`);
+      console.log({
+        url,
+        method: options.method || 'GET',
+        traceId,
+        spanId,
+        requestId,
+        duration: `${duration}ms`,
+        status: response.status,
+        statusText: response.statusText,
+      });
+      console.groupEnd();
+    }
 
     // Report success metrics to clinical metrics service if available
     if (window.ClinicalMetrics) {
@@ -107,19 +111,21 @@ export const clinicalFetch = async (url, options = {}) => {
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    // Log error with full context
-    console.groupCollapsed(`🚨 Clinical Fetch ERROR: ${options.method || 'GET'} ${url}`);
-    console.error({
-      url,
-      method: options.method || 'GET',
-      traceId,
-      spanId,
-      requestId,
-      duration: `${duration}ms`,
-      error: error.message,
-      stack: error.stack,
-    });
-    console.groupEnd();
+    if (isDev) {
+      // Log error with full context only in development
+      console.groupCollapsed(`🚨 Clinical Fetch ERROR: ${options.method || 'GET'} ${url}`);
+      console.error({
+        url,
+        method: options.method || 'GET',
+        traceId,
+        spanId,
+        requestId,
+        duration: `${duration}ms`,
+        error: error.message,
+        stack: error.stack,
+      });
+      console.groupEnd();
+    }
 
     // Report error to clinical metrics service if available
     if (window.ClinicalMetrics) {
@@ -203,15 +209,20 @@ export const initializeClinicalSession = () => {
   if (!sessionStorage.getItem('clinicalSessionId')) {
     const sessionId = generateTraceId();
     sessionStorage.setItem('clinicalSessionId', sessionId);
-    
-    console.log('🏥 Clinical session initialized', { sessionId });
+
+    if (isDev) {
+      console.log('🏥 Clinical session initialized', { sessionId });
+    }
   }
   
   // Add event listeners to track navigation and errors
   window.addEventListener('beforeunload', () => {
     // Clean up session data if needed
     const sessionId = sessionStorage.getItem('clinicalSessionId');
-    console.log('🏥 Clinical session ending', { sessionId });
+
+    if (isDev) {
+      console.log('🏥 Clinical session ending', { sessionId });
+    }
   });
   
   // Capture unhandled errors with clinical context

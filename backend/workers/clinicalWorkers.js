@@ -26,26 +26,36 @@ function startWorkersNow() {
 }
 
 export function scheduleClinicalWorkersStart(delayMs = 5000) {
+  if (workersStarted) return;
+
   if (workersTimer) {
-    clearTimeout(workersTimer);
+    clearInterval(workersTimer);
   }
 
-  workersTimer = setTimeout(() => {
-    if (mongoose.connection.readyState !== 1) {
-      logger.warn('   ⚠ Workers clinicos no iniciados: MongoDB aun no esta listo. Reintentando...');
+  const attemptStart = () => {
+    if (workersStarted) {
+      clearInterval(workersTimer);
       workersTimer = null;
-      scheduleClinicalWorkersStart(delayMs);
       return;
     }
 
+    if (mongoose.connection.readyState !== 1) {
+      logger.warn('   ⚠ Workers clinicos no iniciados: MongoDB aun no esta listo. Reintentando...');
+      return;
+    }
+
+    clearInterval(workersTimer);
     workersTimer = null;
     startWorkersNow();
-  }, delayMs);
+  };
+
+  workersTimer = setInterval(attemptStart, delayMs);
+  attemptStart();
 }
 
 export async function stopClinicalWorkers() {
   if (workersTimer) {
-    clearTimeout(workersTimer);
+    clearInterval(workersTimer);
     workersTimer = null;
   }
 

@@ -32,7 +32,7 @@ module.exports = {
     '^.+\\.(js|jsx)$': ['babel-jest', { configFile: './babel.config.cjs' }],
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(supertest)/)',
+    '/node_modules/(?!(supertest|googleapis|googleapis-common|google-auth-library|gaxios|gcp-metadata|node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|whatwg-url|webidl-conversions|tr46)/)',
   ],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

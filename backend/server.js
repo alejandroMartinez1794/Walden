@@ -7,7 +7,7 @@ import {
   connectDatabase,
   shutdownInfrastructure,
 } from './bootstrap.js';
-import { scheduleClinicalWorkersStart, stopClinicalWorkers } from './workers/clinicalWorkers.js';
+import { startWorkers, stopWorkers } from './workers/index.js';
 import { dataRetentionService } from './services/dataRetentionService.js'; // NEW: Import data retention service
 
 function closeServer(server, label) {
@@ -72,13 +72,13 @@ export async function startServer(app) {
     });
   }
 
-  scheduleClinicalWorkersStart(1000);
+  startWorkers();
 
   const gracefulShutdown = async (signal) => {
     logger.info(`\n\n⚠️  ${signal} recibido. Iniciando apagado controlado...`);
 
     try {
-      await stopClinicalWorkers();
+      await stopWorkers();
       await closeServer(httpRedirectServer, 'HTTP redirect server');
       await closeServer(httpsServer, 'HTTPS server');
       await closeServer(httpServer, 'HTTP server');

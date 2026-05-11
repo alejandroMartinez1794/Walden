@@ -234,7 +234,7 @@ export function createApp() {
   app.get('/health/ready', async (req, res) => {
     // Check if all dependencies are ready
     const dbReady = mongoose.connection.readyState === 1;
-    const redisAvailable = process.env.REDIS_URL ? require('./utils/cache.js').isRedisAvailable() : true;
+    const redisAvailable = process.env.REDIS_URL ? isRedisAvailable() : true;
     
     if (dbReady && redisAvailable) {
       res.status(200).json({

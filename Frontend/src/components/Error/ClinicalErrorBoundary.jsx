@@ -29,8 +29,10 @@ class ClinicalErrorBoundary extends React.Component {
       });
     }
 
-    // Log error to console in development
-    console.error('ClinicalErrorBoundary caught an error:', error, errorInfo);
+    if (import.meta.env.DEV) {
+      // Log error to console only in development
+      console.error('ClinicalErrorBoundary caught an error:', error, errorInfo);
+    }
   }
 
   render() {
