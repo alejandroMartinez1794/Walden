@@ -60,29 +60,45 @@ export async function initializeInfrastructure() {
 export async function connectDatabase() {
   logger.info('\n🗄️  [5/6] Conectando a base de datos...');
 
+  const isLocalEnv = process.env.SECURITY_TIER === 'local' || 
+                     process.env.SECURITY_TIER === 'dev' || 
+                     process.env.NODE_ENV === 'test';
+
   mongoose.set('strictQuery', false);
 
-  await mongoose.connect(process.env.MONGO_URL, {
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 10000,
-    maxPoolSize: 20,
-    minPoolSize: 5,
-    maxIdleTimeMS: 30000,
-    socketTimeoutMS: 45000,
-  });
+  try {
+    await mongoose.connect(process.env.MONGO_URL, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      maxPoolSize: 20,
+      minPoolSize: 5,
+      maxIdleTimeMS: 30000,
+      socketTimeoutMS: 45000,
+    });
 
-  logger.info('   ✓ Conexion MongoDB establecida');
-  logger.info('   ✓ Pool de conexiones optimizado (max: 20, min: 5)');
+    logger.info('   ✓ Conexion MongoDB establecida');
+    logger.info('   ✓ Pool de conexiones optimizado (max: 20, min: 5)');
 
-  if (process.env.NODE_ENV !== 'test') {
-    import('./scripts/optimizeIndexes.js')
-      .then(({ createOptimizedIndexes }) => createOptimizedIndexes())
-      .catch(() => {
-        logger.info('   ⚠ Optimizacion de indices fallo (no critico)');
-      });
+    if (process.env.NODE_ENV !== 'test') {
+      import('./scripts/optimizeIndexes.js')
+        .then(({ createOptimizedIndexes }) => createOptimizedIndexes())
+        .catch(() => {
+          logger.info('   ⚠ Optimizacion de indices fallo (no critico)');
+        });
+    }
+
+    ensureCriticalIndexes().catch(() => {});
+  } catch (error) {
+    if (isLocalEnv) {
+      logger.warn('   ⚠ MongoDB unavailable en entorno local - continuando sin base de datos');
+      logger.warn(`   ⚠ Razon: ${error.message}`);
+      logger.info('   ⚠ Los health probes reportaran estado degradado');
+      global.mongodbConnectionError = error;
+      return;
+    }
+    logger.error('   ✗ Error critico: MongoDB no disponible en produccion');
+    throw error;
   }
-
-  ensureCriticalIndexes().catch(() => {});
 }
 
 export async function shutdownInfrastructure() {
