@@ -14,7 +14,7 @@ const PsychologyDashboard = React.lazy(() => import('../Dashboard/psychology/Psy
 const PatientList = React.lazy(() => import('../Dashboard/psychology/PatientList'));
 const PatientFile = React.lazy(() => import('../Dashboard/psychology/patients/PatientFile'));
 const NewPatientForm = React.lazy(() => import('../Dashboard/psychology/patients/NewPatientForm'));
-const ClinicalHistoryForm = React.lazy(() => import('../Dashboard/psychology/clinical-history/ClinicalHistoryForm'));
+const ClinicalHistoryForm = React.lazy(() => import('../Dashboard/psychology/patients/ClinicalHistoryForm'));
 const ClinicalHistoryList = React.lazy(() => import('../Dashboard/psychology/clinical-history/ClinicalHistoryList'));
 const AssessmentSelector = React.lazy(() => import('../Dashboard/psychology/assessments/AssessmentSelector'));
 const PHQ9Form = React.lazy(() => import('../Dashboard/psychology/assessments/PHQ9Form'));

@@ -52,8 +52,9 @@ export const createBooking = async (req, res) => {
   try {
     const {
       doctorId: doctorIdBody,
-      date,
-      time,
+      date: dateBody,
+      time: timeBody,
+      appointmentDate,
       motivoConsulta,
       patientId,
       patientEmail,
@@ -62,6 +63,13 @@ export const createBooking = async (req, res) => {
     } = req.body;
     const requesterId = req.user.id;
     const requesterRole = (req.user.role || '').toLowerCase();
+    const parsedAppointmentDate = appointmentDate ? new Date(appointmentDate) : null;
+    const date = dateBody || (parsedAppointmentDate && !Number.isNaN(parsedAppointmentDate.getTime())
+      ? parsedAppointmentDate.toISOString().slice(0, 10)
+      : undefined);
+    const time = timeBody || (parsedAppointmentDate && !Number.isNaN(parsedAppointmentDate.getTime())
+      ? parsedAppointmentDate.toTimeString().slice(0, 5)
+      : undefined);
     const normalizedPatientEmail = patientEmail?.trim().toLowerCase() || '';
     const normalizedPatientName = patientName?.trim() || '';
 
@@ -150,7 +158,7 @@ export const createBooking = async (req, res) => {
       doctor: doctorId,
       appointmentDate: startDateTime,
       reason: motivoConsulta,
-      status: 'approved',
+      status: req.body.status || 'approved',
       durationMinutes,
     });
 
@@ -253,7 +261,8 @@ export const createBooking = async (req, res) => {
     // 4. ✅ Enviar respuesta
     res.status(201).json({
       success: true,
-      message: '✅ Cita creada exitosamente',
+      message: 'Cita creada exitosamente',
+      booking: nuevaCita,
       data: nuevaCita,
       googleCalendarEventId: calendarEventId,
       calendarSync: Boolean(calendarEventId),

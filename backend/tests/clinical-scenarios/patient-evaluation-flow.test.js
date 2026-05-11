@@ -31,8 +31,8 @@ jest.mock('../../utils/emailService.js', () => ({
 // Mock crypto functions for deterministic testing
 jest.mock('crypto', () => ({
   ...jest.requireActual('crypto'),
-  randomBytes: jest.fn().mockReturnValue(Buffer.from('test123')),
-  pseudoRandomBytes: jest.fn().mockReturnValue(Buffer.from('test456'))
+  randomBytes: jest.requireActual('crypto').randomBytes,
+  pseudoRandomBytes: jest.requireActual('crypto').pseudoRandomBytes
 }));
 
 // Setup global

@@ -5,7 +5,6 @@ import logger from './utils/logger.js';
 import { validateSecrets, getSecretsStats } from './utils/secretsManager.js';
 import { initRedis, closeRedis, isRedisAvailable } from './utils/cache.js';
 import { closeRateLimitRedis } from './utils/rateLimiter.js';
-import { createOptimizedIndexes } from './scripts/optimizeIndexes.js';
 import { ensureCriticalIndexes } from './scripts/ensureIndexes.js';
 import { validateSecurityTier } from './scripts/validateSecurityTier.js';
 
@@ -75,9 +74,13 @@ export async function connectDatabase() {
   logger.info('   ✓ Conexion MongoDB establecida');
   logger.info('   ✓ Pool de conexiones optimizado (max: 20, min: 5)');
 
-  createOptimizedIndexes().catch(() => {
-    logger.info('   ⚠ Optimizacion de indices fallo (no critico)');
-  });
+  if (process.env.NODE_ENV !== 'test') {
+    import('./scripts/optimizeIndexes.js')
+      .then(({ createOptimizedIndexes }) => createOptimizedIndexes())
+      .catch(() => {
+        logger.info('   ⚠ Optimizacion de indices fallo (no critico)');
+      });
+  }
 
   ensureCriticalIndexes().catch(() => {});
 }

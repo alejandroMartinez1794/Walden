@@ -1,6 +1,6 @@
 import express from 'express';
 import { getPersonalData, updatePersonalData, deleteAccount, getConsents, updateConsents } from '../Controllers/arcoController.js';
-import { verifyToken } from '../auth/verifyToken.js';
+import { authenticate as verifyToken } from '../auth/verifyToken.js';
 
 const router = express.Router();
 

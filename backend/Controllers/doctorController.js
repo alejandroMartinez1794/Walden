@@ -12,9 +12,11 @@ export const updateDoctor = async (req, res) => {
             id,
             { $set: req.body },
             { new: true }
-        );
+        ).lean();
         
-        if (!updatedDoctor) {
+        const doctorData = updatedDoctor?.value || updatedDoctor;
+
+        if (!doctorData) {
             return res.status(404).json({ success: false, message: "Doctor not found" });
         }
 
@@ -27,7 +29,7 @@ export const updateDoctor = async (req, res) => {
             .json({
                 success: true,
                 message: "Successfully updated Doctor",
-                data: updatedDoctor,
+                data: doctorData,
             });
     } catch (error) {
         res.status(500).json({ success: false, message: "Failed to update" });

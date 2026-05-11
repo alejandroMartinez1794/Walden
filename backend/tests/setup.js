@@ -6,8 +6,6 @@
  * Se ejecuta antes de cada suite de tests
  */
 
-import { jest } from '@jest/globals';
-
 // Variables de entorno para testing
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET_KEY = 'test-jwt-secret-key-for-testing-only';
@@ -29,4 +27,3 @@ global.generateInvalidMongoId = () => {
 afterEach(() => {
   // Limpiar cualquier estado si es necesario
 });
-

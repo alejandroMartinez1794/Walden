@@ -52,10 +52,11 @@ class ClinicalMetricsService {
    */
   startCollection() {
     // Collect metrics every minute
-    setInterval(() => {
+    const interval = setInterval(() => {
       this.updateTimestamp();
       this.cleanupInactiveUsers();
     }, 60000);
+    interval.unref?.();
   }
 
   /**

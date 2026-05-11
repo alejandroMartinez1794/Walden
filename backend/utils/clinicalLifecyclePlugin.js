@@ -132,6 +132,24 @@ const getUpdateObject = (update = {}) => {
   return update;
 };
 
+const applyUpdateToSnapshot = (previous, update) => {
+  const output = deepClone(previous || {});
+
+  Object.entries(update || {}).forEach(([path, value]) => {
+    const segments = path.split('.');
+    let target = output;
+
+    segments.slice(0, -1).forEach((segment) => {
+      target[segment] = isPlainObject(target[segment]) ? target[segment] : {};
+      target = target[segment];
+    });
+
+    target[segments[segments.length - 1]] = deepClone(value);
+  });
+
+  return output;
+};
+
 const defaultFilter = function () {
   const options = this.getOptions?.() || {};
   const query = this.getQuery?.() || {};
@@ -296,7 +314,7 @@ export const applyClinicalLifecycle = (schema, options = {}) => {
     }
   });
 
-  schema.pre('findOneAndUpdate', async function (next) {
+  schema.pre('findOneAndUpdate', { query: true, document: false }, async function (next) {
     try {
       const options = this.getOptions?.() || {};
       if (options.includeDeleted) {
@@ -308,8 +326,8 @@ export const applyClinicalLifecycle = (schema, options = {}) => {
       const update = getUpdateObject(this.getUpdate() || {});
       const previous = await this.model.findOne(this.getQuery()).setOptions({ includeDeleted: true }).lean();
 
-      this.$locals = this.$locals || {};
-      this.$locals.clinicalAuditSnapshot = {
+      this.options = this.options || {};
+      this.options._clinicalAuditSnapshot = {
         previous,
         update,
         actor: options.clinicalAuditActor || null,
@@ -330,12 +348,21 @@ export const applyClinicalLifecycle = (schema, options = {}) => {
     }
   });
 
-  schema.post('findOneAndUpdate', async function (doc, next) {
-    const snapshot = this.$locals?.clinicalAuditSnapshot;
+  schema.post('findOneAndUpdate', { query: true, document: false }, async function (doc, next) {
+    const snapshot = this.getOptions?.()._clinicalAuditSnapshot || this.options?._clinicalAuditSnapshot;
     if (!snapshot || !doc) return next();
 
     try {
-      const current = doc.toObject ? doc.toObject({ depopulate: true, getters: false, virtuals: false }) : doc;
+      const entityId = doc._id || snapshot.previous?._id;
+      const persisted = entityId
+        ? await this.model
+        .findById(entityId)
+        .setOptions({ includeDeleted: true })
+        .lean()
+        : null;
+      const current = persisted || (doc.toObject
+        ? doc.toObject({ depopulate: true, getters: false, virtuals: false })
+        : applyUpdateToSnapshot(snapshot.previous, snapshot.update));
       const paths = flattenPaths(snapshot.update);
       const changes = buildChanges(snapshot.previous, current, paths);
       const action = snapshot.previous ? 'UPDATE' : 'CREATE';
@@ -349,7 +376,7 @@ export const applyClinicalLifecycle = (schema, options = {}) => {
         action,
         resource: {
           entity: entityName,
-          entityId: doc._id,
+          entityId,
         },
         changes,
         previousValue: snapshot.previous,

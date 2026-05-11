@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const microGoalSchema = new mongoose.Schema(
   {
@@ -158,6 +159,15 @@ const UserSchema = new mongoose.Schema({
     type: cbtProfileSchema,
     default: () => ({}),
   },
+});
+
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || !this.password || this.password.startsWith("$2")) {
+    return next();
+  }
+
+  this.password = await bcrypt.hash(this.password, 10);
+  return next();
 });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

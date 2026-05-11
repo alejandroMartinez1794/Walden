@@ -89,8 +89,12 @@ async function initRateLimitRedis() {
   }
 }
 
-// Initialize on module load
-await initRateLimitRedis();
+// Initialize on module load without top-level await so Jest/Babel can parse this module.
+initRateLimitRedis().catch((error) => {
+  logger.warn('Rate limit Redis: initialization failed (using in-memory)', {
+    error: error?.message || String(error),
+  });
+});
 
 /**
  * Create rate limiter middleware
