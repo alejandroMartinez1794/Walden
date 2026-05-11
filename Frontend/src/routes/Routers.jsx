@@ -40,6 +40,9 @@ const SessionForm = React.lazy(() => import('../Dashboard/psychology/sessions/Se
 import GoogleAuthRedirect from '../pages/GoogleAuthRedirect'; // ✅ IMPORTACIÓN
 const DataProtection = React.lazy(() => import('../pages/Legal/DataProtection'));
 const TermsOfService = React.lazy(() => import('../pages/Legal/TermsOfService'));
+// NEW: Import emergency and tools pages
+import Emergency from '../pages/Emergency';
+const TCC = React.lazy(() => import('../pages/Tools/TCC'));
 
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute';
@@ -58,10 +61,21 @@ const Routers = () => {
             <Route path="/data-protection" element={<DataProtection />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/consentimiento" element={<InformedConsent />} />
+            {/* NEW: Emergency route - accessible to all */}
+            <Route path="/emergency" element={<Emergency />} />
+            {/* NEW: Tools route - requires authentication */}
+            <Route
+                path="/tools/tcc"
+                element={
+                    <ProtectedRoute allowedRoles={['paciente', 'patient', 'doctor']}>
+                        <TCC />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/users/profile/me"
                 element={
-                    <ProtectedRoute allowedRoles={['paciente']}>
+                    <ProtectedRoute allowedRoles={['paciente', 'patient']}>
                         <Myaccount />
                     </ProtectedRoute>
                 }

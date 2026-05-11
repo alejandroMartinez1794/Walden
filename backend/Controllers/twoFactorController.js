@@ -1,4 +1,4 @@
-import { generateSecret, generateURI, verify } from 'otplib';
+import { authenticator } from 'otplib';
 import qrcode from 'qrcode';
 import User from '../models/UserSchema.js';
 import Doctor from '../models/DoctorSchema.js';
@@ -21,8 +21,8 @@ export const setup2FA = async (req, res) => {
         const user = await getUser(req.userId);
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-        const secret = generateSecret();
-        const otpauth = generateURI({ secret, issuer: APP_NAME, label: user.email });
+        const secret = authenticator.generateSecret();
+        const otpauth = authenticator.keyuri(user.email, APP_NAME, secret);
         const qrImageUrl = await qrcode.toDataURL(otpauth);
 
         // Guardar secreto temporalmente o pedir confirmación inmediata
@@ -49,7 +49,7 @@ export const verify2FA = async (req, res) => {
         const user = await getUser(req.userId);
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-        const isValid = verify({ token, secret: user.twoFactorSecret });
+        const isValid = authenticator.verify({ token, secret: user.twoFactorSecret });
 
         if (!isValid) {
             return res.status(400).json({ message: 'Código inválido. Inténtalo de nuevo.' });
@@ -98,7 +98,7 @@ export const validate2FALogin = async (req, res) => {
         const user = await getUser(decoded.id);
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-        const isValid = verify({ token, secret: user.twoFactorSecret });
+        const isValid = authenticator.verify({ token, secret: user.twoFactorSecret });
         
         if (!isValid) {
             // Verificar códigos de recuperación si el token falla

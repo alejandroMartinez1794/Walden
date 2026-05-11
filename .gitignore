@@ -5,6 +5,7 @@ backend/.env.local
 backend/.env.production
 backend/.env.staging
 backend/node_modules/
+backend/mongodb-binaries/
 
 # Frontend environment
 Frontend/.env

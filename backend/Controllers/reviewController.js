@@ -29,6 +29,11 @@ export const createReview = async (req, res) => {
     // if user is not in the body, set it to the userId in the request
     if(!req.body.user) req.body.user = req.userId
 
+    const doctor = await Doctor.findById(req.body.doctor).select('_id');
+    if (!doctor) {
+        return res.status(404).json({ success: false, message: "Doctor not found" });
+    }
+
     const newReview = new Review(req.body)
 
     try {

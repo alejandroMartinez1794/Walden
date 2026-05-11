@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'test' || !process.env.NEW_RELIC_LICENSE_KEY || !pr
   // New Relic disabled (test environment or not configured)
 } else {
   // Only import and configure New Relic in non-test environments
-  const newrelic = await import('newrelic');
+  import('newrelic').catch(() => {});
   // New Relic initialized (check logs/newrelic_agent.log for details)
 }
 

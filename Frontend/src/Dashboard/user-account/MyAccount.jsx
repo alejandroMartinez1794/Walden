@@ -24,7 +24,7 @@ const MyAccount = () => {
   const [error, setError] = useState(null);
   const [bookingsCount, setBookingsCount] = useState(0);
 
-  const resolvedToken = authToken || localStorage.getItem('token');
+  const resolvedToken = authToken || sessionStorage.getItem('token');
 
   useEffect(() => {
     if (!resolvedToken) {
@@ -94,9 +94,9 @@ const MyAccount = () => {
         type: 'LOGIN_SUCCESS',
         payload: {
           user: mergedProfile,
-          token: authToken || localStorage.getItem('token'),
-          role: authRole || localStorage.getItem('role'),
-          authProvider: mergedProfile?.authProvider || authProvider || localStorage.getItem('authProvider') || 'local',
+          token: authToken || sessionStorage.getItem('token'),
+          role: authRole || sessionStorage.getItem('role'),
+          authProvider: mergedProfile?.authProvider || authProvider || sessionStorage.getItem('authProvider') || 'local',
         },
       });
 

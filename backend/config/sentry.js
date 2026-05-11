@@ -11,8 +11,12 @@ import * as Sentry from '@sentry/node';
 // Conditional import: only load profiling in non-test environments
 let ProfilingIntegration;
 if (process.env.NODE_ENV !== 'test') {
-  const profilingModule = await import('@sentry/profiling-node');
-  ProfilingIntegration = profilingModule.ProfilingIntegration;
+  // Import profiling integration dynamically in production
+  import('@sentry/profiling-node').then((profilingModule) => {
+    ProfilingIntegration = profilingModule.ProfilingIntegration;
+  }).catch(error => {
+    console.warn('Failed to load Sentry profiling:', error.message);
+  });
 }
 
 // Track if Sentry was successfully initialized

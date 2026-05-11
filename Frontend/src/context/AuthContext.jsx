@@ -79,11 +79,6 @@ export const AuthContextProvider = ({ children }) => {
             sessionStorage.removeItem('authProvider');
         }
 
-        // Limpieza de restos previos en localStorage (evita sesiones persistentes antiguas)
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        localStorage.removeItem('authProvider');
     }, [state]);
 
     return (

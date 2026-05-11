@@ -4,7 +4,7 @@ import User from '../models/UserSchema.js';
 import Doctor from '../models/DoctorSchema.js';
 import sendEmail from '../utils/emailService.js';
 import { getAutomationConfig } from './automationConfig.js';
-import { scheduleTask } from './automationScheduler.js';
+import { scheduleResilientTask, executeTaskWithRetry, taskTracker } from './ResilientTaskRunner.js';
 import logger from '../utils/logger.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -67,6 +67,7 @@ const sendFollowUpSurvey = async (booking) => {
     logger.info(`✅ Cuestionario de seguimiento enviado a ${patient.email}`);
   } catch (error) {
     logger.error('❌ Error enviando seguimiento:', error.message);
+    throw error; // Re-throw to trigger retry mechanism
   }
 };
 
@@ -124,6 +125,7 @@ const sendHealthMetricsReminder = async (booking) => {
     logger.info(`✅ Recordatorio de métricas enviado a ${patient.email}`);
   } catch (error) {
     logger.error('❌ Error enviando recordatorio de métricas:', error.message);
+    throw error; // Re-throw to trigger retry mechanism
   }
 };
 
@@ -132,8 +134,9 @@ const sendHealthMetricsReminder = async (booking) => {
  * Se ejecuta cada hora
  */
 const schedulePostSessionFollowUp = () => {
-  return scheduleTask('0 * * * *', 'Seguimiento post-sesión (24h)', async () => {
+  return scheduleResilientTask('0 * * * *', 'Seguimiento post-sesión (24h)', async () => {
     try {
+      logger.info('🔄 Enviando seguimientos post-sesión...');
 
       const { maxBatch, emailThrottleMs } = getAutomationConfig();
 
@@ -152,11 +155,18 @@ const schedulePostSessionFollowUp = () => {
       }).limit(maxBatch);
 
       for (const booking of completedBookings) {
-        await sendFollowUpSurvey(booking);
-        
-        // Marcar como enviado
-        booking.followUpSent = true;
-        await booking.save();
+        await executeTaskWithRetry(
+          async () => {
+            await sendFollowUpSurvey(booking);
+            
+            // Marcar como enviado
+            booking.followUpSent = true;
+            await booking.save();
+          },
+          'post_session_follow_up',
+          booking._id.toString(),
+          { maxRetries: 3, baseDelay: 1000, maxDelay: 10000, scheduledDate: booking.appointmentDate }
+        );
         
         await sleep(Math.max(emailThrottleMs, 2000));
       }
@@ -164,8 +174,9 @@ const schedulePostSessionFollowUp = () => {
       logger.info('✅ Seguimiento post-sesión completado');
     } catch (error) {
       logger.error('❌ Error en seguimiento post-sesión:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'follow_up_survey_batch', maxRetries: 2 });
 };
 
 /**
@@ -173,7 +184,7 @@ const schedulePostSessionFollowUp = () => {
  * Se ejecuta cada 6 horas
  */
 const scheduleHealthMetricsReminder = () => {
-  return scheduleTask('0 */6 * * *', 'Recordatorio de métricas (48h)', async () => {
+  return scheduleResilientTask('0 */6 * * *', 'Recordatorio de métricas (48h)', async () => {
     try {
       logger.info('🔄 Enviando recordatorios de métricas de salud...');
 
@@ -196,10 +207,17 @@ const scheduleHealthMetricsReminder = () => {
       logger.info(`📊 ${bookingsForMetrics.length} pacientes requieren actualizar métricas`);
 
       for (const booking of bookingsForMetrics) {
-        await sendHealthMetricsReminder(booking);
-        
-        booking.metricsReminderSent = true;
-        await booking.save();
+        await executeTaskWithRetry(
+          async () => {
+            await sendHealthMetricsReminder(booking);
+            
+            booking.metricsReminderSent = true;
+            await booking.save();
+          },
+          'health_metrics_reminder',
+          booking._id.toString(),
+          { maxRetries: 3, baseDelay: 1000, maxDelay: 10000, scheduledDate: booking.appointmentDate }
+        );
         
         await sleep(Math.max(emailThrottleMs, 2000));
       }
@@ -207,8 +225,9 @@ const scheduleHealthMetricsReminder = () => {
       logger.info('✅ Recordatorios de métricas enviados');
     } catch (error) {
       logger.error('❌ Error enviando recordatorios de métricas:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'health_metrics_batch', maxRetries: 2 });
 };
 
 /**
@@ -216,7 +235,7 @@ const scheduleHealthMetricsReminder = () => {
  * Se ejecuta diariamente a las 10 AM
  */
 const scheduleNextAppointmentReminder = () => {
-  return scheduleTask('0 10 * * *', 'Recordatorio próxima cita (7+ días)', async () => {
+  return scheduleResilientTask('0 10 * * *', 'Recordatorio próxima cita (7+ días)', async () => {
     try {
       logger.info('🔄 Enviando recordatorios de próxima cita...');
 
@@ -247,57 +266,67 @@ const scheduleNextAppointmentReminder = () => {
 
         if (futureBookings > 0) continue;
 
-        const bookLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/doctors`;
+        // Create a unique task for each patient
+        await executeTaskWithRetry(
+          async () => {
+            const bookLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/doctors`;
 
-        await sendEmail({
-          email: patient.email,
-          subject: '🌟 ¿Cómo has estado? Es hora de tu próxima sesión',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #0066ff;">¡Te extrañamos! 💙</h2>
-              <p>Hola <strong>${patient.name}</strong>,</p>
-              
-              <p>Ha pasado una semana desde tu última sesión. El seguimiento continuo es clave 
-              para mantener tu bienestar emocional y consolidar los avances que has logrado.</p>
+            await sendEmail({
+              email: patient.email,
+              subject: '🌟 ¿Cómo has estado? Es hora de tu próxima sesión',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #0066ff;">¡Te extrañamos! 💙</h2>
+                  <p>Hola <strong>${patient.name}</strong>,</p>
+                  
+                  <p>Ha pasado una semana desde tu última sesión. El seguimiento continuo es clave 
+                  para mantener tu bienestar emocional y consolidar los avances que has logrado.</p>
 
-              <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>💡 Beneficios del seguimiento regular:</strong></p>
-                <ul style="margin: 10px 0;">
-                  <li>Mantiene la continuidad del tratamiento</li>
-                  <li>Previene recaídas</li>
-                  <li>Refuerza las herramientas aprendidas</li>
-                  <li>Ajusta el plan según tu progreso</li>
-                </ul>
-              </div>
+                  <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>💡 Beneficios del seguimiento regular:</strong></p>
+                    <ul style="margin: 10px 0;">
+                      <li>Mantiene la continuidad del tratamiento</li>
+                      <li>Previene recaídas</li>
+                      <li>Refuerza las herramientas aprendidas</li>
+                      <li>Ajusta el plan según tu progreso</li>
+                    </ul>
+                  </div>
 
-              <p style="text-align: center; margin: 30px 0;">
-                <a href="${bookLink}" 
-                   style="background-color: #0066ff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                  📅 Agendar mi Próxima Sesión
-                </a>
-              </p>
+                  <p style="text-align: center; margin: 30px 0;">
+                    <a href="${bookLink}" 
+                       style="background-color: #0066ff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                      📅 Agendar mi Próxima Sesión
+                    </a>
+                  </p>
 
-              <p style="color: #666; font-size: 14px;">
-                Si tienes dudas o necesitas ajustar tu plan de tratamiento, no dudes en contactarnos.
-              </p>
+                  <p style="color: #666; font-size: 14px;">
+                    Si tienes dudas o necesitas ajustar tu plan de tratamiento, no dudes en contactarnos.
+                  </p>
 
-              <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-              <p style="color: #999; font-size: 12px;">
-                Este es un recordatorio amistoso de Basileia para apoyar tu bienestar.
-              </p>
-            </div>
-          `
-        });
+                  <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                  <p style="color: #999; font-size: 12px;">
+                    Este es un recordatorio amistoso de Basileia para apoyar tu bienestar.
+                  </p>
+                </div>
+              `
+            });
 
-        remindersSent++;
+            remindersSent++;
+          },
+          'next_appointment_reminder',
+          item._id.toString(),
+          { maxRetries: 2, baseDelay: 2000, maxDelay: 15000, scheduledDate: new Date() }
+        );
+
         await sleep(Math.max(emailThrottleMs, 3000));
       }
 
       logger.info(`✅ ${remindersSent} recordatorios de próxima cita enviados`);
     } catch (error) {
       logger.error('❌ Error enviando recordatorios de próxima cita:', error.message);
+      throw error; // Re-throw to trigger outer retry mechanism
     }
-  });
+  }, { taskType: 'next_appointment_batch', maxRetries: 1 });
 };
 
 /**

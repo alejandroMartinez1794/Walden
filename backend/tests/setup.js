@@ -6,11 +6,10 @@
  * Se ejecuta antes de cada suite de tests
  */
 
-import { jest } from '@jest/globals';
-
 // Variables de entorno para testing
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET_KEY = 'test-jwt-secret-key-for-testing-only';
+process.env.ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 process.env.JWT_EXPIRE_TIME = '15d';
 process.env.MONGO_URL = process.env.MONGO_URL_TEST || 'mongodb://localhost:27017/basileia-test';
 process.env.MONGOMS_MD5_CHECK = 'false';
@@ -28,4 +27,3 @@ global.generateInvalidMongoId = () => {
 afterEach(() => {
   // Limpiar cualquier estado si es necesario
 });
-

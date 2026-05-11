@@ -18,8 +18,9 @@ const GoogleCallback = () => {
       try {
         const parsedUser = JSON.parse(decodeURIComponent(user));
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(parsedUser));
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', JSON.stringify(parsedUser));
+        sessionStorage.setItem('role', parsedUser.role || '');
 
         dispatch({
           type: 'LOGIN_SUCCESS',
@@ -27,6 +28,7 @@ const GoogleCallback = () => {
             token,
             user: parsedUser,
             role: parsedUser.role,
+            authProvider: parsedUser.authProvider || 'google',
           },
         });
 

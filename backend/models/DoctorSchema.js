@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const DoctorSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -37,6 +38,11 @@ const DoctorSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "approved", "cancelled"],
     default: "pending",
+    set: (value) => {
+      if (value === true) return "approved";
+      if (value === false) return "pending";
+      return value;
+    },
   },
   appointments: [{ type: mongoose.Types.ObjectId, ref: "Appointment" }],
   emailVerified: { type: Boolean, default: false },
@@ -50,6 +56,15 @@ const DoctorSchema = new mongoose.Schema({
 
   failedLoginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date },
+});
+
+DoctorSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || !this.password || this.password.startsWith("$2")) {
+    return next();
+  }
+
+  this.password = await bcrypt.hash(this.password, 10);
+  return next();
 });
 
 export default mongoose.model("Doctor", DoctorSchema);

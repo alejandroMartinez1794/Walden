@@ -74,7 +74,7 @@ const MyBookings = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await fetch(`${BASE_URL}/bookings/${bookingId}`, {
         method: "DELETE",
         headers: {

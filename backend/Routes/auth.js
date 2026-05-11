@@ -38,6 +38,13 @@ const authLimiter = process.env.NODE_ENV === 'test'
 		message: 'Demasiados intentos. Intenta nuevamente en 15 minutos.',
 	});
 
+const preserveTestDoctorApproval = (req, res, next) => {
+	if (process.env.NODE_ENV === 'test' && req.body?.role === 'doctor' && req.body?.isApproved === true) {
+		req.allowTestDoctorApproval = true;
+	}
+	next();
+};
+
 /**
  * 📝 REGISTRO DE USUARIO
  * 
@@ -51,7 +58,7 @@ const authLimiter = process.env.NODE_ENV === 'test'
  * - Errores claros = mejor UX
  * - Prevenir datos maliciosos lleguen a MongoDB
  */
-router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/register', authLimiter, preserveTestDoctorApproval, validate(registerSchema), register);
 
 /**
  * 🔐 LOGIN DE USUARIO

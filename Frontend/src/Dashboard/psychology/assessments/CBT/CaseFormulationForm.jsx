@@ -142,7 +142,7 @@ const CaseFormulationForm = () => {
       // Por ahora simulamos éxito o usamos un endpoint genérico de notas si no existe uno específico
       // const res = await fetch(`${BASE_URL}/psychology/patients/${patientId}/case-formulation`, ...);
       
-      // Simulamos guardado en localStorage o log para demo
+      // Simulamos guardado en sessionStorage o log para demo
       console.log('Formulación de Caso Guardada:', formData);
       toast.success('Formulación de caso guardada exitosamente');
       // navigate(-1); // Opcional: volver atrás

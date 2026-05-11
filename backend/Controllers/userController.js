@@ -42,9 +42,11 @@ export const updateUser = async (req, res) => {
             id,
             { $set: req.body },
             { new: true }
-        );
+        ).lean();
 
-        if (!updatedUser) {
+        const userData = updatedUser?.value || updatedUser;
+
+        if (!userData) {
              return res.status(404).json({ success: false, message: "User not found" });
         }
 
@@ -53,7 +55,7 @@ export const updateUser = async (req, res) => {
             .json({
                 success: true,
                 message: "Successfully updated user",
-                data: updatedUser,
+                data: userData,
             });
     } catch (error) {
         res
@@ -174,4 +176,3 @@ export const getMyAppointments = async (req, res) => {
       res.status(500).json({ success: false, message: "Server error" });
     }
   };
-  

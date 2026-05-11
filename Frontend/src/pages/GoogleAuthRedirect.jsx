@@ -17,6 +17,11 @@ const GoogleAuthRedirect = () => {
       try {
         const parsedUser = JSON.parse(decodeURIComponent(user));
 
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', JSON.stringify(parsedUser));
+        sessionStorage.setItem('role', parsedUser.role || '');
+        sessionStorage.setItem('authProvider', parsedUser.authProvider || 'google');
+
         // ✅ 1. Guardar en contexto global
         dispatch({
           type: 'LOGIN_SUCCESS',
@@ -24,16 +29,14 @@ const GoogleAuthRedirect = () => {
             user: parsedUser,
             token,
             role: parsedUser.role,
+            authProvider: parsedUser.authProvider || 'google',
           },
         });
 
-        // ✅ 2. Guardar token en localStorage para que lo use el hook useFetchData
-        localStorage.setItem('token', token);
-
-        // ✅ 3. Mostrar confirmación
+        // ✅ 2. Mostrar confirmación
         toast.success('Login con Google exitoso ✅');
 
-        // ✅ 4. Redirigir con recarga para que el token esté disponible al inicio
+        // ✅ 3. Redirigir con recarga para que el token esté disponible al inicio
         if (parsedUser.role === 'paciente') {
           window.location.href = '/users/profile/me';
         } else if (parsedUser.role === 'doctor' || parsedUser.role === 'admin') {

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const microGoalSchema = new mongoose.Schema(
   {
@@ -101,10 +102,72 @@ const UserSchema = new mongoose.Schema({
 
   failedLoginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date },
+  
+  // NEW: Fields for ARCO rights and consent management
+  consents: [{
+    type: {
+      type: String,
+      required: true,
+      enum: [
+        'dataProcessing', 'marketing', 'analytics', 
+        'research', 'thirdPartySharing', 'clinicalCommunication'
+      ]
+    },
+    granted: {
+      type: Boolean,
+      required: true
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    version: {
+      type: String,
+      default: '1.0'
+    }
+  }],
+  preferences: {
+    marketing: {
+      type: Boolean,
+      default: false
+    },
+    analytics: {
+      type: Boolean,
+      default: false
+    },
+    research: {
+      type: Boolean,
+      default: false
+    },
+    clinicalCommunication: {
+      type: Boolean,
+      default: true
+    }
+  },
+  // NEW: Data retention fields
+  dataRetentionExpiresAt: {
+    type: Date,
+    default: function() {
+      // Set default to 10 years from creation for clinical data
+      const date = new Date();
+      date.setFullYear(date.getFullYear() + 10);
+      return date;
+    }
+  },
+  
   cbtProfile: {
     type: cbtProfileSchema,
     default: () => ({}),
   },
+});
+
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || !this.password || this.password.startsWith("$2")) {
+    return next();
+  }
+
+  this.password = await bcrypt.hash(this.password, 10);
+  return next();
 });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

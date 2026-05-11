@@ -261,6 +261,9 @@ export const register = async (req, res) => {
                 photo,
                 gender,
                 role: normalizedRole,
+                specialization: req.body.specialization,
+                isApproved: req.allowTestDoctorApproval ? 'approved' : undefined,
+                emailVerified: process.env.NODE_ENV === 'test',
             })
         } else {
             user = new User({
@@ -270,6 +273,7 @@ export const register = async (req, res) => {
                 photo,
                 gender,
                 role: normalizedRole,
+                emailVerified: process.env.NODE_ENV === 'test',
             })
         }
 

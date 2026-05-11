@@ -124,6 +124,7 @@ export const createBookingSchema = Joi.object({
   patientName: Joi.string().max(100).optional(),
   durationMinutes: Joi.number().integer().min(15).max(480).optional(),
   ticketPrice: Joi.number().min(0).optional(),
+  status: Joi.string().valid('pending', 'approved', 'confirmed', 'cancelled', 'completed').optional(),
   
   // Campos opcionales
   notes: Joi.string()

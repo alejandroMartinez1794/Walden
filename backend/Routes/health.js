@@ -1,6 +1,10 @@
+// backend/Routes/health.js
 import express from 'express';
-import { authenticate, restrict } from '../auth/verifyToken.js';
-import {
+import { 
+  healthCheck, 
+  clinicalMetricsEndpoint, 
+  circuitBreakerStatus, 
+  clinicalWorkerStatus,
   getMyMedications,
   createMedication,
   updateMedication,
@@ -10,86 +14,43 @@ import {
   addMetric,
   getMyRecords,
   createRecord,
+  resetCircuitBreakers,
+  resetClinicalMetrics
 } from '../Controllers/healthController.js';
-
-// ✅ IMPORTAR VALIDACIÓN
-import { validate, validateId } from '../validators/middleware/validate.js';
-import { 
-  createHealthMetricSchema,
-  getHealthMetricsQuerySchema,
-  createMedicationSchema,
-  updateMedicationSchema,
-  createMedicalRecordSchema
-} from '../validators/schemas/health.schemas.js';
+import { authenticate as verifyToken, restrict } from '../auth/verifyToken.js';
 
 const router = express.Router();
 
-/**
- * 🏥 RUTAS DE SALUD
- * 
- * Módulo de seguimiento de salud personal
- * 
- * Componentes:
- * - Medicamentos (recordatorios, dosis)
- * - Métricas de salud (presión, peso, glucosa, etc.)
- * - Registros médicos (documentos, análisis)
- * 
- * Seguridad:
- * - Solo pacientes autenticados
- * - Datos altamente sensibles (HIPAA)
- * - Encriptación en tránsito y reposo
- */
+// Basic health check
+router.get('/health', healthCheck);
 
-// Todas las rutas requieren autenticación como paciente
-router.use(authenticate, restrict(['paciente']));
-
-// ============ MEDICAMENTOS ============
-/**
- * TODO: Crear schemas para medicamentos
- * - Nombre, dosis, frecuencia, duración
- * - Recordatorios automáticos
- * - Seguimiento de adherencia
- */
+// Legacy patient health endpoints used by the frontend
+router.use('/medications', verifyToken, restrict(['paciente', 'patient']));
 router.get('/medications', getMyMedications);
-router.post('/medications', validate(createMedicationSchema), createMedication);
-router.put('/medications/:id', validateId, validate(updateMedicationSchema), updateMedication);
-router.delete('/medications/:id', validateId, deleteMedication);
-router.post('/medications/:id/take-dose', validateId, takeMedicationDose);
+router.post('/medications', createMedication);
+router.put('/medications/:id', updateMedication);
+router.delete('/medications/:id', deleteMedication);
+router.post('/medications/:id/take-dose', takeMedicationDose);
 
-// ============ MÉTRICAS DE SALUD ============
-/**
- * GET /api/v1/health/metrics
- * 
- * Obtener métricas de salud del usuario
- * 
- * Query params:
- * - dateFrom, dateTo: Rango de fechas
- * - metricType: bloodPressure, heartRate, weight, etc.
- * - page, limit: Paginación
- */
-router.get('/metrics', validate(getHealthMetricsQuerySchema, 'query'), getMyMetrics);
+router.use('/metrics', verifyToken, restrict(['paciente', 'patient']));
+router.get('/metrics', getMyMetrics);
+router.post('/metrics', addMetric);
 
-/**
- * POST /api/v1/health/metrics
- * 
- * Registrar nueva métrica de salud
- * 
- * Validación:
- * - Todos los campos opcionales excepto date
- * - Valores dentro de rangos médicos realistas
- * - Presión arterial: sistólica > diastólica
- * - Alertas automáticas para valores críticos
- */
-router.post('/metrics', validate(createHealthMetricSchema), addMetric);
-
-// ============ REGISTROS MÉDICOS ============
-/**
- * TODO: Crear schemas para registros médicos
- * - Tipo de documento (análisis, radiografía, receta)
- * - Fecha, descripción, archivo adjunto
- * - Validar formato de archivos (PDF, JPEG, PNG)
- */
+router.use('/records', verifyToken, restrict(['paciente', 'patient', 'doctor']));
 router.get('/records', getMyRecords);
-router.post('/records', validate(createMedicalRecordSchema), createRecord);
+router.post('/records', createRecord);
+
+// Clinical metrics
+router.get('/clinical/metrics', clinicalMetricsEndpoint);
+
+// Circuit breaker status
+router.get('/clinical/circuit-breakers', circuitBreakerStatus);
+
+// Clinical worker status
+router.get('/clinical/worker', clinicalWorkerStatus);
+
+// Admin endpoints (require authentication)
+router.post('/clinical/reset-circuit-breakers', verifyToken, resetCircuitBreakers);
+router.post('/clinical/reset-metrics', verifyToken, resetClinicalMetrics);
 
 export default router;
