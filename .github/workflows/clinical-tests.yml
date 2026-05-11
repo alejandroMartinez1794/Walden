@@ -58,12 +58,13 @@ jobs:
         node scripts/validateCoverage.js ./coverage/coverage-final.json
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./backend/coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
-        fail_ci_if_error: true
+        fail_ci_if_error: false
+      continue-on-error: true
 
     - name: Archive test results
       if: always()
