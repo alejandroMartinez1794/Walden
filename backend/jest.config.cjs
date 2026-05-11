@@ -29,7 +29,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   moduleFileExtensions: ["js", "cjs", "mjs", "jsx"],
   transform: {
-    '^.+\\.(js|jsx)$': ['babel-jest', { configFile: './babel.config.js' }],
+    '^.+\\.(js|jsx)$': ['babel-jest', { configFile: './babel.config.cjs' }],
   },
   transformIgnorePatterns: [
     '/node_modules/(?!(supertest)/)',
