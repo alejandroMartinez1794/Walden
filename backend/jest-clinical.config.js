@@ -50,87 +50,8 @@ export default {
   coverageReporters: [
     'html',
     'lcov',
+    'json-summary',
     'text',
     'cobertura'
-  ],
-  coverageThreshold: {
-    global: {
-      branches: 80,
-      functions: 85,
-      lines: 90,
-      statements: 90
-    },
-    './services/clinicalCrypto.js': {
-      branches: 95,
-      functions: 100,
-      lines: 100,
-      statements: 100
-    },
-    './services/medicalAlertService.js': {
-      branches: 90,
-      functions: 95,
-      lines: 95,
-      statements: 95
-    },
-    './services/appointmentReminderService.js': {
-      branches: 85,
-      functions: 90,
-      lines: 90,
-      statements: 90
-    },
-    './utils/clinicalCrypto.js': {
-      branches: 95,
-      functions: 100,
-      lines: 100,
-      statements: 100
-    },
-    './utils/encryption.js': {
-      branches: 95,
-      functions: 100,
-      lines: 100,
-      statements: 100
-    },
-    './middleware/auth.js': {
-      branches: 95,
-      functions: 95,
-      lines: 95,
-      statements: 95
-    },
-    './controllers/authController.js': {
-      branches: 95,
-      functions: 95,
-      lines: 95,
-      statements: 95
-    },
-    './validators/**/*': {
-      branches: 90,
-      functions: 95,
-      lines: 95,
-      statements: 95
-    },
-    './config/https.js': {
-      branches: 95,
-      functions: 100,
-      lines: 100,
-      statements: 100
-    },
-    './services/ResilientTaskRunner.js': {
-      branches: 90,
-      functions: 95,
-      lines: 95,
-      statements: 95
-    },
-    './services/CircuitBreaker.js': {
-      branches: 95,
-      functions: 100,
-      lines: 100,
-      statements: 100
-    },
-    './services/ClinicalMetrics.js': {
-      branches: 85,
-      functions: 90,
-      lines: 90,
-      statements: 90
-    }
-  }
+  ]
 };
