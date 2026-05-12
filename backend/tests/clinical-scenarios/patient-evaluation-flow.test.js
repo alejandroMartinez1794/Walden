@@ -253,7 +253,17 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
     // Now try to book an appointment - should succeed despite high risk
     const bookingData = {
       doctorId: doctor._id.toString(),
-      appointmentDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+      appointmentDate: (() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 1);
+
+        while (date.getDay() === 0 || date.getDay() === 6) {
+          date.setDate(date.getDate() + 1);
+        }
+
+        date.setHours(10, 0, 0, 0);
+        return date;
+      })(),
       reason: 'Urgent consultation due to high PHQ-9 score',
       status: 'pending'
     };
