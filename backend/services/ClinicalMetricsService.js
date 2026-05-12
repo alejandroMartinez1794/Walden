@@ -34,6 +34,8 @@ class ClinicalMetricsService {
       // Timestamp
       lastUpdated: new Date()
     };
+
+    this.events = [];
     
     // Histograms for latency tracking
     this.latencyHistograms = {
@@ -188,6 +190,25 @@ class ClinicalMetricsService {
   }
 
   /**
+   * Record an observability event in memory
+   */
+  recordEvent(eventName, payload = {}) {
+    const event = {
+      eventName,
+      payload,
+      timestamp: new Date().toISOString(),
+    };
+
+    this.events.push(event);
+
+    if (this.events.length > 100) {
+      this.events = this.events.slice(-100);
+    }
+
+    return event;
+  }
+
+  /**
    * Add active patient
    */
   addActivePatient(patientId) {
@@ -249,7 +270,8 @@ class ClinicalMetricsService {
       },
       timestamps: {
         lastUpdated: this.metrics.lastUpdated
-      }
+      },
+      events: this.events.slice(-25)
     };
   }
 }

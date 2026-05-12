@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom';
 import { authContext } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode'; // Assuming this is installed
 
-const ProtectedRoute = ({ children, allowedRoles, requireCrisisClearance = false }) => {
+const ProtectedRoute = ({ children, allowedRoles = [], requiredRole = null, requireCrisisClearance = false }) => {
   const { token, role, user } = useContext(authContext);
   const [isTokenValid, setIsTokenValid] = useState(true);
 
@@ -17,7 +17,9 @@ const ProtectedRoute = ({ children, allowedRoles, requireCrisisClearance = false
         const currentTime = Date.now() / 1000;
         setIsTokenValid(decodedToken.exp > currentTime);
       } catch (error) {
-        console.error('Invalid token:', error);
+        if (import.meta.env.DEV) {
+          console.error('Invalid token:', error);
+        }
         setIsTokenValid(false);
       }
     } else {
@@ -30,14 +32,20 @@ const ProtectedRoute = ({ children, allowedRoles, requireCrisisClearance = false
   const isAdmin = normalizedRole === 'admin';
   
   // Admin gets access to everything
+  const normalizedAllowedRoles = Array.isArray(allowedRoles)
+    ? allowedRoles
+    : [allowedRoles].filter(Boolean);
+
   const effectiveAllowedRoles = isAdmin 
     ? ['admin', 'doctor', 'paciente', 'patient']  // Supporting both spellings
-    : allowedRoles;
+    : (requiredRole ? [requiredRole] : normalizedAllowedRoles);
 
   // Check if user's role is allowed
-  const isAllowed = effectiveAllowedRoles.some(allowedRole => 
-    normalizedRole === allowedRole.toLowerCase()
-  );
+  const isAllowed = effectiveAllowedRoles.length === 0
+    ? true
+    : effectiveAllowedRoles.some(allowedRole => 
+      normalizedRole === allowedRole.toLowerCase()
+    );
 
   // Check for crisis clearance if required
   const hasCrisisClearance = !requireCrisisClearance; // Simplified for now

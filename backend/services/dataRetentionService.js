@@ -1,6 +1,7 @@
 import User from '../models/UserSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
 import Booking from '../models/BookingSchema.js';
+import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
 
 class DataRetentionService {
@@ -125,6 +126,15 @@ class DataRetentionService {
    * Schedule regular cleanup (runs daily)
    */
   scheduleCleanup() {
+    const isLocalEnv = process.env.SECURITY_TIER === 'local' ||
+      process.env.SECURITY_TIER === 'dev' ||
+      process.env.NODE_ENV === 'test';
+
+    if (isLocalEnv && mongoose.connection.readyState !== 1) {
+      logger.info('Data retention cleanup skipped until MongoDB is available');
+      return;
+    }
+
     // Run cleanup immediately
     this.runCleanup();
     

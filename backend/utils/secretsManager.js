@@ -29,9 +29,12 @@
 import dotenv from 'dotenv';
 import logger from './logger.js';
 
-// Cargar .env para obtener configuración inicial
-dotenv.config({ path: '.env.local' });
-dotenv.config({ path: '.env' });
+// Cargar .env solo en escenarios locales para no ocultar fallas del proveedor de secretos
+const SECRETS_BACKEND_PRELOAD = process.env.SECRETS_BACKEND || 'local';
+if (SECRETS_BACKEND_PRELOAD === 'local') {
+  dotenv.config({ path: '.env.local' });
+  dotenv.config({ path: '.env' });
+}
 
 // Cache de secretos en memoria (reduce llamadas a APIs)
 const secretsCache = new Map();
@@ -274,13 +277,11 @@ export const getSecret = async (key, skipCache = false) => {
       backend: SECRETS_BACKEND
     });
     
-    // Fallback a .env si el backend falla
-    if (SECRETS_BACKEND !== 'local') {
-      logger.warn(`Falling back to local .env for secret "${key}"`);
+    if (SECRETS_BACKEND === 'local') {
       return await getSecretLocal(key);
     }
     
-    return null;
+    throw error;
   }
 };
 
