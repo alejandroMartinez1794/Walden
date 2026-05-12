@@ -3,11 +3,10 @@ import { clinicalMetricsService } from '../services/ClinicalMetricsService.js';
 export const ClinicalMetrics = {
   track(eventName, payload = {}) {
     const snapshot = clinicalMetricsService.getMetricsSnapshot();
+    const event = clinicalMetricsService.recordEvent(eventName, payload);
 
     return {
-      eventName,
-      payload,
-      timestamp: new Date().toISOString(),
+      ...event,
       p95_latency: snapshot.operational?.p95Latency ?? 0,
       alert_delivery: snapshot.business?.alertsDelivered ?? 0,
     };

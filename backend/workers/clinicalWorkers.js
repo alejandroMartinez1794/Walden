@@ -25,8 +25,23 @@ function startWorkersNow() {
   logger.info('═══════════════════════════════════════════════════════\n');
 }
 
-export function scheduleClinicalWorkersStart(delayMs = 5000) {
+export function scheduleClinicalWorkersStart(delayMs = 5000, callbacks = {}) {
+  const {
+    onScheduled,
+    onStarted,
+  } = callbacks;
+
+  const isLocalEnv = process.env.SECURITY_TIER === 'local' ||
+    process.env.SECURITY_TIER === 'dev' ||
+    process.env.NODE_ENV === 'test';
+
   if (workersStarted) return;
+
+  if (isLocalEnv && mongoose.connection.readyState !== 1) {
+    logger.info('   ⚠ Workers clinicos omitidos en entorno local sin MongoDB');
+    onScheduled?.({ scheduled: false, skipped: true, reason: 'mongo-unavailable-local' });
+    return;
+  }
 
   if (workersTimer) {
     clearInterval(workersTimer);
@@ -47,9 +62,11 @@ export function scheduleClinicalWorkersStart(delayMs = 5000) {
     clearInterval(workersTimer);
     workersTimer = null;
     startWorkersNow();
+    onStarted?.({ started: true, delayMs });
   };
 
   workersTimer = setInterval(attemptStart, delayMs);
+  onScheduled?.({ scheduled: true, delayMs });
   attemptStart();
 }
 

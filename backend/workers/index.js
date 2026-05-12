@@ -1,19 +1,29 @@
 import cron from 'node-cron';
 
 import { scheduleClinicalWorkersStart, stopClinicalWorkers } from './clinicalWorkers.js';
-import { retryWithBackoff } from '../utils/retryWithClinicalBackoff.js';
 import { ClinicalMetrics } from '../observability/clinicalMetrics.js';
 
 export const CronJob = cron;
 
-export async function startWorkers() {
+export function startWorkers() {
   ClinicalMetrics.track('workers_starting', { source: 'backend/workers/index.js' });
 
-  return retryWithBackoff(async () => {
-    scheduleClinicalWorkersStart();
-    ClinicalMetrics.track('workers_started', { status: 'ready' });
-    return { started: true };
+  scheduleClinicalWorkersStart(5000, {
+    onScheduled: (metadata) => {
+      ClinicalMetrics.track('workers_scheduled', {
+        status: 'pending',
+        ...metadata,
+      });
+    },
+    onStarted: (metadata) => {
+      ClinicalMetrics.track('workers_started', {
+        status: 'ready',
+        ...metadata,
+      });
+    },
   });
+
+  return { scheduled: true };
 }
 
 export async function stopWorkers() {

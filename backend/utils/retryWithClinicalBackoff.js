@@ -19,12 +19,16 @@ export async function retryWithBackoff(task, options = {}) {
       return await task();
     } catch (error) {
       lastError = error;
-      ClinicalMetrics.track('retryWithBackoff', {
+      const event = ClinicalMetrics.track('retryWithBackoff', {
         label,
         attempt,
         circuitState: attempt === retries ? circuit_open : 'closed',
         error: error.message,
       });
+
+      if (process.env.NODE_ENV !== 'test') {
+        console.info('Clinical retry event', event);
+      }
 
       if (attempt === retries) {
         break;

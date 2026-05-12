@@ -10,6 +10,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,6 +31,9 @@ jobs:
           bash scripts/audit-sic-compliance.sh
 
       - name: Run backup restore smoke test
+        env:
+          RUN_DR_RESTORE: "true"
+          MONGO_RESTORE_URI: "mongodb://127.0.0.1:27017/basileia"
         run: |
           bash scripts/dr-restore-test.sh
 
