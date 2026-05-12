@@ -30,10 +30,30 @@ jobs:
           bash scripts/verify-pr11.sh
           bash scripts/audit-sic-compliance.sh
 
+      - name: Seed DR fixture and create archive
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          SOURCE_URI="mongodb://127.0.0.1:27017/basileia_dr_source"
+          BACKUP_ARCHIVE="$RUNNER_TEMP/basileia-dr-smoke.archive.gz"
+
+          docker run --rm --network host mongo:7 \
+            mongosh "$SOURCE_URI" --quiet --eval "db.dr_smoke.insertOne({ name: 'baseline', createdAt: new Date().toISOString(), retention: '10y' })"
+
+          docker run --rm --network host -v "$RUNNER_TEMP:/work" mongo:7 \
+            mongodump --uri="$SOURCE_URI" --archive=/work/basileia-dr-smoke.archive.gz --gzip
+
+          test -f "$BACKUP_ARCHIVE"
+
       - name: Run backup restore smoke test
         env:
           RUN_DR_RESTORE: "true"
-          MONGO_RESTORE_URI: "mongodb://127.0.0.1:27017/basileia"
+          BACKUP_ARCHIVE: "${{ runner.temp }}/basileia-dr-smoke.archive.gz"
+          MONGO_RESTORE_URI: "mongodb://127.0.0.1:27017/basileia_dr_restore"
+          MONGO_VERIFY_URI: "mongodb://127.0.0.1:27017/basileia_dr_restore"
+          MONGO_VERIFY_COLLECTION: "dr_smoke"
+          EXPECTED_VERIFY_COUNT: "1"
         run: |
           bash scripts/dr-restore-test.sh
 
