@@ -219,6 +219,40 @@ export function createApp() {
     res.send('La gente, la gente!');
   });
 
+  // Fallback probes at the top level so Heroku health checks stay reachable even
+  // if the health router is not mounted during a production boot path.
+  app.get('/health/live', (req, res) => {
+    res.status(200).json({
+      status: 'alive',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      pid: process.pid,
+      environment: process.env.NODE_ENV || 'development',
+      securityTier: process.env.SECURITY_TIER || 'dev'
+    });
+  });
+
+  app.get('/health/ready', async (req, res) => {
+    const dbReady = mongoose.connection.readyState === 1;
+    const redisAvailable = process.env.REDIS_URL ? isRedisAvailable() : true;
+    const isLocalEnv = process.env.SECURITY_TIER === 'local' || 
+                       process.env.SECURITY_TIER === 'dev' || 
+                       process.env.NODE_ENV === 'test';
+
+    const dbRequiredForReady = !isLocalEnv || global.mongodbConnectionError === undefined;
+    const isReady = (dbReady || !dbRequiredForReady) && redisAvailable;
+    const statusCode = isReady ? 200 : 503;
+
+    res.status(statusCode).json({
+      status: isReady ? 'ready' : 'not-ready',
+      checks: {
+        database: dbReady ? 'connected' : (isLocalEnv ? 'unavailable-local' : 'disconnected'),
+        redis: redisAvailable ? 'available' : 'not-configured',
+      },
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // NEW: Dedicated health endpoints for orchestration
   app.get('/health/live', (req, res) => {
     res.status(200).json({
