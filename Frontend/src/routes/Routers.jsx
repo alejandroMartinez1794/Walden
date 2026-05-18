@@ -7,6 +7,8 @@ import Login from '../pages/Login';
 import Signup from '../pages/Singup';
 const Contact = React.lazy(() => import('../pages/Contact'));
 const DoctorDetails = React.lazy(() => import('../pages/Doctors/DoctorsDetails'));
+const CrisisPage = React.lazy(() => import('../pages/public/CrisisPage'));
+const EvaluacionesPage = React.lazy(() => import('../pages/public/EvaluacionesPage'));
 const InformedConsent = React.lazy(() => import('../pages/Legal/InformedConsent'));
 const Myaccount = React.lazy(() => import('../Dashboard/user-account/MyAccount'));
 const Dashboard = React.lazy(() => import('../Dashboard/doctor-account/Dashboard'));
@@ -57,12 +59,16 @@ const Routers = () => {
             <Route path="/register" element={<Signup />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/servicios" element={<Services />} />
             <Route path="/testimonios" element={<Testimonios />} />
             <Route path="/data-protection" element={<DataProtection />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/consentimiento" element={<InformedConsent />} />
             {/* NEW: Emergency route - accessible to all */}
             <Route path="/emergency" element={<Emergency />} />
+            <Route path="/crisis" element={<CrisisPage />} />
+            <Route path="/evaluaciones" element={<EvaluacionesPage />} />
+            <Route path="/herramientas-tcc" element={<TCC />} />
             {/* NEW: Tools route - requires authentication */}
             <Route
                 path="/tools/tcc"

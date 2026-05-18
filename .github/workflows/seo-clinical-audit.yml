@@ -1,0 +1,63 @@
+name: SEO Clinical Audit
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Verify prerendered public routes
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          import { join } from 'node:path';
+
+          const publicRoutes = ['index.html', 'crisis/index.html', 'servicios/index.html', 'evaluaciones/index.html', 'herramientas-tcc/index.html'];
+
+          for (const route of publicRoutes) {
+            const html = await readFile(join('dist', route), 'utf8');
+            if (!html.includes('<div id="root">')) {
+              throw new Error(`Missing prerendered root content in ${route}`);
+            }
+            if (route === 'crisis/index.html' && !html.includes('FAQPage')) {
+              throw new Error(`Missing FAQ schema in ${route}`);
+            }
+          }
+          NODE
+
+      - name: Validate robots and sitemap
+        run: |
+          test -f dist/robots.txt
+          test -f dist/sitemap.xml
+          grep -q "Disallow: /dashboard/" dist/robots.txt
+          grep -q "Disallow: /tools/" dist/robots.txt
+          grep -q "Disallow: /clinical/" dist/robots.txt
+
+      - name: Lighthouse CI
+        run: npx lhci autorun --collect.staticDistDir=dist --assert.budgetsFile=./lighthouse-budget.json

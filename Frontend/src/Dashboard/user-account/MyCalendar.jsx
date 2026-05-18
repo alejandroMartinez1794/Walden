@@ -1,9 +1,4 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import esLocale from '@fullcalendar/core/locales/es';
 import { BASE_URL } from '../../config';
 import { authContext } from '../../context/AuthContext';
 import { HiOutlineCalendar, HiOutlineSun, HiOutlineLightBulb } from 'react-icons/hi';
@@ -263,6 +258,7 @@ const toWeekKey = (date) => toDayKey(startOfWeekMonday(date));
 
 const MyCalendar = () => {
 	const { user, token, authProvider } = useContext(authContext);
+	const [calendarLib, setCalendarLib] = useState(null);
 	const [events, setEvents] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -295,6 +291,30 @@ const MyCalendar = () => {
 			setError('No hay sesión activa.');
 			return;
 		}
+		// Lazy-load FullCalendar only on the dashboard to reduce initial bundle
+		let mounted = true;
+		const loadCalendar = async () => {
+			try {
+				const [fc, dayGrid, timeGrid, interaction, es] = await Promise.all([
+					import('@fullcalendar/react'),
+					import('@fullcalendar/daygrid'),
+					import('@fullcalendar/timegrid'),
+					import('@fullcalendar/interaction'),
+					import('@fullcalendar/core/locales/es'),
+				]);
+				if (!mounted) return;
+				setCalendarLib({
+					FullCalendar: fc?.default || fc,
+					dayGridPlugin: dayGrid?.default || dayGrid,
+					timeGridPlugin: timeGrid?.default || timeGrid,
+					interactionPlugin: interaction?.default || interaction,
+					esLocale: es?.default || es,
+				});
+			} catch (e) {
+				// ignore; calendar will not render
+			}
+		};
+		loadCalendar();
 		let isMounted = true;
 		const fetchLocalEvents = async () => {
 			const response = await fetch(`${BASE_URL}/bookings`, {
@@ -356,6 +376,7 @@ const MyCalendar = () => {
 		loadEvents();
 		return () => {
 			isMounted = false;
+			mounted = false;
 		};
 	}, [token, isGoogleAccount]);
 
@@ -697,26 +718,30 @@ const MyCalendar = () => {
 											Sin eventos aún
 										</div>
 									)}
-									<FullCalendar
-										ref={calendarRef}
-										plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-										initialView={calendarView}
-										events={filteredEvents}
-										locale={esLocale}
-										height="640px"
-										firstDay={1}
-										headerToolbar={false}
-										nowIndicator
-										scrollTime="08:00:00"
-										slotMinTime="06:00:00"
-										slotMaxTime="22:00:00"
-										slotDuration="00:30:00"
-										eventDisplay="block"
-										allDaySlot={false}
-										expandRows
-										dayMaxEvents
-										dateClick={handleDateClick}
-									/>
+																		{calendarLib?.FullCalendar ? (
+																			<calendarLib.FullCalendar
+																				ref={calendarRef}
+																				plugins={[calendarLib.dayGridPlugin, calendarLib.timeGridPlugin, calendarLib.interactionPlugin].filter(Boolean)}
+																				initialView={calendarView}
+																				events={filteredEvents}
+																				locale={calendarLib.esLocale || 'es'}
+																				height="640px"
+																				firstDay={1}
+																				headerToolbar={false}
+																				nowIndicator
+																				scrollTime="08:00:00"
+																				slotMinTime="06:00:00"
+																				slotMaxTime="22:00:00"
+																				slotDuration="00:30:00"
+																				eventDisplay="block"
+																				allDaySlot={false}
+																				expandRows
+																				dayMaxEvents
+																				dateClick={handleDateClick}
+																			/>
+																		) : (
+																			<div className="flex h-[620px] items-center justify-center text-sm text-slate-500">Cargando calendario…</div>
+																		)}
 								</div>
 							)}
 						</div>

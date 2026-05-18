@@ -1,6 +1,6 @@
 // Frontend/src/Dashboard/psychology/charts/ProgressCharts.jsx
 import { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+// Load recharts dynamically to reduce initial bundle size
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
 import ErrorMessage from '../../../components/Error/Error';
@@ -8,6 +8,7 @@ import { useAuthToken } from '../../../hooks/useAuthToken';
 
 const ProgressCharts = ({ patientId }) => {
   const token = useAuthToken();
+  const [Recharts, setRecharts] = useState(null);
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,6 +52,18 @@ const ProgressCharts = ({ patientId }) => {
       fetchAssessments();
     }
   }, [patientId]);
+
+  useEffect(() => {
+    let mounted = true;
+    import('recharts')
+      .then((mod) => {
+        if (mounted) setRecharts(mod);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const fetchAssessments = async () => {
     try {
@@ -164,52 +177,56 @@ const ProgressCharts = ({ patientId }) => {
       {selectedTests.length > 0 && chartData.length > 0 ? (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Evolución de Síntomas</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis 
-                dataKey="date" 
-                stroke="#6B7280"
-                style={{ fontSize: '12px' }}
-              />
-              <YAxis 
-                stroke="#6B7280"
-                style={{ fontSize: '12px' }}
-                label={{ value: 'Puntaje', angle: -90, position: 'insideLeft' }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#FFF', 
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '8px',
-                  padding: '12px'
-                }}
-              />
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px' }}
-                iconType="line"
-              />
-              
-              {selectedTests.map((testType) => {
-                const config = testConfigs[testType];
-                if (!config) return null;
+          {!Recharts ? (
+            <Loading />
+          ) : (
+            <Recharts.ResponsiveContainer width="100%" height={400}>
+              <Recharts.LineChart data={chartData}>
+                <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <Recharts.XAxis 
+                  dataKey="date" 
+                  stroke="#6B7280"
+                  style={{ fontSize: '12px' }}
+                />
+                <Recharts.YAxis 
+                  stroke="#6B7280"
+                  style={{ fontSize: '12px' }}
+                  label={{ value: 'Puntaje', angle: -90, position: 'insideLeft' }}
+                />
+                <Recharts.Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#FFF', 
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    padding: '12px'
+                  }}
+                />
+                <Recharts.Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="line"
+                />
                 
-                return (
-                  <Line
-                    key={testType}
-                    type="monotone"
-                    dataKey={testType}
-                    stroke={config.color}
-                    strokeWidth={3}
-                    dot={{ r: 6, fill: config.color }}
-                    activeDot={{ r: 8 }}
-                    name={config.name}
-                    connectNulls
-                  />
-                );
-              })}
-            </LineChart>
-          </ResponsiveContainer>
+                {selectedTests.map((testType) => {
+                  const config = testConfigs[testType];
+                  if (!config) return null;
+                  
+                  return (
+                    <Recharts.Line
+                      key={testType}
+                      type="monotone"
+                      dataKey={testType}
+                      stroke={config.color}
+                      strokeWidth={3}
+                      dot={{ r: 6, fill: config.color }}
+                      activeDot={{ r: 8 }}
+                      name={config.name}
+                      connectNulls
+                    />
+                  );
+                })}
+              </Recharts.LineChart>
+            </Recharts.ResponsiveContainer>
+          )}
           
           {/* Legend explanation */}
           <div className="mt-6 text-sm text-gray-600">

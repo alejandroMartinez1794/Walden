@@ -1,11 +1,8 @@
 // Frontend/src/Dashboard/doctor-account/DoctorInsightsElite.jsx
 import React, { useState, useEffect } from 'react';
 import { BASE_URL } from '../../config';
-import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
-} from 'recharts';
+// Load recharts dynamically to split heavy chart code
+const noop = () => {};
 import { toast } from 'react-toastify';
 
 const DoctorInsightsElite = () => {
@@ -29,6 +26,17 @@ const DoctorInsightsElite = () => {
   useEffect(() => {
     fetchDashboardData();
   }, [timeRange]);
+
+  const [Recharts, setRecharts] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    import('recharts')
+      .then((mod) => {
+        if (mounted) setRecharts(mod);
+      })
+      .catch(noop);
+    return () => { mounted = false; };
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -293,20 +301,24 @@ const DoctorInsightsElite = () => {
             </svg>
             Tendencia de Citas
           </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={appointmentTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="name" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="citas" stroke="#3B82F6" strokeWidth={3} name="Total" />
-              <Line type="monotone" dataKey="completadas" stroke="#10B981" strokeWidth={3} name="Completadas" />
-              <Line type="monotone" dataKey="canceladas" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" name="Canceladas" />
-            </LineChart>
-          </ResponsiveContainer>
+          {!Recharts ? (
+            <div className="h-64 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+          ) : (
+            <Recharts.ResponsiveContainer width="100%" height={250}>
+              <Recharts.LineChart data={appointmentTrendData}>
+                <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <Recharts.XAxis dataKey="name" stroke="#6B7280" />
+                <Recharts.YAxis stroke="#6B7280" />
+                <Recharts.Tooltip 
+                  contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
+                />
+                <Recharts.Legend />
+                <Recharts.Line type="monotone" dataKey="citas" stroke="#3B82F6" strokeWidth={3} name="Total" />
+                <Recharts.Line type="monotone" dataKey="completadas" stroke="#10B981" strokeWidth={3} name="Completadas" />
+                <Recharts.Line type="monotone" dataKey="canceladas" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" name="Canceladas" />
+              </Recharts.LineChart>
+            </Recharts.ResponsiveContainer>
+          )}
         </div>
 
         {/* Revenue Analysis */}
@@ -317,8 +329,11 @@ const DoctorInsightsElite = () => {
             </svg>
             Análisis Financiero
           </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={revenueData}>
+          {!Recharts ? (
+            <div className="h-64 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+          ) : (
+            <Recharts.ResponsiveContainer width="100%" height={250}>
+              <Recharts.AreaChart data={revenueData}>
               <defs>
                 <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
@@ -329,7 +344,7 @@ const DoctorInsightsElite = () => {
                   <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="name" stroke="#6B7280" />
               <YAxis stroke="#6B7280" />
               <Tooltip 
@@ -354,23 +369,27 @@ const DoctorInsightsElite = () => {
               </svg>
               Tendencia de Severidad (TCC)
             </h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={(cbt.severityTrends.labels || []).map((label, i) => ({
-                name: label,
-                phq9: cbt.severityTrends.phq9[i],
-                bdi2: cbt.severityTrends.bdi2[i],
-                gad7: cbt.severityTrends.gad7[i],
-              }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                <Legend />
-                <Line type="monotone" dataKey="phq9" stroke="#3B82F6" strokeWidth={3} name="PHQ-9" />
-                <Line type="monotone" dataKey="bdi2" stroke="#8B5CF6" strokeWidth={3} name="BDI-II" />
-                <Line type="monotone" dataKey="gad7" stroke="#10B981" strokeWidth={3} name="GAD-7" />
-              </LineChart>
-            </ResponsiveContainer>
+            {!Recharts ? (
+              <div className="h-64 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+            ) : (
+              <Recharts.ResponsiveContainer width="100%" height={250}>
+                <Recharts.LineChart data={(cbt.severityTrends.labels || []).map((label, i) => ({
+                  name: label,
+                  phq9: cbt.severityTrends.phq9[i],
+                  bdi2: cbt.severityTrends.bdi2[i],
+                  gad7: cbt.severityTrends.gad7[i],
+                }))}>
+                  <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <Recharts.XAxis dataKey="name" stroke="#6B7280" />
+                  <Recharts.YAxis stroke="#6B7280" />
+                  <Recharts.Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                  <Recharts.Legend />
+                  <Recharts.Line type="monotone" dataKey="phq9" stroke="#3B82F6" strokeWidth={3} name="PHQ-9" />
+                  <Recharts.Line type="monotone" dataKey="bdi2" stroke="#8B5CF6" strokeWidth={3} name="BDI-II" />
+                  <Recharts.Line type="monotone" dataKey="gad7" stroke="#10B981" strokeWidth={3} name="GAD-7" />
+                </Recharts.LineChart>
+              </Recharts.ResponsiveContainer>
+            )}
           </div>
 
           {/* Cognitive Distortions */}
@@ -381,15 +400,19 @@ const DoctorInsightsElite = () => {
               </svg>
               Distorsiones Cognitivas (últ. 60 días)
             </h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={(cbt.distortions || []).map(d => ({ name: d.name, count: d.value }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke="#6B7280" fontSize={12} angle={-20} textAnchor="end" interval={0} />
-                <YAxis stroke="#6B7280" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                <Bar dataKey="count" fill="#8B5CF6" radius={[8,8,0,0]} name="Frecuencia" />
-              </BarChart>
-            </ResponsiveContainer>
+            {!Recharts ? (
+              <div className="h-64 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+            ) : (
+              <Recharts.ResponsiveContainer width="100%" height={250}>
+                <Recharts.BarChart data={(cbt.distortions || []).map(d => ({ name: d.name, count: d.value }))}>
+                  <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <Recharts.XAxis dataKey="name" stroke="#6B7280" fontSize={12} angle={-20} textAnchor="end" interval={0} />
+                  <Recharts.YAxis stroke="#6B7280" />
+                  <Recharts.Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                  <Recharts.Bar dataKey="count" fill="#8B5CF6" radius={[8,8,0,0]} name="Frecuencia" />
+                </Recharts.BarChart>
+              </Recharts.ResponsiveContainer>
+            )}
           </div>
         </div>
       )}
@@ -405,25 +428,29 @@ const DoctorInsightsElite = () => {
             </svg>
             Distribución de Casos
           </h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={patientDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {patientDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {!Recharts ? (
+            <div className="h-56 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+          ) : (
+            <Recharts.ResponsiveContainer width="100%" height={220}>
+              <Recharts.PieChart>
+                <Recharts.Pie
+                  data={patientDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {patientDistribution.map((entry, index) => (
+                    <Recharts.Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Recharts.Pie>
+                <Recharts.Tooltip />
+              </Recharts.PieChart>
+            </Recharts.ResponsiveContainer>
+          )}
         </div>
 
         {/* Performance Radar / Homework Adherence */}
@@ -488,8 +515,11 @@ const DoctorInsightsElite = () => {
               </svg>
               Sesiones por Semana (8 semanas)
             </h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={(cbt.sessionsByWeek || []).map((v, i) => ({ name: `W${i + 1}`, count: v }))}>
+            {!Recharts ? (
+              <div className="h-64 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+            ) : (
+              <Recharts.ResponsiveContainer width="100%" height={250}>
+                <Recharts.AreaChart data={(cbt.sessionsByWeek || []).map((v, i) => ({ name: `W${i + 1}`, count: v }))}>
                 <defs>
                   <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>

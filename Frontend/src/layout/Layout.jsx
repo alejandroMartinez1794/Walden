@@ -8,6 +8,7 @@ import Footer from "../components/Footer/Footer";
 import Routers from "../routes/Routers";
 import Chatbot from "../components/Chatbot/Chatbot";
 import BackButton from "../components/common/BackButton";
+import ClinicalSeoHead from '../components/ClinicalSeoHead';
 
 const Layout = () => {
   const { crisisFlag } = useClinicalSession();
@@ -20,6 +21,11 @@ const Layout = () => {
 
   return (
     <>
+      <ClinicalSeoHead />
+      <a href="#main-content" className="skip-link">
+        Ir al contenido principal
+      </a>
+
       {showEmergencyBanner && (
         <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center p-2 z-50 shadow-lg">
           <div className="flex items-center justify-center space-x-4">
@@ -41,7 +47,7 @@ const Layout = () => {
       )}
       
       <Header />
-      <main style={{ marginTop: showEmergencyBanner ? '50px' : '0' }}>
+      <main id="main-content" tabIndex={-1} style={{ marginTop: showEmergencyBanner ? '50px' : '0' }}>
         <Routers />
         <BackButton />   
       </main>

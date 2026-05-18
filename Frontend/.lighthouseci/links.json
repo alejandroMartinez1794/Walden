@@ -1,0 +1,7 @@
+{
+  "http://localhost:53329/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1778878319011-90396.report.html",
+  "http://localhost:53329/crisis/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1778878320019-55726.report.html",
+  "http://localhost:53329/evaluaciones/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1778878320913-80551.report.html",
+  "http://localhost:53329/herramientas-tcc/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1778878322015-43330.report.html",
+  "http://localhost:53329/servicios/index.html": "https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1778878322602-45105.report.html"
+}
