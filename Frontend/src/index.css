@@ -13,6 +13,30 @@
         @apply max-w-full w-[1440px] px-5 mx-auto;
     }
 
+    .skip-link{
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 70;
+        transform: translateY(-220%);
+        border-radius: 9999px;
+        background: #0f172a;
+        color: #ffffff;
+        padding: 0.9rem 1.1rem;
+        font-weight: 700;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.24);
+        transition: transform 180ms ease, opacity 180ms ease;
+        opacity: 0;
+    }
+
+    .skip-link:focus,
+    .skip-link:focus-visible{
+        transform: translateY(0);
+        opacity: 1;
+        outline: 3px solid rgba(255, 255, 255, 0.95);
+        outline-offset: 3px;
+    }
+
     .btn{
         @apply bg-primaryColor py-[15px] px-[35px] rounded-[50px] text-white font-[600] mt-[38px];
         transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s ease, filter .22s ease;

@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+// Charts are dynamically loaded to keep the main bundle small
 
 const OverviewPanel = ({ dashboardData, cbtOverview, doctorProfile, quickActions, assessmentShortcuts }) => {
   
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const [Recharts, setRecharts] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    import('recharts').then((mod) => {
+      if (mounted) setRecharts(mod);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -63,20 +72,24 @@ const OverviewPanel = ({ dashboardData, cbtOverview, doctorProfile, quickActions
             </select>
           </div>
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={cbtOverview?.monthlyProgress || []}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  cursor={{ fill: '#f9fafb' }}
-                />
-                <Legend />
-                <Bar dataKey="improvement" name="Mejoría Significativa" fill="#10b981" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="stable" name="Estable" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {!Recharts ? (
+              <div className="h-64 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+            ) : (
+              <Recharts.ResponsiveContainer width="100%" height="100%">
+                <Recharts.BarChart data={cbtOverview?.monthlyProgress || []}>
+                  <Recharts.CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <Recharts.XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
+                  <Recharts.YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
+                  <Recharts.Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                    cursor={{ fill: '#f9fafb' }}
+                  />
+                  <Recharts.Legend />
+                  <Recharts.Bar dataKey="improvement" name="Mejoría Significativa" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Recharts.Bar dataKey="stable" name="Estable" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </Recharts.BarChart>
+              </Recharts.ResponsiveContainer>
+            )}
           </div>
         </div>
 

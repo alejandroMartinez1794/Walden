@@ -60,6 +60,7 @@
             "approve": true,
             "matchCommandLine": true
         },
-        "vercel": true
+        "vercel": true,
+        "npm run audit:lhci": true
     }
 }

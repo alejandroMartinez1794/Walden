@@ -10,23 +10,19 @@ import {
   FaPlus,
   FaChartLine
 } from 'react-icons/fa';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart,
-  Area,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
-} from 'recharts';
+// Load `recharts` dynamically in this dashboard component to reduce initial bundle size
 import { BASE_URL } from '../../config';
 
 const HealthTracker = () => {
   // Chart data
   const [bloodPressureData, setBloodPressureData] = useState([]);
+
+  const [Recharts, setRecharts] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    import('recharts').then((mod) => { if (mounted) setRecharts(mod); }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   const [weightData, setWeightData] = useState([]);
 
@@ -321,29 +317,33 @@ const HealthTracker = () => {
       {/* Blood Pressure Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-bold text-headingColor mb-4">Blood Pressure Trend (Last 7 Days)</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={bloodPressureData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="systolic" 
-              stroke="#ef4444" 
-              strokeWidth={2}
-              name="Systolic"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="diastolic" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
-              name="Diastolic"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {!Recharts ? (
+          <div className="h-48 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+        ) : (
+          <Recharts.ResponsiveContainer width="100%" height={300}>
+            <Recharts.LineChart data={bloodPressureData}>
+              <Recharts.CartesianGrid strokeDasharray="3 3" />
+              <Recharts.XAxis dataKey="date" />
+              <Recharts.YAxis />
+              <Recharts.Tooltip />
+              <Recharts.Legend />
+              <Recharts.Line 
+                type="monotone" 
+                dataKey="systolic" 
+                stroke="#ef4444" 
+                strokeWidth={2}
+                name="Systolic"
+              />
+              <Recharts.Line 
+                type="monotone" 
+                dataKey="diastolic" 
+                stroke="#3b82f6" 
+                strokeWidth={2}
+                name="Diastolic"
+              />
+            </Recharts.LineChart>
+          </Recharts.ResponsiveContainer>
+        )}
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-textColor">
             <strong>Current Status:</strong> <span className={bpStatus.color}>{bpStatus.text}</span>
@@ -357,22 +357,26 @@ const HealthTracker = () => {
       {/* Weight Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-bold text-headingColor mb-4">Weight Trend</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={weightData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis domain={['dataMin - 2', 'dataMax + 2']} />
-            <Tooltip />
-            <Legend />
-            <Area 
-              type="monotone" 
-              dataKey="weight" 
-              stroke="#8b5cf6" 
-              fill="#a78bfa"
-              name="Weight (kg)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {!Recharts ? (
+          <div className="h-48 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+        ) : (
+          <Recharts.ResponsiveContainer width="100%" height={300}>
+            <Recharts.AreaChart data={weightData}>
+              <Recharts.CartesianGrid strokeDasharray="3 3" />
+              <Recharts.XAxis dataKey="date" />
+              <Recharts.YAxis domain={["dataMin - 2", "dataMax + 2"]} />
+              <Recharts.Tooltip />
+              <Recharts.Legend />
+              <Recharts.Area 
+                type="monotone" 
+                dataKey="weight" 
+                stroke="#8b5cf6" 
+                fill="#a78bfa"
+                name="Weight (kg)"
+              />
+            </Recharts.AreaChart>
+          </Recharts.ResponsiveContainer>
+        )}
         <div className="mt-4 p-4 bg-purple-50 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -396,22 +400,26 @@ const HealthTracker = () => {
       {/* Blood Glucose Chart */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-bold text-headingColor mb-4">Blood Glucose Today</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={glucoseData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="meal" angle={-45} textAnchor="end" height={100} />
-            <YAxis domain={[70, 160]} />
-            <Tooltip />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="level" 
-              stroke="#10b981" 
-              strokeWidth={2}
-              name="Glucose (mg/dL)"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {!Recharts ? (
+          <div className="h-48 flex items-center justify-center text-sm text-slate-500">Cargando gráfico…</div>
+        ) : (
+          <Recharts.ResponsiveContainer width="100%" height={300}>
+            <Recharts.LineChart data={glucoseData}>
+              <Recharts.CartesianGrid strokeDasharray="3 3" />
+              <Recharts.XAxis dataKey="meal" angle={-45} textAnchor="end" height={100} />
+              <Recharts.YAxis domain={[70, 160]} />
+              <Recharts.Tooltip />
+              <Recharts.Legend />
+              <Recharts.Line 
+                type="monotone" 
+                dataKey="level" 
+                stroke="#10b981" 
+                strokeWidth={2}
+                name="Glucose (mg/dL)"
+              />
+            </Recharts.LineChart>
+          </Recharts.ResponsiveContainer>
+        )}
         <div className="mt-4 p-4 bg-green-50 rounded-lg">
           <p className="text-sm text-textColor">
             <strong>Target Ranges:</strong>

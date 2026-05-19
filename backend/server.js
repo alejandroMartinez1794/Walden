@@ -72,7 +72,19 @@ export async function startServer(app) {
     });
   }
 
-  startWorkers();
+  try {
+    // Ensure worker startup is awaited so any startup failures are handled
+    await startWorkers();
+  } catch (err) {
+    logger.error('✗ Error starting workers during startup:', err && err.message ? err.message : err);
+    // Attempt orderly shutdown of infrastructure before exiting
+    try {
+      await shutdownInfrastructure();
+    } catch (shutdownErr) {
+      logger.error('✗ Error during shutdown after failed worker start:', shutdownErr && shutdownErr.message ? shutdownErr.message : shutdownErr);
+    }
+    process.exit(1);
+  }
 
   const gracefulShutdown = async (signal) => {
     logger.info(`\n\n⚠️  ${signal} recibido. Iniciando apagado controlado...`);

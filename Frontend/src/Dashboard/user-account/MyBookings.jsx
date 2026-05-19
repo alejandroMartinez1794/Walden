@@ -3,10 +3,8 @@ import { authContext } from "../../context/AuthContext";
 import { BASE_URL } from "../../config";
 import Loading from "../../components/Loader/Loading";
 import ErrorMessage from "../../components/Error/Error";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
+// FullCalendar is heavy; load dynamically to keep initial bundle small
+// Will set `calendarLib` with `FullCalendar` and plugins when loaded
 import { toast } from "react-toastify";
 import { HiOutlineCalendar, HiOutlineClipboardList, HiBadgeCheck, HiCurrencyDollar } from "react-icons/hi";
 import PaymentButton from "../../components/Payment/PaymentButton";
@@ -15,11 +13,33 @@ const MyBookings = () => {
   const { token, dispatch } = useContext(authContext);
   const [bookings, setBookings] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [calendarLib, setCalendarLib] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchBookings();
+    let mounted = true;
+    const loadCalendar = async () => {
+      try {
+        const [fc, dayGrid, timeGrid, interaction] = await Promise.all([
+          import('@fullcalendar/react'),
+          import('@fullcalendar/daygrid'),
+          import('@fullcalendar/timegrid'),
+          import('@fullcalendar/interaction'),
+        ]);
+        if (!mounted) return;
+        setCalendarLib({
+          FullCalendar: fc?.default || fc,
+          dayGridPlugin: dayGrid?.default || dayGrid,
+          timeGridPlugin: timeGrid?.default || timeGrid,
+          interactionPlugin: interaction?.default || interaction,
+        });
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadCalendar();
   }, [token]);
 
   const fetchBookings = async () => {
@@ -269,13 +289,14 @@ const MyBookings = () => {
             </div>
           </div>
           <div className="booking-calendar-wrapper">
-            <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            {calendarLib?.FullCalendar ? (
+              <calendarLib.FullCalendar
+                plugins={[calendarLib.dayGridPlugin, calendarLib.timeGridPlugin, calendarLib.interactionPlugin].filter(Boolean)}
                 initialView="dayGridMonth"
                 headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek",
+                  left: "prev,next today",
+                  center: "title",
+                  right: "dayGridMonth,timeGridWeek",
                 }}
                 events={calendarEvents}
                 locale="es"
@@ -283,7 +304,10 @@ const MyBookings = () => {
                 eventTextColor="#ffffff"
                 eventDisplay="block"
                 dayMaxEvents={true}
-            />
+              />
+            ) : (
+              <div className="h-48 flex items-center justify-center text-sm text-slate-500">Cargando calendario…</div>
+            )}
           </div>
         </div>
       )}

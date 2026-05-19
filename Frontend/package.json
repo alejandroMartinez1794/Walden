@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "audit:lhci": "npx -y @lhci/cli autorun --upload.target=temporary-public-storage",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -21,6 +22,7 @@
     "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-helmet-async": "^2.0.5",
     "react-icons": "^5.1.0",
     "react-router-dom": "^6.30.3",
     "react-spinners": "^0.13.8",

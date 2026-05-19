@@ -14,11 +14,19 @@ import About from "../components/About/About";
 import ServiceList from "../components/Services/ServiceList";
 import Faqlist from "../components/faq/Faqlist";
 import Testimonial from "../components/Testimonial/testimonial";
+import ClinicalSeoHead from "../components/ClinicalSeoHead";
+import { buildMedicalOrganizationSchema, PUBLIC_CLINICAL_ORGANIZATION } from "../seo/medical-schema";
 
 
 const Home = () => {
     return (
         <>
+            <ClinicalSeoHead
+                title="Basileia | Telepsicología clínica en Colombia"
+                description="Atención psicológica en línea con enfoque clínico, transparencia y acceso público responsable para crisis, servicios y herramientas de apoyo."
+                canonicalPath="/"
+                schema={buildMedicalOrganizationSchema(PUBLIC_CLINICAL_ORGANIZATION)}
+            />
             { /*---------Hero Section-------- */}
             
             <section className="hero_section pt-[60px] pb-24 lg:pb-32 2xl:h-[800px]">                  
