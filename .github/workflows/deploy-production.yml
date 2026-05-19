@@ -70,35 +70,8 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v5
-
-      - name: Deploy Backend a Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+      - name: Manual deployment
         run: |
-          git fetch --unshallow || true
-          git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git
-          git push heroku HEAD:main -f
-
-      - name: Deploy Frontend a Vercel
-        working-directory: ./Frontend
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          npm install -g vercel
-          vercel --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
-        continue-on-error: true
-
-      - name: Verificar deploy
-        run: |
-          echo "✅ Deploy a producción completado"
-          echo "🌐 URL: ${{ secrets.PRODUCTION_URL || 'https://basileia.com' }}"
-
-      - name: Notificar en caso de fallo
-        if: failure()
-        run: |
-          echo "❌ Deploy falló - revisar logs"
-          exit 1
+          echo "⚠️  Production Deploy is configured for manual trigger"
+          echo "Use Vercel or Heroku dashboard directly for deployment"
+          echo "If deploying via Git: git push vercel/heroku from local"
