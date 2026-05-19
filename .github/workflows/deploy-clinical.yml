@@ -41,7 +41,7 @@ jobs:
           docker run --rm --network host mongo:7 \
             mongosh "$SOURCE_URI" --quiet --eval "db.dr_smoke.insertOne({ name: 'baseline', createdAt: new Date().toISOString(), retention: '10y' })"
 
-          docker run --rm --network host -v "$RUNNER_TEMP:/work" mongo:7 \
+          docker run --rm --network host -v "$RUNNER_TEMP:/work" --user $(id -u):$(id -g) mongo:7 \
             mongodump --uri="$SOURCE_URI" --archive=/work/basileia-dr-smoke.archive.gz --gzip
 
           test -f "$BACKUP_ARCHIVE"

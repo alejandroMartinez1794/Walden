@@ -74,16 +74,22 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Deploy Backend a Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-        run: |
-          git fetch --unshallow || true
-          git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git
-          git push heroku HEAD:main -f
+        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' && secrets.HEROKU_EMAIL != '' }}
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+        continue-on-error: true
+
+      - name: Omitir deploy de Heroku por secretos faltantes
+        if: ${{ secrets.HEROKU_API_KEY == '' || secrets.HEROKU_APP_NAME == '' || secrets.HEROKU_EMAIL == '' }}
+        run: echo "⚠️  Secretos de Heroku no configurados; se omite deploy"
 
       - name: Deploy Frontend a Vercel
         working-directory: ./Frontend
+        if: ${{ secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' && secrets.VERCEL_TOKEN != '' }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -91,6 +97,10 @@ jobs:
           npm install -g vercel
           vercel --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
         continue-on-error: true
+
+      - name: Omitir deploy de Vercel por secretos faltantes
+        if: ${{ secrets.VERCEL_ORG_ID == '' || secrets.VERCEL_PROJECT_ID == '' || secrets.VERCEL_TOKEN == '' }}
+        run: echo "⚠️  Secretos de Vercel no configurados; se omite deploy"
 
       - name: Verificar deploy
         run: |
