@@ -2,6 +2,9 @@ name: Clinical Deploy
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   validate:
@@ -10,7 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Manual deployment only
+      - name: Validate deployment gate
         run: |
-          echo "⚠️  Clinical Deploy is manual only (workflow_dispatch)"
-          echo "Use GitHub UI or CLI to trigger manually"
+          set -euo pipefail
+          bash scripts/verify-pr11.sh
+          bash scripts/audit-sic-compliance.sh
+
+      - name: Deployment validation complete
+        run: |
+          echo "✅ Clinical validation completed"

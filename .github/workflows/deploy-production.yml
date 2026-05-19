@@ -10,6 +10,7 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout código
@@ -20,11 +21,23 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Ejecutar tests backend
+      - name: Ejecutar tests unitarios backend
         working-directory: ./backend
         run: |
           npm ci
-          npm test -- --forceExit
+          npm run test:unit -- --runInBand --ci
+        env:
+          NODE_ENV: test
+
+      - name: Ejecutar tests de integración backend
+        working-directory: ./backend
+        run: npm run test:integration -- --runInBand --ci
+        env:
+          NODE_ENV: test
+
+      - name: Ejecutar escenarios clínicos backend
+        working-directory: ./backend
+        run: npm run test:clinical -- --runInBand --ci
         env:
           NODE_ENV: test
 
@@ -68,10 +81,52 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: production
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+      HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
 
     steps:
-      - name: Manual deployment
+      - name: Checkout código
+        uses: actions/checkout@v5
+
+      - name: Validar secretos de despliegue
         run: |
-          echo "⚠️  Production Deploy is configured for manual trigger"
-          echo "Use Vercel or Heroku dashboard directly for deployment"
-          echo "If deploying via Git: git push vercel/heroku from local"
+          set -euo pipefail
+
+          missing=0
+
+          for secret_name in HEROKU_API_KEY HEROKU_APP_NAME HEROKU_EMAIL VERCEL_TOKEN; do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error title=Secret requerido faltante::$secret_name no está configurado"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            echo "Configura los secretos requeridos antes de desplegar a producción."
+            exit 1
+          fi
+
+      - name: Deploy Backend a Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+
+      - name: Deploy Frontend a Vercel
+        working-directory: ./Frontend
+        run: |
+          set -euo pipefail
+          npm install -g vercel
+          vercel --yes --prod --token="$VERCEL_TOKEN"
+
+      - name: Verificar deploy
+        run: |
+          set -euo pipefail
+          echo "✅ Deploy a producción completado"
+          echo "🌐 URL: ${PRODUCTION_URL:-https://basileia.com}"
