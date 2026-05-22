@@ -114,6 +114,17 @@ jobs:
             exit 1
           fi
 
+      - name: Normalizar secretos de despliegue
+        run: |
+          {
+            printf 'HEROKU_API_KEY=%s\n' "$(printf '%s' "$HEROKU_API_KEY" | tr -d '\r\n')"
+            printf 'HEROKU_APP_NAME=%s\n' "$(printf '%s' "$HEROKU_APP_NAME" | tr -d '\r\n')"
+            printf 'HEROKU_EMAIL=%s\n' "$(printf '%s' "$HEROKU_EMAIL" | tr -d '\r\n')"
+            printf 'VERCEL_TOKEN=%s\n' "$(printf '%s' "$VERCEL_TOKEN" | tr -d '\r\n')"
+            printf 'VERCEL_ORG_ID=%s\n' "$(printf '%s' "$VERCEL_ORG_ID" | tr -d '\r\n')"
+            printf 'VERCEL_PROJECT_ID=%s\n' "$(printf '%s' "$VERCEL_PROJECT_ID" | tr -d '\r\n')"
+          } >> "$GITHUB_ENV"
+
       - name: Deploy Backend a Heroku
         run: |
           set -euo pipefail
