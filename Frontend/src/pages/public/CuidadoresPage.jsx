@@ -58,6 +58,14 @@ export default function CuidadoresPage() {
 
           <h2>Apoyo disponible</h2>
           <p>Ofrecemos orientación para cuidadores y opciones de acompañamiento psicológico. Visita nuestros <a href="/servicios">servicios</a> o <a href="/contact">contáctanos</a> para una consulta inicial.</p>
+          
+          <h2>Apoyo para cuidadores de pacientes con enfermedades crónicas avanzadas</h2>
+          <p>Entendemos las demandas específicas de cuidar a alguien con cáncer avanzado, enfermedades hemato-oncológicas o condiciones neurodegenerativas (p. ej. ELA, Esclerosis Múltiple, Alzheimer). Ofrecemos:</p>
+          <ul>
+            <li>Sesiones focalizadas en manejo del estrés y fatiga del cuidador.</li>
+            <li>Estrategias prácticas para coordinar cuidados médicos y emocionales.</li>
+            <li>Apoyo para el duelo anticipado y la adaptación a cambios funcionales progresivos.</li>
+          </ul>
         </section>
       </main>
     </>

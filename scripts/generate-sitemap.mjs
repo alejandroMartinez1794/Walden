@@ -218,6 +218,23 @@ const PUBLIC_ROUTES = [
     `,
     schemas: [],
   },
+  {
+    path: '/enfermedades-cronicas',
+    priority: '0.9',
+    changefreq: 'weekly',
+    title: 'Enfermedades crónicas avanzadas y condiciones limitantes | Basileia',
+    description: 'Acompañamiento psicológico para enfermedades crónicas avanzadas, hemato-oncológicas y neurodegenerativas, y apoyo a cuidadores.',
+    body: `
+      <main class="route-shell route-enfermedades-cronicas">
+        <section class="route-panel">
+          <p class="eyebrow">Enfermedades Crónicas</p>
+          <h1>Acompañamiento en enfermedades crónicas avanzadas</h1>
+          <p>Acompañamiento psicoterapéutico para pacientes con cáncer avanzado, ELA y otras condiciones complejas, y apoyo especializado a sus cuidadores.</p>
+        </section>
+      </main>
+    `,
+    schemas: [],
+  },
 ];
 
 const DISALLOWED_PATHS = ['/dashboard/', '/clinical/', '/auth/', '/api/', '/tools/', '/psychology/'];

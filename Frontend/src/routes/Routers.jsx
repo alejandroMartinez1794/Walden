@@ -13,6 +13,7 @@ const AnsiedadPage = React.lazy(() => import('../pages/public/AnsiedadPage'));
 const DepresionPage = React.lazy(() => import('../pages/public/DepresionPage'));
 const DueloPage = React.lazy(() => import('../pages/public/DueloPage'));
 const CuidadoresPage = React.lazy(() => import('../pages/public/CuidadoresPage'));
+const EnfermedadesCronicasPage = React.lazy(() => import('../pages/public/EnfermedadesCronicasPage'));
 const InformedConsent = React.lazy(() => import('../pages/Legal/InformedConsent'));
 const Myaccount = React.lazy(() => import('../Dashboard/user-account/MyAccount'));
 const Dashboard = React.lazy(() => import('../Dashboard/doctor-account/Dashboard'));
@@ -75,6 +76,7 @@ const Routers = () => {
             <Route path="/depresion" element={<DepresionPage />} />
             <Route path="/duelo" element={<DueloPage />} />
             <Route path="/cuidadores" element={<CuidadoresPage />} />
+            <Route path="/enfermedades-cronicas" element={<EnfermedadesCronicasPage />} />
             <Route path="/evaluaciones" element={<EvaluacionesPage />} />
             <Route path="/herramientas-tcc" element={<TCC />} />
             {/* NEW: Tools route - requires authentication */}
