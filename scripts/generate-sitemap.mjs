@@ -229,11 +229,69 @@ const PUBLIC_ROUTES = [
         <section class="route-panel">
           <p class="eyebrow">Enfermedades Crónicas</p>
           <h1>Acompañamiento en enfermedades crónicas avanzadas</h1>
-          <p>Acompañamiento psicoterapéutico para pacientes con cáncer avanzado, ELA y otras condiciones complejas, y apoyo especializado a sus cuidadores.</p>
+          <p>Vivir con una enfermedad crónica avanzada o limitante para la vida plantea desafíos clínicos, emocionales y sociales que afectan tanto al paciente como a su familia. En Basileia brindamos acompañamiento psicológico especializado, centrado en mejorar la calidad de vida, reducir la carga emocional y fortalecer las redes de apoyo, con especial experiencia en cáncer avanzado, enfermedades hemato-oncológicas y neurodegenerativas como ELA o Esclerosis Múltiple.</p>
+
+          <h2>¿Qué entendemos por «enfermedad limitante para la vida»?</h2>
+          <p>Es un término clínico que describe condiciones sin cura con mayor probabilidad de muerte prematura, pero en las que el paciente puede vivir meses o años requiriendo apoyo continuo. Preferimos este marco porque evita la estigmatización temprana y permite intervenciones terapéuticas tempranas y sostenidas.</p>
+
+          <h2>¿A quién acompañamos?</h2>
+          <ul>
+            <li>Personas con diagnósticos hemato-oncológicos en fases avanzadas.</li>
+            <li>Pacientes con enfermedades neurodegenerativas (p. ej. ELA, Esclerosis Múltiple, Alzheimer) que generan pérdida funcional progresiva.</li>
+            <li>Quienes viven con fallas orgánicas crónicas o condiciones complejas que necesitan soporte psicológico permanente.</li>
+            <li>Familias y cuidadores que requieren orientación práctica y soporte emocional para sostener el cuidado.</li>
+          </ul>
+
+          <h2>Objetivos del acompañamiento psicológico</h2>
+          <ul>
+            <li>Reducir la ansiedad relacionada con el diagnóstico y el tratamiento.</li>
+            <li>Mejorar el afrontamiento frente al dolor, la fatiga y la incertidumbre.</li>
+            <li>Trabajar procesos de duelo anticipado y adaptación emocional a cambios funcionales.</li>
+            <li>Fortalecer las competencias de los cuidadores y su capacidad de autocuidado.</li>
+          </ul>
+
+          <h2>Intervenciones que ofrecemos</h2>
+          <ol>
+            <li><strong>Evaluación clínica inicial</strong>: diagnóstico psicoemocional, objetivos y plan de intervención.</li>
+            <li><strong>Terapia adaptada</strong>: TCC adaptada, intervenciones de manejo del estrés y apoyo para la adherencia a tratamientos médicos.</li>
+            <li><strong>Psicoeducación</strong>: información clara sobre síntomas, efectos secundarios y señales de alarma.</li>
+            <li><strong>Soporte para cuidadores</strong>: sesiones de orientación práctica, planificación de descansos y manejo del agotamiento.</li>
+            <li><strong>Acompañamiento en duelo</strong>: espacios seguros para procesar pérdidas anticipadas y transformar ambivalencias complejas.</li>
+          </ol>
+
+          <h2>Apoyo específico para cuidadores</h2>
+          <p>Reconocemos que el bienestar del cuidador es crítico para la sostenibilidad del cuidado. Ofrecemos sesiones focales para manejo del estrés, planificación de descansos y herramientas prácticas para coordinar cuidados médicos y emocionales.</p>
+
+          <h2>Cómo acceder</h2>
+          <p>Para solicitar una primera consulta revisa nuestros <a href="/servicios">servicios</a> o <a href="/contact">contáctanos</a>. Ofrecemos modalidades en línea para personas con movilidad limitada y adaptamos horarios según necesidades.</p>
         </section>
       </main>
     `,
-    schemas: [],
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MedicalOrganization',
+        name: 'Basileia',
+        url: DEFAULT_SITE_URL,
+        medicalSpecialty: ['Psychology', 'PalliativeCare', 'Psycho-oncology'],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: '¿Qué entendemos por enfermedades limitantes para la vida?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Son condiciones sin cura con riesgo de muerte prematura, donde el acompañamiento psicológico es esencial durante meses o años (ej. cáncer avanzado, ELA, fallas orgánicas severas).' },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Qué apoyo ofrecemos a pacientes y cuidadores?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Acompañamiento psicoterapéutico, manejo del duelo anticipado, psicoeducación sobre síntomas y apoyo específico para cuidadores y familias.' },
+          },
+        ],
+      },
+    ],
   },
 ];
 
