@@ -9,6 +9,10 @@ const Contact = React.lazy(() => import('../pages/Contact'));
 const DoctorDetails = React.lazy(() => import('../pages/Doctors/DoctorsDetails'));
 const CrisisPage = React.lazy(() => import('../pages/public/CrisisPage'));
 const EvaluacionesPage = React.lazy(() => import('../pages/public/EvaluacionesPage'));
+const AnsiedadPage = React.lazy(() => import('../pages/public/AnsiedadPage'));
+const DepresionPage = React.lazy(() => import('../pages/public/DepresionPage'));
+const DueloPage = React.lazy(() => import('../pages/public/DueloPage'));
+const CuidadoresPage = React.lazy(() => import('../pages/public/CuidadoresPage'));
 const InformedConsent = React.lazy(() => import('../pages/Legal/InformedConsent'));
 const Myaccount = React.lazy(() => import('../Dashboard/user-account/MyAccount'));
 const Dashboard = React.lazy(() => import('../Dashboard/doctor-account/Dashboard'));
@@ -46,19 +50,19 @@ const TermsOfService = React.lazy(() => import('../pages/Legal/TermsOfService'))
 import Emergency from '../pages/Emergency';
 const TCC = React.lazy(() => import('../pages/Tools/TCC'));
 
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute';
 
 const Routers = () => {
     return (
         <Suspense fallback={<Loading />}><Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="/doctors/:id" element={<DoctorDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Signup />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/services" element={<Services />} />
+            <Route path="/services" element={<Navigate to="/servicios" replace />} />
             <Route path="/servicios" element={<Services />} />
             <Route path="/testimonios" element={<Testimonios />} />
             <Route path="/data-protection" element={<DataProtection />} />
@@ -67,6 +71,10 @@ const Routers = () => {
             {/* NEW: Emergency route - accessible to all */}
             <Route path="/emergency" element={<Emergency />} />
             <Route path="/crisis" element={<CrisisPage />} />
+            <Route path="/ansiedad" element={<AnsiedadPage />} />
+            <Route path="/depresion" element={<DepresionPage />} />
+            <Route path="/duelo" element={<DueloPage />} />
+            <Route path="/cuidadores" element={<CuidadoresPage />} />
             <Route path="/evaluaciones" element={<EvaluacionesPage />} />
             <Route path="/herramientas-tcc" element={<TCC />} />
             {/* NEW: Tools route - requires authentication */}

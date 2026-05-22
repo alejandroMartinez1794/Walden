@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+const DEFAULT_SITE_URL = 'https://basileia.tech';
+
 const PUBLIC_ROUTES = [
   {
     path: '/',
@@ -22,7 +24,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -49,7 +51,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -80,7 +82,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -123,7 +125,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -148,12 +150,80 @@ const PUBLIC_ROUTES = [
     `,
     schemas: [],
   },
+  {
+    path: '/ansiedad',
+    priority: '0.85',
+    changefreq: 'weekly',
+    title: 'Ansiedad: señales y estrategias | Basileia',
+    description: 'Señales de ansiedad, técnicas respiratorias y recursos iniciales para manejar ataques de ansiedad y estrés agudo.',
+    body: `
+      <main class="route-shell route-ansiedad">
+        <section class="route-panel">
+          <p class="eyebrow">Ansiedad</p>
+          <h1>Estrategias prácticas para episodios de ansiedad</h1>
+          <p>Técnicas inmediatas, recursos y cuándo pedir ayuda profesional.</p>
+        </section>
+      </main>
+    `,
+    schemas: [],
+  },
+  {
+    path: '/depresion',
+    priority: '0.85',
+    changefreq: 'weekly',
+    title: 'Depresión: cómo reconocerla y buscar apoyo | Basileia',
+    description: 'Información sobre síntomas de depresión, primeros pasos para acceder a apoyo y recursos de emergencia si hay riesgo.',
+    body: `
+      <main class="route-shell route-depresion">
+        <section class="route-panel">
+          <p class="eyebrow">Depresión</p>
+          <h1>Reconocer la depresión y acceder a ayuda</h1>
+          <p>Señales, recursos y apoyo clínico.</p>
+        </section>
+      </main>
+    `,
+    schemas: [],
+  },
+  {
+    path: '/duelo',
+    priority: '0.8',
+    changefreq: 'monthly',
+    title: 'Duelo: acompañamiento emocional | Basileia',
+    description: 'Orientaciones respetuosas para procesos de duelo, autocuidado y cuándo buscar acompañamiento profesional.',
+    body: `
+      <main class="route-shell route-duelo">
+        <section class="route-panel">
+          <p class="eyebrow">Duelo</p>
+          <h1>Acompañamiento en procesos de pérdida</h1>
+          <p>Recursos, pasos y recomendaciones para sostener el proceso.</p>
+        </section>
+      </main>
+    `,
+    schemas: [],
+  },
+  {
+    path: '/cuidadores',
+    priority: '0.7',
+    changefreq: 'monthly',
+    title: 'Cuidadores: recursos y autocuidado | Basileia',
+    description: 'Recursos prácticos para cuidadores: manejo del estrés, autocuidado y redes de apoyo.',
+    body: `
+      <main class="route-shell route-cuidadores">
+        <section class="route-panel">
+          <p class="eyebrow">Cuidadores</p>
+          <h1>Apoyo y autocuidado para cuidadores</h1>
+          <p>Estrategias prácticas para mantener el bienestar mientras cuidas a otros.</p>
+        </section>
+      </main>
+    `,
+    schemas: [],
+  },
 ];
 
 const DISALLOWED_PATHS = ['/dashboard/', '/clinical/', '/auth/', '/api/', '/tools/', '/psychology/'];
 
 function getSiteUrl() {
-  return (process.env.VITE_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://basileia.example').replace(/\/$/, '');
+  return (process.env.VITE_PUBLIC_SITE_URL || process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
 }
 
 function buildRobotsTxt(siteUrl) {
@@ -170,7 +240,9 @@ function buildRobotsTxt(siteUrl) {
 
 function buildSitemapXml(siteUrl) {
   const today = new Date().toISOString().slice(0, 10);
-  const entries = PUBLIC_ROUTES.map((route) => `  <url><loc>${siteUrl}${route.path === '/' ? '' : route.path}</loc><lastmod>${today}</lastmod><changefreq>${route.changefreq}</changefreq><priority>${route.priority}</priority></url>`);
+  const entries = PUBLIC_ROUTES
+    .filter((route) => !route.noIndex)
+    .map((route) => `  <url><loc>${siteUrl}${route.path === '/' ? '' : route.path}</loc><lastmod>${today}</lastmod><changefreq>${route.changefreq}</changefreq><priority>${route.priority}</priority></url>`);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

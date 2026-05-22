@@ -61,6 +61,11 @@
             "matchCommandLine": true
         },
         "vercel": true,
-        "npm run audit:lhci": true
+        "npm run audit:lhci": true,
+        "react-helmet": true,
+        "helmet": true,
+        "noindex": true,
+        "X-Robots-Tag": true,
+        "structured": true
     }
 }
