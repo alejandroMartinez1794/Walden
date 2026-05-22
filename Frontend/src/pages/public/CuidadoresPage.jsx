@@ -1,19 +1,63 @@
 import React from 'react';
 import ClinicalSeoHead from '../../components/ClinicalSeoHead';
 
+const FAQ = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Cómo manejo el agotamiento como cuidador?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Organiza descansos regulares, delega tareas cuando sea posible y busca redes de apoyo. El autocuidado no es un lujo: es una necesidad para ofrecer cuidado sostenido.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Dónde puedo encontrar apoyo adicional?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Busca grupos de apoyo locales o atención psicológica especializada. En Basileia ofrecemos recursos y acompañamiento para cuidadores.',
+      },
+    },
+  ],
+};
+
 export default function CuidadoresPage() {
   return (
     <>
       <ClinicalSeoHead
-        title="Apoyo para cuidadores | Recursos y autocuidado | Basileia"
-        description="Recursos para cuidadores: estrategias de autocuidado, manejo del estrés y cómo acceder a apoyo psicológico."
+        title="Recursos para cuidadores: autocuidado y apoyo | Basileia"
+        description="Consejos prácticos y recursos para cuidadores: manejar el agotamiento, planificar descansos y acceder a apoyo psicológico."
         canonicalPath="/cuidadores"
+        schema={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'MedicalOrganization',
+            name: 'Basileia',
+            url: 'https://basileia.tech',
+          },
+          FAQ,
+        ]}
       />
+
       <main className="route-shell route-cuidadores">
         <section className="route-panel">
           <p className="eyebrow">Cuidadores</p>
-          <h1>Recursos y autocuidado para cuidadores</h1>
-          <p>Consejos prácticos para el autocuidado y recursos para quienes acompañan a personas con enfermedades crónicas o en procesos de vulnerabilidad.</p>
+          <h1>Apoyo y autocuidado para quienes cuidan</h1>
+
+          <p>El rol de cuidador puede ser gratificante y exigente. Aquí encontrarás estrategias prácticas para sostener tu bienestar y recursos para pedir ayuda.</p>
+
+          <h2>Estrategias prácticas</h2>
+          <ul>
+            <li>Planifica descansos programados y busca apoyo familiar o comunitario.</li>
+            <li>Mantén hábitos básicos (sueño, alimentación) y actividad física leve.</li>
+            <li>Utiliza listas y rutinas para reducir la carga cognitiva.</li>
+          </ul>
+
+          <h2>Apoyo disponible</h2>
+          <p>Ofrecemos orientación para cuidadores y opciones de acompañamiento psicológico. Visita nuestros <a href="/servicios">servicios</a> o <a href="/contact">contáctanos</a> para una consulta inicial.</p>
         </section>
       </main>
     </>
