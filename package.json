@@ -5,6 +5,7 @@
     "node": "20.x"
   },
   "scripts": {
+    "build": "cd Frontend && npm install && npm run build",
     "heroku-postbuild": "cd backend && npm ci --only=production",
     "prepare": "husky install"
   },

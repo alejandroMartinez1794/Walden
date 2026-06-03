@@ -4,6 +4,19 @@
   "outputDirectory": "Frontend/dist",
   "routes": [
     {
+      "src": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.basileia.tech"
+        }
+      ],
+      "headers": {
+        "Location": "https://basileia.tech/$1"
+      },
+      "status": 308
+    },
+    {
       "handle": "filesystem"
     },
     {
