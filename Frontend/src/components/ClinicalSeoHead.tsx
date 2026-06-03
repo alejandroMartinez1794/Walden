@@ -16,13 +16,14 @@ type ClinicalSeoHeadProps = {
 const PROTECTED_SEGMENT_REGEX = /(dashboard|clinical|auth|api|tools|psychology|users\/profile|doctors\/profile)/i;
 
 const DEFAULT_DESCRIPTION = 'Basileia ofrece telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.';
+const DEFAULT_SITE_URL = 'https://basileia.tech';
 
 function getOrigin(): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin;
   }
 
-  return import.meta.env.VITE_PUBLIC_SITE_URL || 'https://basileia.example';
+  return import.meta.env.VITE_PUBLIC_SITE_URL || DEFAULT_SITE_URL;
 }
 
 function normalizeCanonicalPath(canonicalPath: string | undefined, pathname: string): string {

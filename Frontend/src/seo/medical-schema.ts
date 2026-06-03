@@ -59,9 +59,11 @@ export type ClinicalOrganizationProfile = {
   sameAs?: string[];
 };
 
+const PUBLIC_SITE_URL = import.meta.env.VITE_PUBLIC_SITE_URL || 'https://basileia.tech';
+
 export const PUBLIC_CLINICAL_ORGANIZATION: ClinicalOrganizationProfile = {
   name: 'Basileia',
-  url: 'https://basileia.example',
+  url: PUBLIC_SITE_URL,
   description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
   medicalSpecialty: 'Psychology',
   telephone: '+57 106',

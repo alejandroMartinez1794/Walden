@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+const DEFAULT_SITE_URL = 'https://basileia.tech';
+
 const PUBLIC_ROUTES = [
   {
     path: '/',
@@ -22,7 +24,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -49,7 +51,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -80,7 +82,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -123,7 +125,7 @@ const PUBLIC_ROUTES = [
         '@context': 'https://schema.org',
         '@type': 'MedicalOrganization',
         name: 'Basileia',
-        url: 'https://basileia.example',
+        url: DEFAULT_SITE_URL,
         description: 'Telepsicología clínica con acceso público responsable, transparencia y protección estricta de datos sensibles.',
         areaServed: { '@type': 'Country', name: 'Colombia' },
         medicalSpecialty: 'Psychology',
@@ -148,12 +150,291 @@ const PUBLIC_ROUTES = [
     `,
     schemas: [],
   },
+  {
+    path: '/ansiedad',
+    priority: '0.85',
+    changefreq: 'weekly',
+    title: 'Ansiedad: señales y estrategias | Basileia',
+    description: 'Señales de ansiedad, técnicas respiratorias y recursos iniciales para manejar ataques de ansiedad y estrés agudo.',
+    body: `
+      <main class="route-shell route-ansiedad">
+        <section class="route-panel">
+          <p class="eyebrow">Ansiedad</p>
+          <h1>Estrategias prácticas para episodios de ansiedad</h1>
+          <p>La ansiedad puede aparecer como inquietud, palpitaciones, respiración acelerada y pensamientos catastróficos. Aquí ofrecemos técnicas inmediatas y pasos para buscar apoyo profesional cuando sea necesario.</p>
+
+          <h2>Técnicas inmediatas</h2>
+          <ul>
+            <li>Respiración 4-4-4: inhala 4s, mantén 4s, exhala 4s.</li>
+            <li>Grounding: identifica 5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.</li>
+            <li>Detener pensamientos: nombre y etiquetado de pensamientos para reducir su intensidad.</li>
+          </ul>
+
+          <h2>Cuándo pedir ayuda</h2>
+          <p>Si los ataques de ansiedad son frecuentes, interfieren con trabajo o relaciones, o se acompañan de conducta autolesiva, busca ayuda profesional inmediata.</p>
+        </section>
+      </main>
+    `,
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MedicalOrganization',
+        name: 'Basileia',
+        url: DEFAULT_SITE_URL,
+        medicalSpecialty: 'Psychology',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: '¿Qué técnicas me ayudan en una crisis de ansiedad?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Técnicas de respiración, grounding y pausas cortas de atención plena suelen reducir la intensidad de un ataque de ansiedad.' },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Cuándo debo buscar ayuda profesional?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Cuando los síntomas son frecuentes, deshabilitantes o acompañados de ideación autolesiva; en esos casos contactar servicios de emergencia o un profesional de salud mental.' },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/depresion',
+    priority: '0.85',
+    changefreq: 'weekly',
+    title: 'Depresión: cómo reconocerla y buscar apoyo | Basileia',
+    description: 'Información sobre síntomas de depresión, primeros pasos para acceder a apoyo y recursos de emergencia si hay riesgo.',
+    body: `
+      <main class="route-shell route-depresion">
+        <section class="route-panel">
+          <p class="eyebrow">Depresión</p>
+          <h1>Reconocer la depresión y acceder a ayuda</h1>
+          <p>La depresión incluye tristeza persistente, pérdida de interés, cambios en el sueño y apetito, y dificultad para funcionar. Existen tratamientos eficaces: psicoterapia, farmacoterapia y apoyos psicosociales.</p>
+
+          <h2>Señales comunes</h2>
+          <ul>
+            <li>Estado de ánimo bajo la mayor parte del día.</li>
+            <li>Falta de energía o interés en actividades antes placenteras.</li>
+            <li>Dificultad para concentrarse o tomar decisiones.</li>
+          </ul>
+
+          <h2>Qué hacer</h2>
+          <p>Busca una evaluación con un profesional de salud mental. Si hay riesgo de autolesión o ideación suicida, contacta servicios de emergencia o una línea de crisis inmediatamente.</p>
+        </section>
+      </main>
+    `,
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MedicalOrganization',
+        name: 'Basileia',
+        url: DEFAULT_SITE_URL,
+        medicalSpecialty: 'Psychology',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: '¿Cuáles son los signos de la depresión?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Síntomas como tristeza persistente, pérdida de interés, cambios en el sueño y el apetito, y pensamientos negativos persistentes son señales comunes.' },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Cómo empiezo un tratamiento?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Contacta a un profesional de salud mental para una evaluación; la terapia psicológica y, en algunos casos, medicación, son intervenciones efectivas.' },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/duelo',
+    priority: '0.8',
+    changefreq: 'monthly',
+    title: 'Duelo: acompañamiento emocional | Basileia',
+    description: 'Orientaciones respetuosas para procesos de duelo, autocuidado y cuándo buscar acompañamiento profesional.',
+    body: `
+      <main class="route-shell route-duelo">
+        <section class="route-panel">
+          <p class="eyebrow">Duelo</p>
+          <h1>Acompañamiento en procesos de pérdida</h1>
+          <p>El duelo es una reacción natural a la pérdida. Ofrecemos acompañamiento respetuoso que ayuda a procesar emociones, recuerdos y cambios en la vida cotidiana.</p>
+
+          <h2>Aspectos clave del acompañamiento</h2>
+          <ul>
+            <li>Validación emocional y contención segura.</li>
+            <li>Rituales y memoria como herramientas de integración.</li>
+            <li>Técnicas para manejar culpa, ira y nostalgia intensa.</li>
+          </ul>
+
+          <h2>Cuándo buscar apoyo profesional</h2>
+          <p>Si el dolor impide las actividades diarias por largos periodos, o si aparecen conductas de riesgo, buscar terapia especializada puede ser crucial.</p>
+        </section>
+      </main>
+    `,
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MedicalOrganization',
+        name: 'Basileia',
+        url: DEFAULT_SITE_URL,
+        medicalSpecialty: 'Psychology',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: '¿Es normal sentir culpa después de una pérdida?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Sí. La culpa es una respuesta común en el duelo, y trabajarla en terapia ayuda a integrarla sin que domine la vida diaria.' },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Cuándo debería buscar ayuda profesional por duelo?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Cuando el dolor es prolongado y limita significativamente la vida diaria, o cuando aparecen síntomas de depresión o ideación de autolesión.' },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/cuidadores',
+    priority: '0.7',
+    changefreq: 'monthly',
+    title: 'Cuidadores: recursos y autocuidado | Basileia',
+    description: 'Recursos prácticos para cuidadores: manejo del estrés, autocuidado y redes de apoyo.',
+    body: `
+      <main class="route-shell route-cuidadores">
+        <section class="route-panel">
+          <p class="eyebrow">Cuidadores</p>
+          <h1>Apoyo y autocuidado para cuidadores</h1>
+          <p>El cuidado de personas con cáncer avanzado, ELA u otras condiciones complejas requiere soporte práctico y emocional. Ofrecemos estrategias para prevenir el agotamiento y coordinar cuidados médicos y sociales.</p>
+
+          <h2>Estrategias para cuidadores</h2>
+          <ul>
+            <li>Planificar descansos y apoyos de relevo.</li>
+            <li>Establecer límites realistas y pedir ayuda.</li>
+            <li>Acceder a grupos de apoyo y recursos locales.</li>
+          </ul>
+
+          <h2>Apoyo emocional</h2>
+          <p>Sesiones orientadas al manejo del estrés, resolución de conflictos familiares y planificación anticipada del cuidado.</p>
+        </section>
+      </main>
+    `,
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MedicalOrganization',
+        name: 'Basileia',
+        url: DEFAULT_SITE_URL,
+        medicalSpecialty: 'Psychology',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: '¿Cómo puedo evitar el agotamiento como cuidador?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Planificando tiempos de descanso, buscando apoyos de relevo y priorizando autocuidado; la terapia breve para cuidadores puede ser de gran ayuda.' },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Qué recursos existen para cuidadores de personas con cáncer o ELA?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Existen grupos de apoyo, servicios de relevo, y programas de educación para cuidadores; Basileia ofrece apoyo psicológico y orientación práctica adaptada al caso clínico.' },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/enfermedades-cronicas',
+    priority: '0.9',
+    changefreq: 'weekly',
+    title: 'Enfermedades crónicas avanzadas y condiciones limitantes | Basileia',
+    description: 'Acompañamiento psicológico para enfermedades crónicas avanzadas, hemato-oncológicas y neurodegenerativas, y apoyo a cuidadores.',
+    body: `
+      <main class="route-shell route-enfermedades-cronicas">
+        <section class="route-panel">
+          <p class="eyebrow">Enfermedades Crónicas</p>
+          <h1>Acompañamiento en enfermedades crónicas avanzadas</h1>
+          <p>Vivir con una enfermedad crónica avanzada o limitante para la vida plantea desafíos clínicos, emocionales y sociales que afectan tanto al paciente como a su familia. En Basileia brindamos acompañamiento psicológico especializado, centrado en mejorar la calidad de vida, reducir la carga emocional y fortalecer las redes de apoyo, con especial experiencia en cáncer avanzado, enfermedades hemato-oncológicas y neurodegenerativas como ELA o Esclerosis Múltiple.</p>
+
+          <h2>¿Qué entendemos por «enfermedad limitante para la vida»?</h2>
+          <p>Es un término clínico que describe condiciones sin cura con mayor probabilidad de muerte prematura, pero en las que el paciente puede vivir meses o años requiriendo apoyo continuo. Preferimos este marco porque evita la estigmatización temprana y permite intervenciones terapéuticas tempranas y sostenidas.</p>
+
+          <h2>¿A quién acompañamos?</h2>
+          <ul>
+            <li>Personas con diagnósticos hemato-oncológicos en fases avanzadas.</li>
+            <li>Pacientes con enfermedades neurodegenerativas (p. ej. ELA, Esclerosis Múltiple, Alzheimer) que generan pérdida funcional progresiva.</li>
+            <li>Quienes viven con fallas orgánicas crónicas o condiciones complejas que necesitan soporte psicológico permanente.</li>
+            <li>Familias y cuidadores que requieren orientación práctica y soporte emocional para sostener el cuidado.</li>
+          </ul>
+
+          <h2>Objetivos del acompañamiento psicológico</h2>
+          <ul>
+            <li>Reducir la ansiedad relacionada con el diagnóstico y el tratamiento.</li>
+            <li>Mejorar el afrontamiento frente al dolor, la fatiga y la incertidumbre.</li>
+            <li>Trabajar procesos de duelo anticipado y adaptación emocional a cambios funcionales.</li>
+            <li>Fortalecer las competencias de los cuidadores y su capacidad de autocuidado.</li>
+          </ul>
+
+          <h2>Intervenciones que ofrecemos</h2>
+          <ol>
+            <li><strong>Evaluación clínica inicial</strong>: diagnóstico psicoemocional, objetivos y plan de intervención.</li>
+            <li><strong>Terapia adaptada</strong>: TCC adaptada, intervenciones de manejo del estrés y apoyo para la adherencia a tratamientos médicos.</li>
+            <li><strong>Psicoeducación</strong>: información clara sobre síntomas, efectos secundarios y señales de alarma.</li>
+            <li><strong>Soporte para cuidadores</strong>: sesiones de orientación práctica, planificación de descansos y manejo del agotamiento.</li>
+            <li><strong>Acompañamiento en duelo</strong>: espacios seguros para procesar pérdidas anticipadas y transformar ambivalencias complejas.</li>
+          </ol>
+
+          <h2>Apoyo específico para cuidadores</h2>
+          <p>Reconocemos que el bienestar del cuidador es crítico para la sostenibilidad del cuidado. Ofrecemos sesiones focales para manejo del estrés, planificación de descansos y herramientas prácticas para coordinar cuidados médicos y emocionales.</p>
+
+          <h2>Cómo acceder</h2>
+          <p>Para solicitar una primera consulta revisa nuestros <a href="/servicios">servicios</a> o <a href="/contact">contáctanos</a>. Ofrecemos modalidades en línea para personas con movilidad limitada y adaptamos horarios según necesidades.</p>
+        </section>
+      </main>
+    `,
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MedicalOrganization',
+        name: 'Basileia',
+        url: DEFAULT_SITE_URL,
+        medicalSpecialty: ['Psychology', 'PalliativeCare', 'Psycho-oncology'],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: '¿Qué entendemos por enfermedades limitantes para la vida?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Son condiciones sin cura con riesgo de muerte prematura, donde el acompañamiento psicológico es esencial durante meses o años (ej. cáncer avanzado, ELA, fallas orgánicas severas).' },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Qué apoyo ofrecemos a pacientes y cuidadores?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Acompañamiento psicoterapéutico, manejo del duelo anticipado, psicoeducación sobre síntomas y apoyo específico para cuidadores y familias.' },
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 const DISALLOWED_PATHS = ['/dashboard/', '/clinical/', '/auth/', '/api/', '/tools/', '/psychology/'];
 
 function getSiteUrl() {
-  return (process.env.VITE_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://basileia.example').replace(/\/$/, '');
+  return (process.env.VITE_PUBLIC_SITE_URL || process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
 }
 
 function buildRobotsTxt(siteUrl) {
@@ -170,7 +451,9 @@ function buildRobotsTxt(siteUrl) {
 
 function buildSitemapXml(siteUrl) {
   const today = new Date().toISOString().slice(0, 10);
-  const entries = PUBLIC_ROUTES.map((route) => `  <url><loc>${siteUrl}${route.path === '/' ? '' : route.path}</loc><lastmod>${today}</lastmod><changefreq>${route.changefreq}</changefreq><priority>${route.priority}</priority></url>`);
+  const entries = PUBLIC_ROUTES
+    .filter((route) => !route.noIndex)
+    .map((route) => `  <url><loc>${siteUrl}${route.path === '/' ? '' : route.path}</loc><lastmod>${today}</lastmod><changefreq>${route.changefreq}</changefreq><priority>${route.priority}</priority></url>`);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
