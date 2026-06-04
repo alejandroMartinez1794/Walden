@@ -3,14 +3,23 @@ import { Link } from 'react-router-dom';
 import Testimonial from '../components/Testimonial/testimonial';
 import ConsentModal, { anonymizeTestimony } from '../components/Testimonial/ConsentModal';
 import { useState } from 'react';
+import ClinicalSeoHead from '../components/ClinicalSeoHead';
+import { buildMedicalOrganizationSchema, PUBLIC_CLINICAL_ORGANIZATION } from '../seo/medical-schema';
 
 const Testimonios = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [userTestimonials, setUserTestimonials] = useState(window.__userTestimonials__ || []);
 
   return (
-    <section className="mt-[40px] mb-[60px]">
-      <div className="container">
+    <>
+      <ClinicalSeoHead
+        title="Testimonios de pacientes | Basileia"
+        description="Testimonios compartidos con consentimiento sobre procesos terapéuticos, acompañamiento humano y atención psicológica basada en evidencia."
+        canonicalPath="/testimonios"
+        schema={buildMedicalOrganizationSchema(PUBLIC_CLINICAL_ORGANIZATION)}
+      />
+      <section className="mt-[40px] mb-[60px]">
+        <div className="container">
         <div className="xl:w-[770px] mx-auto">
           <h2 className="heading text-center">🩺 Lo que nuestros pacientes expresan</h2>
 
@@ -106,8 +115,9 @@ const Testimonios = () => {
           // Rerender by forcing a small state change
           setUserTestimonials(updated);
         }} />
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 };
 

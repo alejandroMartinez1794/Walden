@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ClinicalSeoHead from '../components/ClinicalSeoHead';
+import { buildMedicalOrganizationSchema, PUBLIC_CLINICAL_ORGANIZATION } from '../seo/medical-schema';
 
 const Contact = () => {
     const [form, setForm] = useState({
@@ -25,31 +27,38 @@ const Contact = () => {
     };
 
     return (
-        <section>
-            <div className='px-4 mx-auto max-w-screen-md'>
-                <h2 className='heading text-center'>Contacto</h2>
+        <>
+            <ClinicalSeoHead
+                title="Contacto | Basileia"
+                description="Contacta a Basileia para agendar una consulta, resolver dudas sobre servicios psicológicos o pedir orientación clínica inicial."
+                canonicalPath="/contact"
+                schema={buildMedicalOrganizationSchema(PUBLIC_CLINICAL_ORGANIZATION)}
+            />
+            <section>
+                <div className='px-4 mx-auto max-w-screen-md'>
+                    <h2 className='heading text-center'>Contacto</h2>
 
                 <p className='mb-6 text_para text-center'>
                     ¿Necesitas información, agendar una consulta o consultar sobre nuestro enfoque terapéutico?
                     Completa el formulario y nuestro equipo te contactará dentro de 48 horas hábiles.
                 </p>
 
-                <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
                     {/* Formulario */}
-                    <div>
-                        <form onSubmit={handleSubmit} className='space-y-6'>
-                            <div>
-                                <label htmlFor='name' className='form_label'>Nombre completo</label>
-                                <input
-                                    id='name'
-                                    name='name'
-                                    value={form.name}
-                                    onChange={handleChange}
-                                    placeholder='Tu nombre completo'
-                                    className='form_input mt-1'
-                                    required
-                                />
-                            </div>
+                        <div>
+                            <form onSubmit={handleSubmit} className='space-y-6'>
+                                <div>
+                                    <label htmlFor='name' className='form_label'>Nombre completo</label>
+                                    <input
+                                        id='name'
+                                        name='name'
+                                        value={form.name}
+                                        onChange={handleChange}
+                                        placeholder='Tu nombre completo'
+                                        className='form_input mt-1'
+                                        required
+                                    />
+                                </div>
 
                             <div>
                                 <label htmlFor='email' className='form_label'>Correo electrónico</label>
@@ -128,40 +137,41 @@ const Contact = () => {
                             <div className='flex justify-center'>
                                 <button type='submit' className='btn'>Enviar mensaje</button>
                             </div>
-                        </form>
-                    </div>
+                            </form>
+                        </div>
 
                     {/* Contact info */}
-                    <div>
-                        <div className='bg-white rounded-lg shadow-md p-6'>
-                            <h3 className='text-xl font-semibold mb-2'>Contacto directo</h3>
-                            <p className='text_para mb-4'>
-                                📧 Email: <a href='mailto:contactobasileia@gmail.com' className='text-primaryColor hover:underline'>contactobasileia@gmail.com</a>
-                                <br />
-                                📍 Ubicación: Bogotá, Colombia
-                            </p>
+                        <div>
+                            <div className='bg-white rounded-lg shadow-md p-6'>
+                                <h3 className='text-xl font-semibold mb-2'>Contacto directo</h3>
+                                <p className='text_para mb-4'>
+                                    📧 Email: <a href='mailto:contactobasileia@gmail.com' className='text-primaryColor hover:underline'>contactobasileia@gmail.com</a>
+                                    <br />
+                                    📍 Ubicación: Bogotá, Colombia
+                                </p>
 
-                            <h4 className='font-semibold mb-1'>⏰ Horario de atención</h4>
-                            <p className='text_para mb-4'>
-                                Lunes a Viernes: 09:00 - 18:00 (Hora Colombia, GMT-5)
-                                <br />
-                                Respuesta a mensajes: Dentro de 48 horas hábiles
-                            </p>
+                                <h4 className='font-semibold mb-1'>⏰ Horario de atención</h4>
+                                <p className='text_para mb-4'>
+                                    Lunes a Viernes: 09:00 - 18:00 (Hora Colombia, GMT-5)
+                                    <br />
+                                    Respuesta a mensajes: Dentro de 48 horas hábiles
+                                </p>
 
-                            <h4 className='font-semibold mb-1 text-red-600'>⚠️ Atención en casos de urgencia</h4>
-                            <p className='text_para mb-4'>
-                                Si atraviesas una emergencia psicológica o riesgo vital, por favor contacta inmediatamente los servicios de emergencia locales (línea 123 en Colombia) o dirígete a un servicio de urgencias. Nuestro equipo ofrece acompañamiento clínico, pero no reemplaza atención de emergencia médica.
-                            </p>
+                                <h4 className='font-semibold mb-1 text-red-600'>⚠️ Atención en casos de urgencia</h4>
+                                <p className='text_para mb-4'>
+                                    Si atraviesas una emergencia psicológica o riesgo vital, por favor contacta inmediatamente los servicios de emergencia locales (línea 123 en Colombia) o dirígete a un servicio de urgencias. Nuestro equipo ofrece acompañamiento clínico, pero no reemplaza atención de emergencia médica.
+                                </p>
 
-                            <h4 className='font-semibold mb-1'>🔒 Privacidad y Confidencialidad</h4>
-                            <p className='text_para'>
-                                Tu información se mantendrá estrictamente confidencial y solo será utilizada para gestionar tu consulta y comunicaciones relacionadas con la atención psicológica. Cumplimos con la Ley 1581 de 2012 de Protección de Datos Personales en Colombia.
-                            </p>
+                                <h4 className='font-semibold mb-1'>🔒 Privacidad y Confidencialidad</h4>
+                                <p className='text_para'>
+                                    Tu información se mantendrá estrictamente confidencial y solo será utilizada para gestionar tu consulta y comunicaciones relacionadas con la atención psicológica. Cumplimos con la Ley 1581 de 2012 de Protección de Datos Personales en Colombia.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </>
     );
 };
 

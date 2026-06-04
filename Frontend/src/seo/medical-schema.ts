@@ -47,7 +47,17 @@ export type PhysicianSchema = {
   sameAs?: string[];
 };
 
-export type ClinicalSchema = MedicalOrganizationSchema | FAQPageSchema | PhysicianSchema;
+export type WebSiteSchema = {
+  '@context': 'https://schema.org';
+  '@type': 'WebSite';
+  name: string;
+  url: string;
+  inLanguage?: string;
+  description?: string;
+  publisher?: MedicalOrganizationSchema;
+};
+
+export type ClinicalSchema = MedicalOrganizationSchema | FAQPageSchema | PhysicianSchema | WebSiteSchema;
 
 export type ClinicalOrganizationProfile = {
   name: string;
@@ -126,6 +136,24 @@ export function buildPhysicianSchema(profile: {
     medicalSpecialty: profile.medicalSpecialty,
     image: profile.image,
     sameAs: profile.sameAs,
+  };
+}
+
+export function buildWebSiteSchema(profile: {
+  name: string;
+  url: string;
+  description?: string;
+  inLanguage?: string;
+  publisher?: MedicalOrganizationSchema;
+}): WebSiteSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: profile.name,
+    url: profile.url,
+    description: profile.description,
+    inLanguage: profile.inLanguage ?? 'es-CO',
+    publisher: profile.publisher,
   };
 }
 
