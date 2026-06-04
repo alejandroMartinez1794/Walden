@@ -12,8 +12,42 @@ const EvaluacionesPage = React.lazy(() => import('../pages/public/EvaluacionesPa
 const AnsiedadPage = React.lazy(() => import('../pages/public/AnsiedadPage'));
 const DepresionPage = React.lazy(() => import('../pages/public/DepresionPage'));
 const DueloPage = React.lazy(() => import('../pages/public/DueloPage'));
+const DueloAnticipadoPage = React.lazy(() => import('../pages/public/DueloAnticipadoPage'));
 const CuidadoresPage = React.lazy(() => import('../pages/public/CuidadoresPage'));
 const EnfermedadesCronicasPage = React.lazy(() => import('../pages/public/EnfermedadesCronicasPage'));
+const ElaPage = React.lazy(() => import('../pages/public/ElaPage'));
+const PsicooncologiaPage = React.lazy(() => import('../pages/public/PsicooncologiaPage'));
+const RecursosClinicosPage = React.lazy(() => import('../pages/public/RecursosClinicosPage'));
+const PsicologiaColombiaPage = React.lazy(() => import('../pages/public/PsicologiaColombiaPage'));
+const PsicologiaVirtualPage = React.lazy(() => import('../pages/public/PsicologiaVirtualPage'));
+const PsicologiaEnLineaPage = React.lazy(() => import('../pages/public/PsicologiaEnLineaPage'));
+const PsicologoBogotaPage = React.lazy(() => import('../pages/public/PsicologoBogotaPage'));
+const PsicologoOnlineBogotaPage = React.lazy(() => import('../pages/public/PsicologoOnlineBogotaPage'));
+const PsicologoOnlineBogotaAnsiedadPage = React.lazy(() => import('../pages/public/PsicologoOnlineBogotaAnsiedadPage'));
+const PsicologoOnlineBogotaDueloPage = React.lazy(() => import('../pages/public/PsicologoOnlineBogotaDueloPage'));
+const PsicologoVirtualColombiaPage = React.lazy(() => import('../pages/public/PsicologoVirtualColombiaPage'));
+const PsicologoOnlineColombiaPage = React.lazy(() => import('../pages/public/PsicologoOnlineColombiaPage'));
+const PsicologoOnlineColombiaAnsiedadPage = React.lazy(() => import('../pages/public/PsicologoOnlineColombiaAnsiedadPage'));
+const PsicologoOnlineColombiaDueloPage = React.lazy(() => import('../pages/public/PsicologoOnlineColombiaDueloPage'));
+const PsicologoOnlineAnsiedadPage = React.lazy(() => import('../pages/public/PsicologoOnlineAnsiedadPage'));
+const PsicologoVirtualDepresionPage = React.lazy(() => import('../pages/public/PsicologoVirtualDepresionPage'));
+const PsicologiaOnlineAnsiedadPage = React.lazy(() => import('../pages/public/PsicologiaOnlineAnsiedadPage'));
+const PsicologiaOnlineDepresionPage = React.lazy(() => import('../pages/public/PsicologiaOnlineDepresionPage'));
+const TerapiaDepresionColombiaPage = React.lazy(() => import('../pages/public/TerapiaDepresionColombiaPage'));
+const TerapiaOnlineColombiaPage = React.lazy(() => import('../pages/public/TerapiaOnlineColombiaPage'));
+const TerapiaOnlineAnsiedadPage = React.lazy(() => import('../pages/public/TerapiaOnlineAnsiedadPage'));
+const TerapiaOnlineDepresionPage = React.lazy(() => import('../pages/public/TerapiaOnlineDepresionPage'));
+const TerapiaOnlineBogotaPage = React.lazy(() => import('../pages/public/TerapiaOnlineBogotaPage'));
+const TerapiaOnlineBogotaDepresionPage = React.lazy(() => import('../pages/public/TerapiaOnlineBogotaDepresionPage'));
+const PsicologoOnlineDueloPage = React.lazy(() => import('../pages/public/PsicologoOnlineDueloPage'));
+const GuiaElaCuidadorPage = React.lazy(() => import('../pages/public/GuiaElaCuidadorPage'));
+const GuiaDueloAnticipadoPage = React.lazy(() => import('../pages/public/GuiaDueloAnticipadoPage'));
+const GuiaPsicooncologiaPage = React.lazy(() => import('../pages/public/GuiaPsicooncologiaPage'));
+const GuiaCuidadorAgotamientoPage = React.lazy(() => import('../pages/public/GuiaCuidadorAgotamientoPage'));
+const GuiaElaComunicacionPage = React.lazy(() => import('../pages/public/GuiaElaComunicacionPage'));
+const GuiaPsicooncologiaCuidadoresPage = React.lazy(() => import('../pages/public/GuiaPsicooncologiaCuidadoresPage'));
+const GuiaDueloFamiliaEnfermedadAvanzadaPage = React.lazy(() => import('../pages/public/GuiaDueloFamiliaEnfermedadAvanzadaPage'));
+const GuiaCuidadorDescansoPage = React.lazy(() => import('../pages/public/GuiaCuidadorDescansoPage'));
 const InformedConsent = React.lazy(() => import('../pages/Legal/InformedConsent'));
 const Myaccount = React.lazy(() => import('../Dashboard/user-account/MyAccount'));
 const Dashboard = React.lazy(() => import('../Dashboard/doctor-account/Dashboard'));
@@ -75,7 +109,41 @@ const Routers = () => {
             <Route path="/ansiedad" element={<AnsiedadPage />} />
             <Route path="/depresion" element={<DepresionPage />} />
             <Route path="/duelo" element={<DueloPage />} />
+            <Route path="/duelo-anticipado" element={<DueloAnticipadoPage />} />
             <Route path="/cuidadores" element={<CuidadoresPage />} />
+            <Route path="/ela" element={<ElaPage />} />
+            <Route path="/psicooncologia" element={<PsicooncologiaPage />} />
+            <Route path="/recursos-clinicos" element={<RecursosClinicosPage />} />
+            <Route path="/psicologia-colombia" element={<PsicologiaColombiaPage />} />
+            <Route path="/psicologia-virtual" element={<PsicologiaVirtualPage />} />
+            <Route path="/psicologia-en-linea" element={<PsicologiaEnLineaPage />} />
+            <Route path="/psicologo-bogota" element={<PsicologoBogotaPage />} />
+            <Route path="/psicologo-online-bogota" element={<PsicologoOnlineBogotaPage />} />
+            <Route path="/psicologo-online-bogota-ansiedad" element={<PsicologoOnlineBogotaAnsiedadPage />} />
+            <Route path="/psicologo-online-bogota-duelo" element={<PsicologoOnlineBogotaDueloPage />} />
+            <Route path="/psicologo-virtual-colombia" element={<PsicologoVirtualColombiaPage />} />
+            <Route path="/psicologo-online-colombia" element={<PsicologoOnlineColombiaPage />} />
+            <Route path="/psicologo-online-colombia-ansiedad" element={<PsicologoOnlineColombiaAnsiedadPage />} />
+            <Route path="/psicologo-online-colombia-duelo" element={<PsicologoOnlineColombiaDueloPage />} />
+            <Route path="/psicologo-online-ansiedad" element={<PsicologoOnlineAnsiedadPage />} />
+            <Route path="/psicologo-virtual-depresion" element={<PsicologoVirtualDepresionPage />} />
+            <Route path="/psicologia-online-ansiedad" element={<PsicologiaOnlineAnsiedadPage />} />
+            <Route path="/psicologia-online-depresion" element={<PsicologiaOnlineDepresionPage />} />
+            <Route path="/terapia-depresion-colombia" element={<TerapiaDepresionColombiaPage />} />
+            <Route path="/terapia-online-colombia" element={<TerapiaOnlineColombiaPage />} />
+            <Route path="/terapia-online-ansiedad" element={<TerapiaOnlineAnsiedadPage />} />
+            <Route path="/terapia-online-depresion" element={<TerapiaOnlineDepresionPage />} />
+            <Route path="/terapia-online-bogota" element={<TerapiaOnlineBogotaPage />} />
+            <Route path="/terapia-online-bogota-depresion" element={<TerapiaOnlineBogotaDepresionPage />} />
+            <Route path="/psicologo-online-duelo" element={<PsicologoOnlineDueloPage />} />
+            <Route path="/guia-agotamiento-cuidador" element={<GuiaCuidadorAgotamientoPage />} />
+            <Route path="/guia-ela-comunicacion" element={<GuiaElaComunicacionPage />} />
+            <Route path="/guia-ela-cuidadores" element={<GuiaElaCuidadorPage />} />
+            <Route path="/guia-duelo-anticipado" element={<GuiaDueloAnticipadoPage />} />
+            <Route path="/guia-duelo-familia-enfermedad-avanzada" element={<GuiaDueloFamiliaEnfermedadAvanzadaPage />} />
+            <Route path="/guia-descanso-cuidador" element={<GuiaCuidadorDescansoPage />} />
+            <Route path="/guia-psicooncologia-cuidadores" element={<GuiaPsicooncologiaCuidadoresPage />} />
+            <Route path="/guia-psicooncologia" element={<GuiaPsicooncologiaPage />} />
             <Route path="/enfermedades-cronicas" element={<EnfermedadesCronicasPage />} />
             <Route path="/evaluaciones" element={<EvaluacionesPage />} />
             <Route path="/herramientas-tcc" element={<TCC />} />

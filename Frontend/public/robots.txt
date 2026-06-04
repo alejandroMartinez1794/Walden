@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /auth/
+Disallow: /clinical/
+Disallow: /dashboard/
+Disallow: /doctors/profile/
+Disallow: /google-auth-redirect
+Disallow: /login
+Disallow: /psychology/
+Disallow: /register
+Disallow: /tools/
+Disallow: /users/profile/
+
+Sitemap: https://basileia.tech/sitemap.xml
