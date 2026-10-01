@@ -283,7 +283,7 @@ const ProtocolLogSchema = new mongoose.Schema(
   }
 );
 
-// Indexes
+// Encrypt narrative PHI before persistence and decrypt it after reads.\n// This keeps the application contract in plaintext while the database stores ciphertext.\nProtocolLogSchema.pre("save", function (next) {\n  processPhiFields(this, encryptClinicalData);\n  next();\n});\n\nProtocolLogSchema.pre("findOneAndUpdate", function (next) {\n  const update = this.getUpdate();\n  if (update?.$set) processPhiFields(update.$set, encryptClinicalData);\n  next();\n});\n\nProtocolLogSchema.post(["find", "findOne", "findOneAndUpdate"], function (docs) {\n  if (!docs) return;\n  const docList = Array.isArray(docs) ? docs : [docs];\n  docList.forEach((doc) => processPhiFields(doc, decryptClinicalData));\n});\n\n// Indexes
 ProtocolLogSchema.index({ patientId: 1, protocolType: 1, activatedAt: -1 });
 ProtocolLogSchema.index({ activatedBy: 1, status: 1 });
 ProtocolLogSchema.index({ status: 1, followUpRequired: 1 });
