@@ -211,59 +211,91 @@ export const getPatientSessions = async (req, res) => {
 export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const assessmentData = { ...req.body, psychologist: psychologistId };
-    
-    // Detectar alertas de riesgo automáticamente
-    const { testType, responses, scores } = req.body;
-    
-    // Ejemplo: BDI-II ítem 9 o PHQ-9 ítem 9 (ideación suicida)
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && responses) {
-      const suicidalItem = responses.find(r => r.itemNumber === 9);
-      if (suicidalItem && suicidalItem.response > 0) {
-        assessmentData.riskAlert = {
-          flagged: true,
-          reason: 'Respuesta positiva en ítem de ideación suicida',
-          action: 'Requiere evaluación inmediata del riesgo',
-        };
+    const { testType, responses = [] } = req.body;
+
+    // Las respuestas son la fuente de verdad. Nunca confiamos en scores.total
+    // enviado por el cliente para establecer el resultado clínico.
+    const normalizedResponses = responses.map((item, index) => ({
+      itemNumber: item.itemNumber ?? index + 1,
+      itemText: item.itemText ?? item.question,
+      response: item.response,
+    }));
+
+    const numericResponses = normalizedResponses
+      .map((item) => Number(item.response))
+      .filter((value) => Number.isFinite(value));
+
+    const total = numericResponses.reduce((sum, value) => sum + value, 0);
+
+    // Detectar señales de riesgo del instrumento sin convertirlas en una
+    // evaluación formal de riesgo. La evaluación formal pertenece a RiskAssessment.
+    const suicidalItem = normalizedResponses.find((item) => item.itemNumber === 9);
+    const hasSuicidalSignal =
+      (testType === 'BDI-II' || testType === 'PHQ-9') &&
+      Number(suicidalItem?.response) > 0;
+
+    const severity = (() => {
+      if (testType === 'PHQ-9') {
+        if (total >= 20) return 'severe';
+        if (total >= 15) return 'moderately-severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
       }
+
+      if (testType === 'GAD-7') {
+        if (total >= 15) return 'severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
+      }
+
+      if (testType === 'BDI-II') {
+        if (total >= 29) return 'severe';
+        if (total >= 20) return 'moderate';
+        if (total >= 14) return 'mild';
+        return 'minimal';
+      }
+
+      return req.body.interpretation?.severity;
+    })();
+
+    const clinicalNotes =
+      req.body.interpretation?.clinicalNotes ??
+      req.body.interpretation?.notes ??
+      req.body.notes;
+
+    const assessmentData = {
+      ...req.body,
+      psychologist: psychologistId,
+      responses: normalizedResponses,
+      scores: {
+        ...(req.body.scores || {}),
+        total,
+      },
+      interpretation: {
+        ...(req.body.interpretation || {}),
+        severity,
+        ...(clinicalNotes ? { clinicalNotes } : {}),
+      },
+    };
+
+    delete assessmentData.totalScore;
+    delete assessmentData.notes;
+    if (assessmentData.interpretation) {
+      delete assessmentData.interpretation.notes;
     }
-    
-    // Normalizar puntajes y severidad (PHQ-9 / GAD-7 / BDI-II)
-    const total = scores?.total ?? (Array.isArray(responses) ? responses.reduce((s, r) => s + Number(r.response || 0), 0) : undefined);
-    if (total !== undefined) {
-      assessmentData.scores = { ...(assessmentData.scores || {}), total };
-      const sev = (() => {
-        if (testType === 'PHQ-9') {
-          if (total >= 20) return 'severe';
-          if (total >= 15) return 'moderately-severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'GAD-7') {
-          if (total >= 15) return 'severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'BDI-II') {
-          if (total >= 29) return 'severe';
-          if (total >= 20) return 'moderate';
-          if (total >= 14) return 'mild';
-          return 'minimal';
-        }
-        return undefined;
-      })();
-      if (sev) {
-        assessmentData.interpretation = {
-          ...(assessmentData.interpretation || {}),
-          severity: sev,
-        };
-      }
+
+    if (hasSuicidalSignal) {
+      assessmentData.riskAlert = {
+        flagged: true,
+        reason: 'Respuesta positiva en ítem de ideación suicida',
+        action: 'Requiere evaluación clínica inmediata del riesgo',
+      };
     }
 
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
-    
+
     res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
