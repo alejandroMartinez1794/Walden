@@ -34,118 +34,60 @@ import { mongoIdSchema, textLongSchema, textShortSchema, emailSchema } from './c
  */
 export const createMeasureSchema = Joi.object({
   /**
-   * ID del paciente (en params de la ruta)
-   * 
-   * Ruta: POST /clinical/patients/:id/measures
-   * Por lo tanto, 'id' viene de params, no de body
+   * Canonical clinical measure contract.
+   *
+   * The controller calculates score/severity from the raw responses.
+   * Clients must not be able to submit a conflicting totalScore/severity
+   * and have the server persist it as authoritative.
+   *
+   * Backward compatibility:
+   * - measureType is accepted as an alias for name.
+   * - totalScore/severity are accepted as deprecated client fields but
+   *   ignored by the controller.
    */
+  name: Joi.string()
+    .valid('PHQ-9', 'GAD-7', 'BDI-II', 'OTHER')
+    .required(),
 
-  /**
-   * Tipo de medición
-   * 
-   * Instrumentos validados:
-   * - phq9: Patient Health Questionnaire-9 (depresión)
-   * - gad7: Generalized Anxiety Disorder-7 (ansiedad)
-   * - columbia: Columbia-Suicide Severity Rating Scale
-   * - phq2: PHQ-2 (screening rápido depresión)
-   * - audit: Alcohol Use Disorders Identification Test
-   */
   measureType: Joi.string()
     .valid('phq9', 'gad7', 'columbia', 'phq2', 'audit', 'other')
-    .required()
-    .messages({
-      'any.required': 'El tipo de medición es obligatorio',
-      'any.only': 'Tipo de medición inválido'
-    }),
+    .optional(),
 
-  /**
-   * Respuestas del cuestionario
-   * 
-   * Formato: Array de objetos con pregunta y respuesta
-   * 
-   * Ejemplo PHQ-9:
-   * [
-   *   { question: "Poco interés en hacer cosas", score: 2 },
-   *   { question: "Sentirse deprimido", score: 3 },
-   *   ...
-   * ]
-   */
   responses: Joi.array()
     .items(
-      Joi.object({
-        question: textShortSchema
-          .min(5)
-          .max(200)
-          .required(),
-        
-        score: Joi.number()
-          .integer()
-          .min(0)
-          .max(10)
-          .required()
-          .messages({
-            'number.min': 'El score mínimo es 0',
-            'number.max': 'El score máximo es 10'
-          })
-      })
+      Joi.alternatives().try(
+        Joi.number().integer().min(0).max(10),
+        Joi.object({
+          itemNumber: Joi.number().integer().min(1).max(100).optional(),
+          question: Joi.string().max(500).optional(),
+          score: Joi.number().integer().min(0).max(10).optional(),
+          response: Joi.number().integer().min(0).max(10).required(),
+        }).unknown(false)
+      )
     )
     .min(1)
-    .max(50)
-    .required()
-    .messages({
-      'any.required': 'Las respuestas son obligatorias',
-      'array.min': 'Debe proporcionar al menos 1 respuesta',
-      'array.max': 'Máximo 50 respuestas'
-    }),
-
-  /**
-   * Score total calculado
-   * 
-   * Se calcula sumando todos los scores individuales
-   * Backend debería recalcular para validar
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
     .max(100)
-    .required()
-    .messages({
-      'any.required': 'El score total es obligatorio',
-      'number.min': 'El score mínimo es 0',
-      'number.max': 'El score máximo es 100'
-    }),
+    .required(),
 
-  /**
-   * Nivel de severidad
-   * 
-   * Basado en score:
-   * - none: Sin síntomas (score 0-4)
-   * - mild: Leve (5-9)
-   * - moderate: Moderado (10-14)
-   * - moderately-severe: Moderadamente severo (15-19)
-   * - severe: Severo (20+)
-   */
+  itemMap: Joi.object().optional(),
+
+  // Deprecated: accepted during migration, never used as authoritative data.
+  totalScore: Joi.number().integer().min(0).max(100).optional(),
   severity: Joi.string()
-    .valid('none', 'mild', 'moderate', 'moderately-severe', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La severidad es obligatoria',
-      'any.only': 'Severidad inválida'
-    }),
+    .valid('none', 'minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe')
+    .optional(),
 
-  /**
-   * Notas adicionales del clínico
-   * 
-   * Contexto importante:
-   * - Factores estresantes actuales
-   * - Cambios recientes en vida del paciente
-   * - Observaciones durante la evaluación
-   */
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
+  notes: textLongSchema.max(2000).optional(),
+}).custom((value, helpers) => {
+  if (value.name === 'PHQ-9' && value.responses.length !== 9) {
+    return helpers.error('any.invalid');
+  }
+  if (value.name === 'GAD-7' && value.responses.length !== 7) {
+    return helpers.error('any.invalid');
+  }
+  return value;
+}).messages({
+  'any.invalid': 'La cantidad de respuestas no coincide con el instrumento clínico',
 });
 
 /**
