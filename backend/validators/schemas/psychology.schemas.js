@@ -227,90 +227,45 @@ export const createSessionSchema = Joi.object({
  * - Etc.
  */
 export const createAssessmentSchema = Joi.object({
-  patient: mongoIdSchema
-    .required()
-    .messages({
-      'any.required': 'El ID del paciente es obligatorio'
-    }),
+  patient: mongoIdSchema.required(),
 
-  /**
-   * Tipo de test
-   * 
-   * Tests validados científicamente
-   */
   testType: Joi.string()
-    .valid(
-      'BDI-II',
-      'BAI',
-      'PHQ-9',
-      'GAD-7',
-      'PCL-5',
-      'OCI-R',
-      'YBOCS',
-      'AUDIT',
-      'PSS',
-      'other'
-    )
-    .required()
-    .messages({
-      'any.required': 'El tipo de test es obligatorio',
-      'any.only': 'Tipo de test inválido'
-    }),
+    .valid('BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS', 'other')
+    .required(),
 
   testDate: dateISOSchema
     .max('now')
-    .default(() => new Date())
-    .messages({
-      'date.max': 'No se pueden registrar evaluaciones futuras'
-    }),
+    .default(() => new Date()),
 
-  /**
-   * Puntuación total del test
-   * 
-   * Cada test tiene su rango:
-   * - BDI-II: 0-63
-   * - BAI: 0-63
-   * - PHQ-9: 0-27
-   * - GAD-7: 0-21
-   * 
-   * Validamos rango amplio (0-100)
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
+  // Raw instrument responses are preserved as part of the assessment record.
+  responses: Joi.array()
+    .items(
+      Joi.object({
+        itemNumber: Joi.number().integer().min(1).required(),
+        itemText: textShortSchema.max(500),
+        question: textShortSchema.max(500),
+        response: Joi.alternatives().try(Joi.number(), Joi.string(), Joi.boolean(), Joi.allow(null)),
+      }).min(1)
+    )
+    .min(1)
     .max(100)
-    .required()
-    .messages({
-      'any.required': 'La puntuación total es obligatoria',
-      'number.min': 'La puntuación mínima es 0',
-      'number.max': 'La puntuación máxima es 100'
-    }),
+    .required(),
 
-  /**
-   * Interpretación de la puntuación
-   * 
-   * Categorías generales:
-   * - minimal: Síntomas mínimos
-   * - mild: Leve
-   * - moderate: Moderado
-   * - severe: Severo
-   */
-  interpretation: Joi.string()
-    .valid('minimal', 'mild', 'moderate', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La interpretación es obligatoria',
-      'any.only': 'Interpretación inválida'
-    }),
+  // The server recalculates the total when numeric responses are available.
+  scores: Joi.object({
+    total: Joi.number().integer().min(0).max(100),
+    subscales: Joi.object().unknown(true),
+    percentile: Joi.number().min(0).max(100),
+  }).default({}),
 
-  // Notas adicionales del psicólogo
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
+  interpretation: Joi.object({
+    severity: Joi.string()
+      .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'),
+    clinicalNotes: textLongSchema.max(2000),
+    // Legacy frontend alias; the controller canonicalizes it to clinicalNotes.
+    notes: textLongSchema.max(2000),
+  }).default({}),
 });
-
 /**
  * Schema para crear plan de tratamiento
  * 
