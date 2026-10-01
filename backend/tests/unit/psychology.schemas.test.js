@@ -196,6 +196,19 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
     expect(value.scores.total).toBe(2);
     expect(value.interpretation.clinicalNotes).toBe('Seguimiento.');
   });
+
+  test('debe aceptar payload legacy durante la migración', () => {
+    const { error, value } = createAssessmentSchema.validate({
+      patient: '507f1f77bcf86cd799439011',
+      testType: 'PHQ-9',
+      totalScore: 12,
+      interpretation: 'moderate',
+      notes: 'Registro legacy conservado durante la migración.',
+    });
+    expect(error).toBeUndefined();
+    expect(value.totalScore).toBe(12);
+    expect(value.interpretation).toBe('moderate');
+  });
 });
 
 describe('Psychology Schemas - createSessionSchema', () => {
