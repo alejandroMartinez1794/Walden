@@ -217,8 +217,14 @@ export const createAssessment = async (req, res) => {
       testDate,
       responses = [],
       scores = {},
-      interpretation = {},
+      totalScore,
+      interpretation: rawInterpretation = {},
+      notes,
     } = req.body;
+
+    const interpretation = typeof rawInterpretation === 'string'
+      ? { severity: rawInterpretation }
+      : (rawInterpretation || {});
 
     const normalizedResponses = responses.map((response, index) => ({
       itemNumber: response.itemNumber ?? index + 1,
@@ -235,7 +241,7 @@ export const createAssessment = async (req, res) => {
       ? numericResponses.reduce((sum, value) => sum + value, 0)
       : undefined;
 
-    const total = calculatedTotal ?? scores.total;
+    const total = calculatedTotal ?? scores.total ?? totalScore;
 
     const severityForScore = (() => {
       if (total === undefined) return interpretation.severity;
@@ -290,6 +296,9 @@ export const createAssessment = async (req, res) => {
         ...(severityForScore ? { severity: severityForScore } : {}),
         ...(interpretation.notes && !interpretation.clinicalNotes
           ? { clinicalNotes: interpretation.notes }
+          : {}),
+        ...(notes && !interpretation.clinicalNotes && !interpretation.notes
+          ? { clinicalNotes: notes }
           : {}),
       },
       ...(riskAlert.flagged ? { riskAlert } : {}),
