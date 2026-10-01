@@ -270,14 +270,14 @@ export const createAssessmentSchema = Joi.object({
     Joi.object({
       severity: Joi.string().valid(
         'minimal', 'mild', 'moderate', 'moderately-severe',
-        'severe', 'extremely-severe'
+        'severe', 'extremely-severe', 'moderadamente-severa', 'severa', 'moderada', 'leve', 'mínima', 'minima'
       ).optional(),
       clinicalNotes: Joi.string().max(5000).allow('').optional(),
       notes: Joi.string().max(5000).allow('').optional()
     }).unknown(false),
     Joi.string().valid(
       'minimal', 'mild', 'moderate', 'moderately-severe',
-      'severe', 'extremely-severe'
+      'severe', 'extremely-severe', 'moderadamente-severa', 'severa', 'moderada', 'leve', 'mínima', 'minima'
     )
   ).optional(),
 
