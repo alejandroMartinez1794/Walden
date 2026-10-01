@@ -120,7 +120,7 @@ const PHQ9Form = () => {
           total: totalScore,
         },
         interpretation: {
-          severity: severity.label.toLowerCase().replace(/\s/g, '-'),
+          severity: (() => {\n            const labels = {\n              'Mínima': 'minimal',\n              'Leve': 'mild',\n              'Moderada': 'moderate',\n              'Moderadamente severa': 'moderately-severe',\n              'Severa': 'severe',\n            };\n            return labels[severity.label] || 'minimal';\n          })(),
           notes: `PHQ-9 Score: ${totalScore}/27. ${severity.label} depression.`,
         },
       };
