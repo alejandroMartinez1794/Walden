@@ -7,6 +7,8 @@
 
 import ProtocolLog from '../../models/ProtocolLogSchema.js';
 import ProtocolExecutor from '../../services/ProtocolExecutor.js';
+import ProtocolLog from '../../models/ProtocolLogSchema.js';
+import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
 
 /**
  * GET /api/v1/clinical/protocols
@@ -51,7 +53,18 @@ export const getProtocolDetails = async (req, res) => {
   try {
     const { protocolId } = req.params;
 
-    const status = await ProtocolExecutor.getProtocolStatus(protocolId);
+    const protocol = await ProtocolLog.findById(protocolId).select('treatmentPlanId');
+    if (!protocol) {
+      return res.status(404).json({ success: false, message: 'Protocol not found' });
+    }
+
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: protocol.treatmentPlanId,
+      action: 'read clinical protocol',
+    });
+
+    const status = await ProtocolExecutor.getProtocolStatus(protocolId, req.userId);
 
     res.status(200).json({ success: true, data: status });
   } catch (error) {
@@ -182,6 +195,12 @@ export const amendProtocol = async (req, res) => {
     if (!protocol) {
       return res.status(404).json({ success: false, message: 'Protocol not found' });
     }
+
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: protocol.treatmentPlanId,
+      action: 'amend clinical protocol',
+    });
 
     await protocol.amend(req.userId, reason, changes);
 
