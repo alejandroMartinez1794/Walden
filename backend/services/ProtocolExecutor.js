@@ -157,14 +157,17 @@ class ProtocolExecutor {
    * @param {String} protocolLogId
    * @returns {Object} Progress summary
    */
-  static async getProtocolStatus(protocolLogId) {
+  static async getProtocolStatus(protocolLogId, clinicianId) {
     const protocolLog = await ProtocolLog.findById(protocolLogId)
       .populate('activatedBy', 'name')
       .populate('patientId', 'name')
       .lean();
 
     if (!protocolLog) throw new Error('Protocol log not found');
-    await this._assertProtocolAccessByPlan(protocolLog, protocolLog.activatedBy?._id || protocolLog.activatedBy);
+    await this._assertProtocolAccessByPlan(
+      protocolLog,
+      clinicianId || protocolLog.activatedBy?._id || protocolLog.activatedBy
+    );
 
     const totalSteps = protocolLog.steps.length;
     const completedSteps = protocolLog.steps.filter(s => s.completed).length;
