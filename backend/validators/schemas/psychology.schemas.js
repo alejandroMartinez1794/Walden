@@ -232,12 +232,6 @@ export const createAssessmentSchema = Joi.object({
     .valid(
       'BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PCL-5', 'OCI-R', 'YBOCS',
       'AUDIT', 'PSS', 'K6', 'K10', 'WHO-5', 'PHQ-15', 'PC-PTSD-5',
-      'SUDS / Evitación (Registro TCC)',
-      'Reformulación de creencias nucleares (TCC)',
-      'Registro de Pensamientos (TCC)',
-      'Registro de conductas de evitación (TCC)',
-      'Mapa de distorsiones cognitivas (TCC)',
-      'Plan de activación conductual (TCC)',
       'other'
     )
     .required(),
@@ -263,7 +257,9 @@ export const createAssessmentSchema = Joi.object({
     .required(),
 
   scores: Joi.object({
-    total: Joi.number().min(0).max(1000).required(),
+    total: Joi.number().min(0).max(1000),
+    raw: Joi.number().min(0).max(1000),
+    scaled: Joi.number().min(0).max(1000),
     subscales: Joi.object().unknown(true),
     percentile: Joi.number().min(0).max(100)
   }),
@@ -291,7 +287,15 @@ export const createAssessmentSchema = Joi.object({
 
   notes: textLongSchema.max(5000).allow('', null)
 }).custom((value, helpers) => {
-  const declared = value.totalScore ?? value.scores?.total;
+  let declared = value.totalScore ?? value.scores?.total;
+
+  // WHO-5 stores both raw (0-25) and transformed (0-100) scores.
+  // The canonical longitudinal score is the transformed percentage.
+  if (value.testType === 'WHO-5' && declared === undefined && value.scores?.scaled !== undefined) {
+    declared = value.scores.scaled;
+    value.scores.total = value.scores.scaled;
+  }
+
   if (declared === undefined) {
     return helpers.error('any.custom', { message: 'La puntuación total es obligatoria' });
   }
