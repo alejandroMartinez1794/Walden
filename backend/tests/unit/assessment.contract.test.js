@@ -61,6 +61,24 @@ describe('Assessment contract', () => {
     expect(value.interpretation).toEqual({ severity: 'minimal' });
   });
 
+  test('canonicalizes WHO-5 scaled score while preserving raw score', () => {
+    const { error, value } = createAssessmentSchema.validate({
+      ...base,
+      testType: 'WHO-5',
+      responses: [0, 1, 2, 3, 4].map((response, index) => ({
+        itemNumber: index + 1,
+        response,
+      })),
+      scores: { raw: 10, scaled: 40 },
+      interpretation: { severity: 'moderate' },
+    });
+
+    expect(error).toBeUndefined();
+    expect(value.scores.raw).toBe(10);
+    expect(value.scores.scaled).toBe(40);
+    expect(value.scores.total).toBe(40);
+  });
+
   test('accepts assessment types currently emitted by the frontend', () => {
     for (const testType of ['K6', 'K10', 'WHO-5', 'PHQ-15', 'PC-PTSD-5']) {
       const { error } = createAssessmentSchema.validate({
