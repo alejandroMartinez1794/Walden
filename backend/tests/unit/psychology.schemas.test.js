@@ -197,7 +197,7 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
     });
     expect(error).toBeDefined();
   });
-});
+
 
   test('acepta el contrato canónico usado por PHQ-9/GAD-7', () => {
     const { error } = createAssessmentSchema.validate({
@@ -229,6 +229,7 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
     });
     expect(error).toBeDefined();
   });
+});
 
 describe('Psychology Schemas - createSessionSchema', () => {
   const validSession = {
