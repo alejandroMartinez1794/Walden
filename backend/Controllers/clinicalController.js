@@ -76,7 +76,7 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const { name, responses, itemMap, assessmentId } = req.body;
 
     const normalizedResponses = (Array.isArray(responses) ? responses : []).map((response, index) => {
       if (typeof response === 'number') {
@@ -97,6 +97,7 @@ export const createMeasure = async (req, res) => {
     const measure = await Measure.create({
       patient: patientId,
       clinician: clinicianId,
+      assessmentId,
       name,
       responses: normalizedResponses,
       score,
