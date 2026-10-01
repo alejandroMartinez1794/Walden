@@ -26,6 +26,7 @@ import fs from 'fs';
 import path from 'path';
 import tls from 'tls';
 import { constants } from 'crypto';
+import forge from 'node-forge';
 import logger from '../utils/logger.js';
 
 /**
@@ -139,19 +140,6 @@ const validateCertificate = (certData, expectedDomain, securityTier) => {
 
   // Extraer información del certificado
   try {
-    // Import dinámico de node-forge para evitar error si no está instalado
-    let forge;
-    try {
-      forge = require('node-forge');
-    } catch (error) {
-      logger.error('❌ node-forge library not installed. Run: npm install node-forge');
-      if (securityTier === 'prod') {
-        throw new Error('node-forge is required for production certificate validation');
-      }
-      logger.warn('⚠️ Skipping certificate validation due to missing node-forge (install it for production)');
-      return;
-    }
-    
     const cert = forge.pki.certificateFromPem(certData);
     
     // Verificar Common Name (CN) y Subject Alternative Names (SAN)
