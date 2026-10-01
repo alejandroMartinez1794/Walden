@@ -167,11 +167,28 @@ export const listAlerts = async (req, res) => {
 export const resolveAlert = async (req, res) => {
   try {
     const clinicianId = req.userId; const { alertId } = req.params;
-    const alert = await Alert.findOneAndUpdate({ _id: alertId, clinician: clinicianId }, { $set: { resolved: true, resolvedAt: new Date() } }, { new: true });
+
+    const existingAlert = await Alert.findOne({ _id: alertId, clinician: clinicianId }).select('patient');
+    if (!existingAlert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingAlert.patient,
+      action: 'resolve clinical alert',
+    });
+
+    const alert = await Alert.findOneAndUpdate(
+      { _id: alertId, clinician: clinicianId },
+      { $set: { resolved: true, resolvedAt: new Date() } },
+      { new: true }
+    );
+
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'resolve_alert', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al resolver alerta' }); }
+  } catch (e) {
+    res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al resolver alerta' });
+  }
 };
 
 export const updateAlertMitigation = async (req, res) => {
