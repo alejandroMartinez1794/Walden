@@ -76,7 +76,8 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const { name: requestedName, measureType, responses, itemMap } = req.body;
+    const name = requestedName || ({ phq9: 'PHQ-9', gad7: 'GAD-7', other: 'OTHER' }[measureType]);
 
     let score = 0; let severity; let item9;
     if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
