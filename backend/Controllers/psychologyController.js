@@ -9,6 +9,7 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
+import { assertPatientAccess } from '../services/clinicalAuthorization.js';
 
 // ============ PACIENTES ============
 
@@ -212,6 +213,12 @@ export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
     const assessmentData = { ...req.body, psychologist: psychologistId };
+
+    await assertPatientAccess({
+      req,
+      patientId: req.body.patient,
+      action: 'create psychological assessment',
+    });
     
     // Detectar alertas de riesgo automáticamente
     const { testType, responses, scores } = req.body;
@@ -280,6 +287,12 @@ export const getPatientAssessments = async (req, res) => {
     const { patientId } = req.params;
     const psychologistId = req.userId;
     const { testType } = req.query;
+
+    await assertPatientAccess({
+      req,
+      patientId,
+      action: 'read psychological assessments',
+    });
     
     const filter = {
       patient: patientId,
