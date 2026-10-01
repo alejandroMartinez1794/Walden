@@ -145,7 +145,11 @@ const PHQ9Form = () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ name: 'PHQ-9', responses: formData.responses }),
+          body: JSON.stringify({
+            name: 'PHQ-9',
+            assessmentId: result.data?._id,
+            responses: formData.responses,
+          }),
         });
       } catch (e) {
         // Non-blocking: continue if clinical measure fails
