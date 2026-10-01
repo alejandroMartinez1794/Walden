@@ -266,7 +266,7 @@ export const createAssessmentSchema = Joi.object({
     total: Joi.number().min(0).max(1000).required(),
     subscales: Joi.object().unknown(true),
     percentile: Joi.number().min(0).max(100)
-  }).required(),
+  }),
 
   totalScore: Joi.number().min(0).max(1000),
 
