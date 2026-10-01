@@ -39,7 +39,8 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
   responses: [{
     itemNumber: Number,
     itemText: String,
-    response: mongoose.Schema.Types.Mixed, // Puede ser número, texto, etc.
+    response: mongoose.Schema.Types.Mixed, // Respuesta original, numérica o textual
+    score: Number, // Puntuación por ítem cuando el instrumento la define por separado
   }],
 
   // Puntuaciones
@@ -51,6 +52,7 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
 
   // Interpretación clínica
   interpretation: {
+    category: String, // Categoría propia del instrumento; no equivale necesariamente a severidad clínica
     severity: {
       type: String,
       enum: ['minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'],
