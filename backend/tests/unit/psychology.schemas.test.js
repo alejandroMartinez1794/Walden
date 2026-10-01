@@ -191,6 +191,38 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
     });
     expect(error).toBeUndefined();
   });
+  
+  test('acepta respuestas AUDIT con etiqueta original y score numérico por ítem', () => {
+    const { error } = createAssessmentSchema.validate({
+      patient: validAssessment.patient,
+      testType: 'AUDIT',
+      responses: Array.from({ length: 10 }, (_, index) => ({
+        itemNumber: index + 1,
+        question: `Pregunta AUDIT ${index + 1}`,
+        response: 'Respuesta elegida',
+        score: index === 0 ? 2 : 0,
+      })),
+      scores: { total: 2 },
+      interpretation: {
+        severity: 'consumo de bajo riesgo',
+        notes: 'Clasificación del instrumento'
+      }
+    });
+    expect(error).toBeUndefined();
+  });
+
+  test('acepta etiquetas españolas de severidad para normalización del servidor', () => {
+    const { error } = createAssessmentSchema.validate({
+      ...validAssessment,
+      testType: 'BAI',
+      interpretation: { severity: 'moderada' },
+      responses: Array.from({ length: 21 }, (_, index) => ({
+        itemNumber: index + 1,
+        response: 1,
+      })),
+    });
+    expect(error).toBeUndefined();
+  });
 });
 
 describe('Psychology Schemas - createSessionSchema', () => {
