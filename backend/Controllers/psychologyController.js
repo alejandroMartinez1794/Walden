@@ -234,7 +234,7 @@ export const createAssessment = async (req, res) => {
       });
     }
 
-    const expectedItems = { 'PHQ-9': 9, 'GAD-7': 7, 'BDI-II': 21 }[testType];
+    const expectedItems = { 'PHQ-9': 9, 'GAD-7': 7, 'BDI-II': 21, BAI: 21, AUDIT: 10 }[testType];
     if (expectedItems && responses.length !== expectedItems) {
       return res.status(400).json({
         success: false,
@@ -244,8 +244,8 @@ export const createAssessment = async (req, res) => {
 
     // Scored screening instruments require numeric response values. Do not
     // silently omit malformed answers, because that can understate severity.
-    if (['PHQ-9', 'GAD-7', 'BDI-II'].includes(testType) &&
-        responses.some((item) => !Number.isFinite(Number(item?.response)))) {
+    if (['PHQ-9', 'GAD-7', 'BDI-II', 'BAI', 'AUDIT'].includes(testType) &&
+        responses.some((item) => !Number.isFinite(Number(item?.score ?? item?.response)))) {
       return res.status(400).json({
         success: false,
         message: 'Todas las respuestas deben contener una puntuación numérica válida',
@@ -258,10 +258,11 @@ export const createAssessment = async (req, res) => {
       itemNumber: item.itemNumber ?? index + 1,
       itemText: item.itemText ?? item.question,
       response: item.response,
+      ...(item.score !== undefined ? { score: Number(item.score) } : {}),
     }));
 
     const numericResponses = normalizedResponses
-      .map((item) => Number(item.response))
+      .map((item) => Number(item.score ?? item.response))
       .filter((value) => Number.isFinite(value));
 
     const total = numericResponses.reduce((sum, value) => sum + value, 0);
@@ -296,7 +297,27 @@ export const createAssessment = async (req, res) => {
         return 'minimal';
       }
 
-      return req.body.interpretation?.severity;
+      if (testType === 'BAI') {
+        if (total >= 26) return 'severe';
+        if (total >= 16) return 'moderate';
+        if (total >= 8) return 'mild';
+        return 'minimal';
+      }
+
+      // AUDIT classifications describe drinking-risk categories, not symptom
+      // severity. Preserve them as category rather than forcing a severity enum.
+      if (testType === 'AUDIT') return undefined;
+
+      const suppliedSeverity = req.body.interpretation?.severity;
+      const severityAliases = {
+        'mínima': 'minimal',
+        'minima': 'minimal',
+        'leve': 'mild',
+        'moderada': 'moderate',
+        'moderadamente-severa': 'moderately-severe',
+        'severa': 'severe',
+      };
+      return severityAliases[suppliedSeverity] || suppliedSeverity;
     })();
 
     const clinicalNotes =
@@ -314,7 +335,10 @@ export const createAssessment = async (req, res) => {
       },
       interpretation: {
         ...(req.body.interpretation || {}),
-        severity,
+        ...(severity ? { severity } : {}),
+        ...(testType === 'AUDIT' && req.body.interpretation?.severity
+          ? { category: req.body.interpretation.severity }
+          : {}),
         ...(clinicalNotes ? { clinicalNotes } : {}),
       },
     };
