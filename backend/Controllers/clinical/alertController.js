@@ -8,6 +8,9 @@
 import ClinicalAlert from '../../models/ClinicalAlertSchema.js';
 import ClinicalDecisionEngine from '../../services/ClinicalDecisionEngine.js';
 import ProtocolExecutor from '../../services/ProtocolExecutor.js';
+import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
+import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
+import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
 
 /**
  * GET /api/v1/clinical/alerts
@@ -65,6 +68,24 @@ export const detectRisks = async (req, res) => {
   try {
     const { patientId, treatmentPlanId, patientData } = req.body;
 
+    const plan = await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'detect clinical risks',
+    });
+
+    const patient = await PsychologicalPatient.findById(plan.patient);
+    const patientMatches =
+      patientId?.toString() === plan.patientId?.toString() ||
+      patientId?.toString() === patient?.user?.toString();
+
+    if (!patientMatches) {
+      return res.status(403).json({
+        success: false,
+        message: 'Patient does not belong to the treatment plan',
+      });
+    }
+
     // Run risk detection
     const risks = await ClinicalDecisionEngine.detectRiskFactors(patientData);
 
@@ -114,6 +135,12 @@ export const acknowledgeAlert = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Alert not found' });
     }
 
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: alert.treatmentPlanId,
+      action: 'acknowledge clinical alert',
+    });
+
     await alert.acknowledge(req.userId);
 
     res.status(200).json({
@@ -140,6 +167,12 @@ export const resolveAlert = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Alert not found' });
     }
 
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: alert.treatmentPlanId,
+      action: 'resolve clinical alert',
+    });
+
     await alert.resolve(req.userId, resolutionNotes);
 
     res.status(200).json({
@@ -165,6 +198,12 @@ export const activateProtocol = async (req, res) => {
     if (!alert) {
       return res.status(404).json({ success: false, message: 'Alert not found' });
     }
+
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: alert.treatmentPlanId._id,
+      action: 'activate clinical protocol',
+    });
 
     // Check if protocol should be activated
     const shouldActivate = ClinicalDecisionEngine.shouldActivateProtocol(alert.alertType, {
