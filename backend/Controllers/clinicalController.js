@@ -79,22 +79,31 @@ export const createMeasure = async (req, res) => {
     const { id: patientId } = req.params;
     const { name, responses, itemMap, assessmentId } = req.body;
 
+    let sourceAssessment;
     if (assessmentId) {
-      const assessment = await PsychologicalAssessment.findOne({
+      sourceAssessment = await PsychologicalAssessment.findOne({
         _id: assessmentId,
         patient: patientId,
         psychologist: clinicianId,
-      }).select('_id');
+      }).select('_id testType responses testDate');
 
-      if (!assessment) {
+      if (!sourceAssessment) {
         return res.status(404).json({
           success: false,
           message: 'Evaluación de origen no encontrada',
         });
       }
+
+      if (sourceAssessment.testType !== name) {
+        return res.status(409).json({
+          success: false,
+          message: 'El instrumento de la medición no coincide con la evaluación de origen',
+        });
+      }
     }
 
-    const normalizedResponses = (Array.isArray(responses) ? responses : []).map((response, index) => {
+    const sourceResponses = sourceAssessment?.responses ?? responses;
+    const normalizedResponses = (Array.isArray(sourceResponses) ? sourceResponses : []).map((response, index) => {
       if (typeof response === 'number') {
         return { itemNumber: index + 1, response };
       }
@@ -118,6 +127,7 @@ export const createMeasure = async (req, res) => {
       responses: normalizedResponses,
       score,
       itemMap,
+      ...(sourceAssessment?.testDate ? { takenAt: sourceAssessment.testDate } : {}),
     });
 
     // Build recent PHQ-9 series for trend
