@@ -111,7 +111,7 @@ export const createMeasure = async (req, res) => {
     res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
   } catch (error) {
     logger.error('Error creating measure:', error);
-    res.status(500).json({ success: false, message: 'Error al crear medida' });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Error al crear medida' });
   }
 };
 
@@ -161,7 +161,7 @@ export const listAlerts = async (req, res) => {
 
     const alerts = await Alert.find({ patient: patientId, clinician: clinicianId, resolved: false }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: alerts });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al listar alertas' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al listar alertas' }); }
 };
 
 export const resolveAlert = async (req, res) => {
@@ -171,7 +171,7 @@ export const resolveAlert = async (req, res) => {
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'resolve_alert', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al resolver alerta' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al resolver alerta' }); }
 };
 
 export const updateAlertMitigation = async (req, res) => {
@@ -196,7 +196,7 @@ export const updateAlertMitigation = async (req, res) => {
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'update_alert_mitigation', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al actualizar mitigación' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al actualizar mitigación' }); }
 };
 
 export const acceptSuggestion = async (req, res) => {
@@ -220,5 +220,5 @@ export const acceptSuggestion = async (req, res) => {
     if (!log) return res.status(404).json({ success: false, message: 'Registro no encontrado' });
     await ActivityLog.create({ actor: clinicianId, patient: log.patient, action: 'accept_suggestion', meta: { logId, accepted } });
     res.status(200).json({ success: true, data: log });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al registrar aceptación' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al registrar aceptación' }); }
 };
