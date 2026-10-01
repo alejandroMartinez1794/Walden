@@ -47,7 +47,7 @@ export const createMeasureSchema = Joi.object({
    */
   name: Joi.string()
     .valid('PHQ-9', 'GAD-7', 'BDI-II', 'OTHER')
-    .required(),
+    .optional(),
 
   measureType: Joi.string()
     .valid('phq9', 'gad7', 'columbia', 'phq2', 'audit', 'other')
@@ -78,11 +78,12 @@ export const createMeasureSchema = Joi.object({
     .optional(),
 
   notes: textLongSchema.max(2000).optional(),
-}).custom((value, helpers) => {
-  if (value.name === 'PHQ-9' && value.responses.length !== 9) {
+}).or('name', 'measureType').custom((value, helpers) => {
+  const canonicalName = value.name || ({ phq9: 'PHQ-9', gad7: 'GAD-7' }[value.measureType]);
+  if (canonicalName === 'PHQ-9' && value.responses.length !== 9) {
     return helpers.error('any.invalid');
   }
-  if (value.name === 'GAD-7' && value.responses.length !== 7) {
+  if (canonicalName === 'GAD-7' && value.responses.length !== 7) {
     return helpers.error('any.invalid');
   }
   return value;
