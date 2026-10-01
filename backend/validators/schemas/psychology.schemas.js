@@ -269,6 +269,7 @@ export const createAssessmentSchema = Joi.object({
         itemNumber: Joi.number().integer().min(1).required(),
         itemText: Joi.string().trim().max(500),
         question: Joi.string().trim().max(500),
+        score: Joi.number().min(0).max(100).optional(),
         response: Joi.alternatives().try(
           Joi.number(),
           Joi.string(),
@@ -298,8 +299,11 @@ export const createAssessmentSchema = Joi.object({
       'moderate',
       'moderately-severe',
       'severe',
-      'extremely-severe'
+      'extremely-severe',
+      'mínima', 'minima', 'leve', 'moderada', 'moderadamente-severa', 'severa',
+      'probable dependencia', 'consumo dañino', 'consumo riesgoso', 'consumo de bajo riesgo'
     ),
+    category: Joi.string().max(120),
     clinicalNotes: textLongSchema.max(2000),
     notes: textLongSchema.max(2000)
   }).default({}),
