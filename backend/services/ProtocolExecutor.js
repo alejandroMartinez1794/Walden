@@ -75,7 +75,7 @@ class ProtocolExecutor {
   static async completeStep(protocolLogId, stepNumber, data) {
     const protocolLog = await ProtocolLog.findById(protocolLogId);
     if (!protocolLog) throw new Error('Protocol log not found');
-    this._assertClinicianOwnsProtocol(protocolLog, data.clinicianId);
+    await this._assertClinicianOwnsProtocol(protocolLog, data.clinicianId);
     if (protocolLog.isSigned) throw new Error('Cannot modify signed protocol');
 
     const step = protocolLog.steps.find(s => s.stepNumber === stepNumber);
@@ -117,7 +117,7 @@ class ProtocolExecutor {
   static async finalizeProtocol(protocolLogId, completion) {
     const protocolLog = await ProtocolLog.findById(protocolLogId);
     if (!protocolLog) throw new Error('Protocol log not found');
-    this._assertClinicianOwnsProtocol(protocolLog, completion.clinicianId);
+    await this._assertClinicianOwnsProtocol(protocolLog, completion.clinicianId);
     if (protocolLog.isSigned) throw new Error('Protocol already finalized');
 
     // Verify all steps completed
