@@ -237,35 +237,42 @@ export const createAssessmentSchema = Joi.object({
     .max('now')
     .default(() => new Date()),
 
-  // Raw instrument responses are preserved as part of the assessment record.
+  // Canonical clients send raw item responses. Legacy clients may only send a total.
   responses: Joi.array()
     .items(
       Joi.object({
-        itemNumber: Joi.number().integer().min(1).required(),
+        itemNumber: Joi.number().integer().min(1),
         itemText: Joi.string().trim().max(500),
         question: Joi.string().trim().max(500),
         response: Joi.alternatives().try(Joi.number(), Joi.string(), Joi.boolean(), Joi.allow(null)),
       }).min(1)
     )
     .min(1)
-    .max(100)
-    .required(),
+    .max(100),
 
   // The server recalculates the total when numeric responses are available.
   scores: Joi.object({
     total: Joi.number().integer().min(0).max(100),
     subscales: Joi.object().unknown(true),
     percentile: Joi.number().min(0).max(100),
-  }).default({}),
+  }),
 
-  interpretation: Joi.object({
-    severity: Joi.string()
-      .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'),
-    clinicalNotes: textLongSchema.max(2000),
-    // Legacy frontend alias; the controller canonicalizes it to clinicalNotes.
-    notes: textLongSchema.max(2000),
-  }).default({}),
-});
+  // Legacy totalScore is accepted only during migration and normalized by the controller.
+  totalScore: Joi.number().integer().min(0).max(100),
+
+  interpretation: Joi.alternatives().try(
+    Joi.object({
+      severity: Joi.string()
+        .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'),
+      clinicalNotes: textLongSchema.max(2000),
+      // Legacy frontend alias; the controller canonicalizes it to clinicalNotes.
+      notes: textLongSchema.max(2000),
+    }),
+    Joi.string().valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe')
+  ),
+
+  notes: textLongSchema.max(2000),
+}).or('responses', 'totalScore', 'scores');
 /**
  * Schema para crear plan de tratamiento
  * 
