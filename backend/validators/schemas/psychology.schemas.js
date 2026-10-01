@@ -319,6 +319,11 @@ export const createAssessmentSchema = Joi.object({
   } else if (value.interpretation?.severity) {
     value.interpretation.severity =
       severityMap[value.interpretation.severity] || value.interpretation.severity;
+
+    if (value.interpretation.notes !== undefined && value.interpretation.clinicalNotes === undefined) {
+      value.interpretation.clinicalNotes = value.interpretation.notes;
+      delete value.interpretation.notes;
+    }
   }
 
   value.responses = value.responses.map((response) => ({
