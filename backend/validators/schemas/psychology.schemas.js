@@ -227,88 +227,75 @@ export const createSessionSchema = Joi.object({
  * - Etc.
  */
 export const createAssessmentSchema = Joi.object({
-  patient: mongoIdSchema
-    .required()
-    .messages({
-      'any.required': 'El ID del paciente es obligatorio'
-    }),
-
-  /**
-   * Tipo de test
-   * 
-   * Tests validados científicamente
-   */
+  patient: mongoIdSchema.required(),
   testType: Joi.string()
     .valid(
-      'BDI-II',
-      'BAI',
-      'PHQ-9',
-      'GAD-7',
-      'PCL-5',
-      'OCI-R',
-      'YBOCS',
-      'AUDIT',
-      'PSS',
+      'BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PCL-5', 'OCI-R', 'YBOCS',
+      'AUDIT', 'PSS', 'K6', 'K10', 'WHO-5', 'PHQ-15', 'PC-PTSD-5',
+      'SUDS / Evitación (Registro TCC)',
+      'Reformulación de creencias nucleares (TCC)',
+      'Registro de Pensamientos (TCC)',
+      'Registro de conductas de evitación (TCC)',
+      'Mapa de distorsiones cognitivas (TCC)',
+      'Plan de activación conductual (TCC)',
       'other'
     )
-    .required()
-    .messages({
-      'any.required': 'El tipo de test es obligatorio',
-      'any.only': 'Tipo de test inválido'
-    }),
+    .required(),
 
   testDate: dateISOSchema
     .max('now')
-    .default(() => new Date())
-    .messages({
-      'date.max': 'No se pueden registrar evaluaciones futuras'
-    }),
+    .default(() => new Date()),
 
-  /**
-   * Puntuación total del test
-   * 
-   * Cada test tiene su rango:
-   * - BDI-II: 0-63
-   * - BAI: 0-63
-   * - PHQ-9: 0-27
-   * - GAD-7: 0-21
-   * 
-   * Validamos rango amplio (0-100)
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
-    .max(100)
-    .required()
-    .messages({
-      'any.required': 'La puntuación total es obligatoria',
-      'number.min': 'La puntuación mínima es 0',
-      'number.max': 'La puntuación máxima es 100'
-    }),
+  // Canonical assessment representation:
+  // responses[] + scores.total + interpretation.severity.
+  // totalScore/interpretation as scalar are retained only for legacy clients.
+  responses: Joi.array()
+    .items(
+      Joi.object({
+        itemNumber: Joi.number().integer().min(1).required(),
+        question: Joi.string().max(500).allow('', null),
+        itemText: Joi.string().max(500).allow('', null),
+        response: Joi.alternatives().try(Joi.number(), Joi.string(), Joi.boolean()).required()
+      })
+    )
+    .min(1)
+    .max(200)
+    .required(),
 
-  /**
-   * Interpretación de la puntuación
-   * 
-   * Categorías generales:
-   * - minimal: Síntomas mínimos
-   * - mild: Leve
-   * - moderate: Moderado
-   * - severe: Severo
-   */
-  interpretation: Joi.string()
-    .valid('minimal', 'mild', 'moderate', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La interpretación es obligatoria',
-      'any.only': 'Interpretación inválida'
-    }),
+  scores: Joi.object({
+    total: Joi.number().min(0).max(1000).required(),
+    subscales: Joi.object().unknown(true),
+    percentile: Joi.number().min(0).max(100)
+  }).required(),
 
-  // Notas adicionales del psicólogo
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
+  totalScore: Joi.number().min(0).max(1000),
+
+  interpretation: Joi.alternatives().try(
+    Joi.object({
+      severity: Joi.string()
+        .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe')
+        .required(),
+      clinicalNotes: textLongSchema.max(5000).allow('', null),
+      notes: textLongSchema.max(5000).allow('', null)
+    }),
+    Joi.string().valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe')
+  ).required(),
+
+  notes: textLongSchema.max(5000).allow('', null)
+}).custom((value, helpers) => {
+  const declared = value.totalScore ?? value.scores?.total;
+  if (declared === undefined) {
+    return helpers.error('any.custom', { message: 'La puntuación total es obligatoria' });
+  }
+
+  if (value.scores?.total !== undefined && value.totalScore !== undefined &&
+      Number(value.scores.total) !== Number(value.totalScore)) {
+    return helpers.error('any.custom', { message: 'scores.total y totalScore deben coincidir' });
+  }
+
+  return value;
+}, 'Canonical assessment contract').messages({
+  'any.custom': '{{#message}}'
 });
 
 /**
