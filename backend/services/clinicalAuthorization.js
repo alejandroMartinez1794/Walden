@@ -138,13 +138,19 @@ export const assertPatientAccess = async ({
   }
 
   const query = {
-    $or: [
-      { patientId: requestedPatientId },
-      { patient: requestedPatientId },
-    ],
-    $or: [
-      { psychologist: actorId },
-      { psychologistId: actorId },
+    $and: [
+      {
+        $or: [
+          { patientId: requestedPatientId },
+          { patient: requestedPatientId },
+        ],
+      },
+      {
+        $or: [
+          { psychologist: actorId },
+          { psychologistId: actorId },
+        ],
+      },
     ],
     isDeleted: { $ne: true },
   };
