@@ -34,12 +34,6 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
       'WHO-5',
       'PHQ-15',
       'PC-PTSD-5',
-      'SUDS / Evitación (Registro TCC)',
-      'Reformulación de creencias nucleares (TCC)',
-      'Registro de Pensamientos (TCC)',
-      'Registro de conductas de evitación (TCC)',
-      'Mapa de distorsiones cognitivas (TCC)',
-      'Plan de activación conductual (TCC)',
       'other'
     ],
   },
@@ -56,6 +50,8 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
   // Puntuaciones
   scores: {
     total: { type: Number, required: true },
+    raw: Number,
+    scaled: Number,
     subscales: Map, // Para tests con subescalas (ej: BDI-II tiene cognitivo, somático)
     percentile: Number, // Percentil según normas
   },
