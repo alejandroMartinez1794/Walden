@@ -27,7 +27,11 @@ class ProtocolExecutor {
     const plan = await TreatmentPlan.findById(treatmentPlanId)
       .select('_id patient patientId psychologist psychologistId isDeleted');
 
-    if (!plan || plan.isDeleted) throw new Error('Treatment plan not found');
+    if (!plan || plan.isDeleted) {
+      const error = new Error('Treatment plan not found');
+      error.statusCode = 404;
+      throw error;
+    }
     this._assertClinicianOwnsPlan(plan, clinicianId);
 
     const alert = await ClinicalAlert.findById(alertId)
@@ -425,12 +429,16 @@ class ProtocolExecutor {
 
   static _assertClinicianOwnsPlan(plan, clinicianId) {
     if (!clinicianId || !mongoose.isValidObjectId(clinicianId)) {
-      throw new Error('Unauthorized clinical actor');
+      const error = new Error('Unauthorized clinical actor');
+      error.statusCode = 403;
+      throw error;
     }
 
     const assignedClinician = plan.psychologistId || plan.psychologist;
     if (!assignedClinician || assignedClinician.toString() !== clinicianId.toString()) {
-      throw new Error('Clinician is not assigned to this treatment plan');
+      const error = new Error('Clinician is not assigned to this treatment plan');
+      error.statusCode = 403;
+      throw error;
     }
   }
 
