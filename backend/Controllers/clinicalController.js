@@ -78,12 +78,30 @@ export const createMeasure = async (req, res) => {
     const { id: patientId } = req.params;
     const { name, responses, itemMap } = req.body;
 
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    const normalizedResponses = (Array.isArray(responses) ? responses : []).map((response, index) => {
+      if (typeof response === 'number') {
+        return { itemNumber: index + 1, response };
+      }
+      return {
+        ...response,
+        itemNumber: response.itemNumber ?? index + 1,
+        response: response.response ?? response.score,
+      };
+    });
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+    let score = 0; let severity; let item9;
+    if (name === 'PHQ-9') { const s = scorePHQ9(normalizedResponses); score = s.total; severity = s.severity; item9 = s.item9; }
+    else if (name === 'GAD-7') { const s = scoreGAD7(normalizedResponses); score = s.total; severity = s.severity; }
+    else { score = normalizedResponses.reduce((a, b) => a + Number(b?.response ?? 0), 0); }
+
+    const measure = await Measure.create({
+      patient: patientId,
+      clinician: clinicianId,
+      name,
+      responses: normalizedResponses,
+      score,
+      itemMap,
+    });
 
     // Build recent PHQ-9 series for trend
     const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
