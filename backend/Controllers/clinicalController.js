@@ -118,9 +118,10 @@ export const generateClinicalSummaryHandler = async (req, res) => {
     const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
     const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({ score: m.score, date: m.takenAt }));
 
-    // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
+    // No inventamos datos clínicos. La adherencia solo puede calcularse cuando
+    // existan registros de sesiones/tareas con estados verificables.
     const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
+    const adherence = null;
 
     const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
 
