@@ -199,6 +199,37 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
   });
 });
 
+  test('acepta el contrato canónico usado por PHQ-9/GAD-7', () => {
+    const { error } = createAssessmentSchema.validate({
+      patient: '507f1f77bcf86cd799439011',
+      testType: 'PHQ-9',
+      testDate: new Date().toISOString(),
+      responses: [{ itemNumber: 1, question: 'Interés o placer', response: 2 }],
+      scores: { total: 2 },
+      interpretation: { severity: 'minimal', notes: 'Nota clínica' }
+    });
+    expect(error).toBeUndefined();
+  });
+
+  test('acepta respuestas con itemText y puntuación calculable sin totalScore plano', () => {
+    const { error } = createAssessmentSchema.validate({
+      patient: '507f1f77bcf86cd799439011',
+      testType: 'GAD-7',
+      responses: [{ itemNumber: 1, itemText: 'Sentirse nervioso', response: 1 }],
+      interpretation: { severity: 'leve' }
+    });
+    expect(error).toBeUndefined();
+  });
+
+  test('rechaza respuestas sin valor de respuesta', () => {
+    const { error } = createAssessmentSchema.validate({
+      patient: '507f1f77bcf86cd799439011',
+      testType: 'PHQ-9',
+      responses: [{ itemNumber: 1 }]
+    });
+    expect(error).toBeDefined();
+  });
+
 describe('Psychology Schemas - createSessionSchema', () => {
   const validSession = {
     patient: '507f1f77bcf86cd799439011',
