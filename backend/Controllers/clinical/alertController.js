@@ -9,7 +9,6 @@ import ClinicalAlert from '../../models/ClinicalAlertSchema.js';
 import ClinicalDecisionEngine from '../../services/ClinicalDecisionEngine.js';
 import ProtocolExecutor from '../../services/ProtocolExecutor.js';
 import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
-import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
 import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
 
 /**
