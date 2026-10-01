@@ -1,5 +1,6 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
@@ -77,6 +78,21 @@ export const createMeasure = async (req, res) => {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
     const { name, responses, itemMap, assessmentId } = req.body;
+
+    if (assessmentId) {
+      const assessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: patientId,
+        psychologist: clinicianId,
+      }).select('_id');
+
+      if (!assessment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Evaluación de origen no encontrada',
+        });
+      }
+    }
 
     const normalizedResponses = (Array.isArray(responses) ? responses : []).map((response, index) => {
       if (typeof response === 'number') {
