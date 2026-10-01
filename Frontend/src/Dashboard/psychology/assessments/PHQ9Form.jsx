@@ -121,7 +121,13 @@ const PHQ9Form = () => {
         },
         interpretation: {
           severity: (() => {
-            const labels = {\n              'Mínima': 'minimal',\n              'Leve': 'mild',\n              'Moderada': 'moderate',\n              'Moderadamente severa': 'moderately-severe',\n              'Severa': 'severe',\n            };
+            const labels = {
+              'Mínima': 'minimal',
+              'Leve': 'mild',
+              'Moderada': 'moderate',
+              'Moderadamente severa': 'moderately-severe',
+              'Severa': 'severe',
+            };
             return labels[severity.label] || 'minimal';\n          })(),
           notes: `PHQ-9 Score: ${totalScore}/27. ${severity.label} depression.`,
         },
