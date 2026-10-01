@@ -7,7 +7,6 @@
 
 import ProtocolLog from '../../models/ProtocolLogSchema.js';
 import ProtocolExecutor from '../../services/ProtocolExecutor.js';
-import ProtocolLog from '../../models/ProtocolLogSchema.js';
 import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
 
 /**
