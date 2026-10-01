@@ -40,7 +40,7 @@ export const getProtocols = async (req, res) => {
 
     res.status(200).json({ success: true, data: enriched });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -67,7 +67,7 @@ export const getProtocolDetails = async (req, res) => {
 
     res.status(200).json({ success: true, data: status });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -100,7 +100,7 @@ export const completeStep = async (req, res) => {
       data: protocol,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -134,7 +134,7 @@ export const finalizeProtocol = async (req, res) => {
       data: protocol,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -152,7 +152,7 @@ export const getFollowUpProtocols = async (req, res) => {
       count: protocols.length,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -170,7 +170,7 @@ export const getActiveProtocols = async (req, res) => {
       count: protocols.length,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -209,6 +209,6 @@ export const amendProtocol = async (req, res) => {
       data: protocol,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
