@@ -27,7 +27,7 @@ describe('Assessment contract', () => {
       ...base,
       testType: 'BAI',
       scores: { total: 26 },
-      interpretation: { severity: 'Severa' },
+      interpretation: { severity: 'severa' },
       responses: base.responses.map((item, index) => ({
         ...item,
         response: index === 0 ? 26 : 0,
