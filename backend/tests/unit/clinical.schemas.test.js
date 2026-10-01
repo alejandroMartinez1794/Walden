@@ -39,4 +39,23 @@ describe('Clinical Schemas - createMeasureSchema', () => {
     });
     expect(error).toBeDefined();
   });
+
+  test('debe aceptar provenance mediante assessmentId', () => {
+    const { error, value } = createMeasureSchema.validate({
+      name: 'PHQ-9',
+      assessmentId: '507f1f77bcf86cd799439011',
+      responses: [0, 1, 2],
+    });
+    expect(error).toBeUndefined();
+    expect(value.assessmentId).toBe('507f1f77bcf86cd799439011');
+  });
+
+  test('debe rechazar assessmentId inválido', () => {
+    const { error } = createMeasureSchema.validate({
+      name: 'PHQ-9',
+      assessmentId: 'not-an-object-id',
+      responses: [0, 1, 2],
+    });
+    expect(error).toBeDefined();
+  });
 });
