@@ -227,88 +227,64 @@ export const createSessionSchema = Joi.object({
  * - Etc.
  */
 export const createAssessmentSchema = Joi.object({
-  patient: mongoIdSchema
-    .required()
-    .messages({
-      'any.required': 'El ID del paciente es obligatorio'
-    }),
+  patient: mongoIdSchema.required().messages({
+    'any.required': 'El ID del paciente es obligatorio'
+  }),
 
-  /**
-   * Tipo de test
-   * 
-   * Tests validados científicamente
-   */
-  testType: Joi.string()
-    .valid(
-      'BDI-II',
-      'BAI',
-      'PHQ-9',
-      'GAD-7',
-      'PCL-5',
-      'OCI-R',
-      'YBOCS',
-      'AUDIT',
-      'PSS',
-      'other'
+  testType: Joi.string().valid(
+    'BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PCL-5', 'OCI-R',
+    'YBOCS', 'AUDIT', 'PSS', 'other'
+  ).required().messages({
+    'any.required': 'El tipo de test es obligatorio',
+    'any.only': 'Tipo de test inválido'
+  }),
+
+  testDate: dateISOSchema.max('now').default(() => new Date()).messages({
+    'date.max': 'No se pueden registrar evaluaciones futuras'
+  }),
+
+  // Canonical contract used by PsychologicalAssessmentSchema and the forms.
+  // Responses are preserved; the server derives the total when possible.
+  responses: Joi.array().items(Joi.object({
+    itemNumber: Joi.number().integer().min(1).optional(),
+    itemText: Joi.string().max(500).allow('').optional(),
+    question: Joi.string().max(500).allow('').optional(), // legacy frontend field
+    response: Joi.alternatives().try(
+      Joi.number().min(0).max(100),
+      Joi.string().max(200),
+      Joi.boolean()
+    ).required()
+  }).unknown(false)).max(100).optional(),
+
+  scores: Joi.object({
+    total: Joi.number().min(0).max(1000).optional(),
+    subscales: Joi.object().pattern(Joi.string(), Joi.number()).optional(),
+    percentile: Joi.number().min(0).max(100).optional()
+  }).optional(),
+
+  // Compatibility with older clients that submit a flat score.
+  totalScore: Joi.number().min(0).max(1000).optional(),
+
+  // Canonical object form; string form remains accepted for legacy clients.
+  interpretation: Joi.alternatives().try(
+    Joi.object({
+      severity: Joi.string().valid(
+        'minimal', 'mild', 'moderate', 'moderately-severe',
+        'severe', 'extremely-severe'
+      ).optional(),
+      clinicalNotes: Joi.string().max(5000).allow('').optional(),
+      notes: Joi.string().max(5000).allow('').optional()
+    }).unknown(false),
+    Joi.string().valid(
+      'minimal', 'mild', 'moderate', 'moderately-severe',
+      'severe', 'extremely-severe'
     )
-    .required()
-    .messages({
-      'any.required': 'El tipo de test es obligatorio',
-      'any.only': 'Tipo de test inválido'
-    }),
+  ).optional(),
 
-  testDate: dateISOSchema
-    .max('now')
-    .default(() => new Date())
-    .messages({
-      'date.max': 'No se pueden registrar evaluaciones futuras'
-    }),
-
-  /**
-   * Puntuación total del test
-   * 
-   * Cada test tiene su rango:
-   * - BDI-II: 0-63
-   * - BAI: 0-63
-   * - PHQ-9: 0-27
-   * - GAD-7: 0-21
-   * 
-   * Validamos rango amplio (0-100)
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
-    .max(100)
-    .required()
-    .messages({
-      'any.required': 'La puntuación total es obligatoria',
-      'number.min': 'La puntuación mínima es 0',
-      'number.max': 'La puntuación máxima es 100'
-    }),
-
-  /**
-   * Interpretación de la puntuación
-   * 
-   * Categorías generales:
-   * - minimal: Síntomas mínimos
-   * - mild: Leve
-   * - moderate: Moderado
-   * - severe: Severo
-   */
-  interpretation: Joi.string()
-    .valid('minimal', 'mild', 'moderate', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La interpretación es obligatoria',
-      'any.only': 'Interpretación inválida'
-    }),
-
-  // Notas adicionales del psicólogo
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
+  // Legacy note field is mapped to interpretation.clinicalNotes by the controller.
+  notes: textLongSchema.max(2000).optional()
+}).or('scores', 'totalScore', 'responses').messages({
+  'object.missing': 'Debe proporcionar respuestas o una puntuación'
 });
 
 /**
