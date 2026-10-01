@@ -139,20 +139,31 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
   const validAssessment = {
     patient: '507f1f77bcf86cd799439011',
     testType: 'PHQ-9',
-    totalScore: 15,
-    interpretation: 'moderate',
-    notes: 'Paciente presenta sintomas de ansiedad moderada con episodios ocasionales'
+    testDate: new Date().toISOString(),
+    responses: Array.from({ length: 9 }, (_, index) => ({
+      itemNumber: index + 1,
+      question: `Pregunta ${index + 1}`,
+      response: 1,
+    })),
+    scores: { total: 9 },
+    interpretation: {
+      severity: 'mild',
+      notes: 'Evaluación de síntomas depresivos y seguimiento clínico.',
+    },
   };
 
-  test('debe aceptar evaluación válida completa', () => {
-    const { error } = createAssessmentSchema.validate(validAssessment);
+  test('debe aceptar el contrato canónico de evaluación', () => {
+    const { error, value } = createAssessmentSchema.validate(validAssessment);
     expect(error).toBeUndefined();
+    expect(value.responses).toHaveLength(9);
+    expect(value.scores.total).toBe(9);
+    expect(value.interpretation.notes).toBeDefined();
   });
 
-  test('debe rechazar patientId inválido', () => {
+  test('debe rechazar patient inválido', () => {
     const { error } = createAssessmentSchema.validate({
       ...validAssessment,
-      patient: 'invalid-id'
+      patient: 'invalid-id',
     });
     expect(error).toBeDefined();
   });
@@ -160,42 +171,30 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
   test('debe rechazar tipo de evaluación inválido', () => {
     const { error } = createAssessmentSchema.validate({
       ...validAssessment,
-      assessmentType: 'invalid-type'
+      testType: 'invalid-type',
     });
     expect(error).toBeDefined();
   });
 
-  test('debe rechazar findings muy cortos', () => {
+  test('debe aceptar severidad moderadamente-severa usada por PHQ-9', () => {
     const { error } = createAssessmentSchema.validate({
       ...validAssessment,
-      findings: 'Ansioso'
+      interpretation: { severity: 'moderately-severe' },
     });
-    expect(error).toBeDefined();
+    expect(error).toBeUndefined();
   });
 
-  test('debe rechazar mentalStatusExam incompleto', () => {
-    const { error } = createAssessmentSchema.validate({
+  test('debe conservar respuestas y score dentro de la estructura real del modelo', () => {
+    const { error, value } = createAssessmentSchema.validate({
       ...validAssessment,
-      mentalStatusExam: {
-        appearance: 'Normal',
-        behavior: 'Cooperativo'
-        // Faltan campos requeridos
-      }
+      responses: [{ itemNumber: 1, itemText: 'Síntoma', response: 2 }],
+      scores: { total: 2 },
+      interpretation: { severity: 'minimal', clinicalNotes: 'Seguimiento.' },
     });
-    expect(error).toBeDefined();
-  });
-
-  test('debe rechazar riskAssessment sin riskLevel', () => {
-    const { error } = createAssessmentSchema.validate({
-      ...validAssessment,
-      riskAssessment: {
-        suicidal: false,
-        homicidal: false,
-        selfHarm: false
-        // Falta riskLevel
-      }
-    });
-    expect(error).toBeDefined();
+    expect(error).toBeUndefined();
+    expect(value.responses[0].itemText).toBe('Síntoma');
+    expect(value.scores.total).toBe(2);
+    expect(value.interpretation.clinicalNotes).toBe('Seguimiento.');
   });
 });
 
