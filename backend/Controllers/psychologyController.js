@@ -211,7 +211,46 @@ export const getPatientSessions = async (req, res) => {
 export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const { testType, responses = [] } = req.body;
+    const { patient: patientId, testType, responses = [] } = req.body;
+
+    // A valid clinician token is not sufficient: bind this assessment to a
+    // patient assigned to the authenticated psychologist.
+    const patient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: psychologistId,
+    }).select('_id');
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Paciente no encontrado',
+      });
+    }
+
+    if (!Array.isArray(responses) || responses.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Las respuestas de la evaluación son obligatorias',
+      });
+    }
+
+    const expectedItems = { 'PHQ-9': 9, 'GAD-7': 7, 'BDI-II': 21 }[testType];
+    if (expectedItems && responses.length !== expectedItems) {
+      return res.status(400).json({
+        success: false,
+        message: `La evaluación ${testType} requiere ${expectedItems} respuestas`,
+      });
+    }
+
+    // Scored screening instruments require numeric response values. Do not
+    // silently omit malformed answers, because that can understate severity.
+    if (['PHQ-9', 'GAD-7', 'BDI-II'].includes(testType) &&
+        responses.some((item) => !Number.isFinite(Number(item?.response)))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Todas las respuestas deben contener una puntuación numérica válida',
+      });
+    }
 
     // Las respuestas son la fuente de verdad. Nunca confiamos en scores.total
     // enviado por el cliente para establecer el resultado clínico.
