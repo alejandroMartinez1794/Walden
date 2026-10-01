@@ -1,5 +1,6 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
@@ -76,15 +77,49 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name: requestedName, measureType, responses, itemMap } = req.body;
+    const { name: requestedName, measureType, responses, itemMap, assessmentId } = req.body;
     const name = requestedName || ({ phq9: 'PHQ-9', gad7: 'GAD-7', other: 'OTHER' }[measureType]);
 
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    if (assessmentId) {
+      const assessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: patientId,
+        psychologist: clinicianId,
+      }).select('_id');
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+      if (!assessment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Evaluación de origen no encontrada',
+        });
+      }
+    }
+
+    const normalizedResponses = (Array.isArray(responses) ? responses : []).map((response, index) => {
+      if (typeof response === 'number') {
+        return { itemNumber: index + 1, response };
+      }
+      return {
+        ...response,
+        itemNumber: response.itemNumber ?? index + 1,
+        response: response.response ?? response.score,
+      };
+    });
+
+    let score = 0; let severity; let item9;
+    if (name === 'PHQ-9') { const s = scorePHQ9(normalizedResponses); score = s.total; severity = s.severity; item9 = s.item9; }
+    else if (name === 'GAD-7') { const s = scoreGAD7(normalizedResponses); score = s.total; severity = s.severity; }
+    else { score = normalizedResponses.reduce((a, b) => a + Number(b?.response ?? 0), 0); }
+
+    const measure = await Measure.create({
+      patient: patientId,
+      clinician: clinicianId,
+      assessmentId,
+      name,
+      responses: normalizedResponses,
+      score,
+      itemMap,
+    });
 
     // Build recent PHQ-9 series for trend
     const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
