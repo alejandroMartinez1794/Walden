@@ -149,6 +149,40 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
     expect(error).toBeUndefined();
   });
 
+  test('debe aceptar el contrato canónico usado por los formularios', () => {
+    const { error, value } = createAssessmentSchema.validate({
+      patient: validAssessment.patient,
+      testType: 'PHQ-9',
+      testDate: new Date().toISOString(),
+      responses: [
+        { itemNumber: 1, itemText: 'Poco interés', response: 2 },
+        { itemNumber: 2, itemText: 'Ánimo deprimido', response: 1 }
+      ],
+      scores: { total: 3 },
+      interpretation: {
+        severity: 'mild',
+        notes: 'Resultado calculado a partir de las respuestas'
+      }
+    });
+
+    expect(error).toBeUndefined();
+    expect(value.responses).toHaveLength(2);
+    expect(value.scores.total).toBe(3);
+    expect(value.interpretation.severity).toBe('mild');
+    expect(value.interpretation.notes).toBeDefined();
+  });
+
+  test('debe rechazar una evaluación sin respuestas', () => {
+    const { error } = createAssessmentSchema.validate({
+      patient: validAssessment.patient,
+      testType: 'PHQ-9',
+      scores: { total: 3 },
+      interpretation: { severity: 'mild' }
+    });
+
+    expect(error).toBeDefined();
+  });
+
   test('debe rechazar patientId inválido', () => {
     const { error } = createAssessmentSchema.validate({
       ...validAssessment,
