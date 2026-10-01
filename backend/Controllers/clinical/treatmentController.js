@@ -39,7 +39,7 @@ export const getTreatmentPlan = async (req, res) => {
 
     res.status(200).json({ success: true, data: plan });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -99,7 +99,7 @@ export const createTreatmentPlan = async (req, res) => {
       data: plan,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -166,7 +166,7 @@ export const progressPhase = async (req, res) => {
       assessment,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -229,7 +229,7 @@ export const updateRiskAssessment = async (req, res) => {
       data: plan,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -265,7 +265,7 @@ export const getProgressMetrics = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -301,6 +301,6 @@ export const getCaseload = async (req, res) => {
 
     res.status(200).json({ success: true, data: enriched });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
