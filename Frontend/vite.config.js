@@ -14,7 +14,7 @@ export default defineConfig({
     {
       name: 'seo-clinical-prerender',
       apply: 'build',
-      async closeBundle() {
+      async writeBundle() {
         await generateSeoArtifacts({
           distDir: resolve(rootDir, 'dist'),
         })
