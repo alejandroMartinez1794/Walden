@@ -1,5 +1,67 @@
 import mongoose from "mongoose";
 import crypto from "node:crypto";
+import { encryptClinicalData, decryptClinicalData } from "../utils/clinicalCrypto.js";
+
+
+const ENCRYPTED_VALUE_PATTERN = /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/i;
+
+const processPhiString = (value, processor) => {
+  if (typeof value !== "string" || !value) return value;
+  if (processor === encryptClinicalData && ENCRYPTED_VALUE_PATTERN.test(value)) return value;
+  if (processor === decryptClinicalData && !ENCRYPTED_VALUE_PATTERN.test(value)) return value;
+  return processor(value);
+};
+
+const processNestedStrings = (value, processor) => {
+  if (typeof value === "string") return processPhiString(value, processor);
+  if (Array.isArray(value)) return value.map((item) => processNestedStrings(item, processor));
+  if (value && typeof value === "object") {
+    Object.keys(value).forEach((key) => {
+      value[key] = processNestedStrings(value[key], processor);
+    });
+  }
+  return value;
+};
+
+const processPhiFields = (target, processor) => {
+  if (!target) return;
+  const fields = [
+    "activationReason", "immediateContext", "clinicalDecision", "clinicalJustification",
+    "followUpNotes", "cancellationReason", "supervisorReview.reviewNotes",
+  ];
+  fields.forEach((path) => {
+    const parts = path.split(".");
+    let current = target;
+    for (let i = 0; i < parts.length - 1; i += 1) current = current?.[parts[i]];
+    const key = parts[parts.length - 1];
+    if (current && typeof current[key] === "string") current[key] = processPhiString(current[key], processor);
+  });
+  if (Array.isArray(target.steps)) {
+    target.steps.forEach((step) => {
+      ["description", "notes"].forEach((key) => {
+        if (typeof step[key] === "string") step[key] = processPhiString(step[key], processor);
+      });
+      if (Array.isArray(step.evidence)) {
+        step.evidence.forEach((evidence) => {
+          if (typeof evidence.content === "string") evidence.content = processPhiString(evidence.content, processor);
+        });
+      }
+    });
+  }
+  if (target.safetyPlanDetails) {
+    target.safetyPlanDetails.warningSignsIdentified = processNestedStrings(target.safetyPlanDetails.warningSignsIdentified, processor);
+    target.safetyPlanDetails.copingStrategiesReviewed = processNestedStrings(target.safetyPlanDetails.copingStrategiesReviewed, processor);
+    target.safetyPlanDetails.supportContactsReached = processNestedStrings(target.safetyPlanDetails.supportContactsReached, processor);
+    if (typeof target.safetyPlanDetails.emergencyServicesDetails === "string") target.safetyPlanDetails.emergencyServicesDetails = processPhiString(target.safetyPlanDetails.emergencyServicesDetails, processor);
+  }
+  if (Array.isArray(target.followUpPlan?.additionalActions)) target.followUpPlan.additionalActions = processNestedStrings(target.followUpPlan.additionalActions, processor);
+  if (Array.isArray(target.amendments)) target.amendments = target.amendments.map((amendment) => {
+    if (typeof amendment.reason === "string") amendment.reason = processPhiString(amendment.reason, processor);
+    if (typeof amendment.changes === "string") amendment.changes = processPhiString(amendment.changes, processor);
+    if (amendment.previousVersion) amendment.previousVersion = processNestedStrings(amendment.previousVersion, processor);
+    return amendment;
+  });
+};
 
 /**
  * ProtocolLog Schema - Formal Protocol Execution Audit Trail
