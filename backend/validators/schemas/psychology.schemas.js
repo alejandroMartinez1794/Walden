@@ -273,12 +273,20 @@ export const createAssessmentSchema = Joi.object({
   interpretation: Joi.alternatives().try(
     Joi.object({
       severity: Joi.string()
-        .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe')
+        .valid(
+          'minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe',
+          'mínima', 'minima', 'leve', 'moderada', 'moderadamente-severa', 'moderadamente severa',
+          'severa', 'extremadamente-severa', 'extremadamente severa', 'none'
+        )
         .required(),
       clinicalNotes: textLongSchema.max(5000).allow('', null),
       notes: textLongSchema.max(5000).allow('', null)
     }),
-    Joi.string().valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe')
+    Joi.string().valid(
+      'minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe',
+      'mínima', 'minima', 'leve', 'moderada', 'moderadamente-severa', 'moderadamente severa',
+      'severa', 'extremadamente-severa', 'extremadamente severa', 'none'
+    )
   ).required(),
 
   notes: textLongSchema.max(5000).allow('', null)
@@ -292,6 +300,31 @@ export const createAssessmentSchema = Joi.object({
       Number(value.scores.total) !== Number(value.totalScore)) {
     return helpers.error('any.custom', { message: 'scores.total y totalScore deben coincidir' });
   }
+
+  const severityMap = {
+    'mínima': 'minimal', 'minima': 'minimal', 'none': 'minimal',
+    'leve': 'mild',
+    'moderada': 'moderate',
+    'moderadamente-severa': 'moderately-severe',
+    'moderadamente severa': 'moderately-severe',
+    'severa': 'severe',
+    'extremadamente-severa': 'extremely-severe',
+    'extremadamente severa': 'extremely-severe'
+  };
+
+  if (typeof value.interpretation === 'string') {
+    value.interpretation = {
+      severity: severityMap[value.interpretation] || value.interpretation
+    };
+  } else if (value.interpretation?.severity) {
+    value.interpretation.severity =
+      severityMap[value.interpretation.severity] || value.interpretation.severity;
+  }
+
+  value.responses = value.responses.map((response) => ({
+    ...response,
+    itemText: response.itemText ?? response.question
+  }));
 
   return value;
 }, 'Canonical assessment contract').messages({
