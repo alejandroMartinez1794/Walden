@@ -10,6 +10,7 @@ import ClinicalDecisionEngine from '../../services/ClinicalDecisionEngine.js';
 import ProtocolExecutor from '../../services/ProtocolExecutor.js';
 import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
 import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
+import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
 
 /**
  * GET /api/v1/clinical/alerts
@@ -29,7 +30,6 @@ export const getAlerts = async (req, res) => {
     if (alertType) query.alertType = alertType;
 
     // Find treatment plans for this psychologist
-    const TreatmentPlan = require('../../models/TreatmentPlanSchema.js').default;
     const plans = await TreatmentPlan.find({ psychologist: req.userId }).select('_id');
     const planIds = plans.map(p => p._id);
 
@@ -246,7 +246,6 @@ export const activateProtocol = async (req, res) => {
  */
 export const getOverdueAlerts = async (req, res) => {
   try {
-    const TreatmentPlan = require('../../models/TreatmentPlanSchema.js').default;
     const plans = await TreatmentPlan.find({ psychologist: req.userId }).select('_id');
     const planIds = plans.map(p => p._id);
 
