@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "node:crypto";
 
 /**
  * ProtocolLog Schema - Formal Protocol Execution Audit Trail
@@ -269,7 +270,6 @@ ProtocolLogSchema.methods.sign = function (clinicianId) {
   this.completedBy = clinicianId;
 
   // Generate simple hash for integrity (in production, use proper cryptographic signature)
-  const crypto = require("crypto");
   const content = JSON.stringify(this.toObject());
   this.digitalSignature = crypto.createHash("sha256").update(content).digest("hex");
 
