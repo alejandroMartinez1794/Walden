@@ -325,6 +325,13 @@ export const createAssessment = async (req, res) => {
       req.body.interpretation?.notes ??
       req.body.notes;
 
+    const suppliedInterpretation = { ...(req.body.interpretation || {}) };
+    if (testType === 'AUDIT') {
+      suppliedInterpretation.category =
+        suppliedInterpretation.category || suppliedInterpretation.severity;
+      delete suppliedInterpretation.severity;
+    }
+
     const assessmentData = {
       ...req.body,
       psychologist: psychologistId,
@@ -334,11 +341,8 @@ export const createAssessment = async (req, res) => {
         total,
       },
       interpretation: {
-        ...(req.body.interpretation || {}),
+        ...suppliedInterpretation,
         ...(severity ? { severity } : {}),
-        ...(testType === 'AUDIT' && req.body.interpretation?.severity
-          ? { category: req.body.interpretation.severity }
-          : {}),
         ...(clinicalNotes ? { clinicalNotes } : {}),
       },
     };
