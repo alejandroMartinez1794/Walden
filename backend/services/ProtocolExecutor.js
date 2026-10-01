@@ -15,6 +15,7 @@ import ProtocolLog from '../models/ProtocolLogSchema.js';
 import ClinicalAlert from '../models/ClinicalAlertSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import logger from '../utils/logger.js';
+import mongoose from 'mongoose';
 
 class ProtocolExecutor {
   /**
@@ -23,6 +24,20 @@ class ProtocolExecutor {
    * @returns {Object} ProtocolLog document
    */
   static async initiateProtocol({ alertId, patientId, treatmentPlanId, protocolType, clinicianId, reason, context }) {
+    const plan = await TreatmentPlan.findById(treatmentPlanId)
+      .select('_id patient patientId psychologist psychologistId isDeleted');
+
+    if (!plan || plan.isDeleted) throw new Error('Treatment plan not found');
+    this._assertClinicianOwnsPlan(plan, clinicianId);
+
+    const alert = await ClinicalAlert.findById(alertId)
+      .select('_id treatmentPlanId patientId');
+
+    if (!alert) throw new Error('Clinical alert not found');
+    if (alert.treatmentPlanId?.toString() !== plan._id.toString()) {
+      throw new Error('Clinical alert does not belong to treatment plan');
+    }
+
     // Get protocol template
     const protocolTemplate = this._getProtocolTemplate(protocolType);
 
@@ -60,6 +75,7 @@ class ProtocolExecutor {
   static async completeStep(protocolLogId, stepNumber, data) {
     const protocolLog = await ProtocolLog.findById(protocolLogId);
     if (!protocolLog) throw new Error('Protocol log not found');
+    this._assertClinicianOwnsProtocol(protocolLog, data.clinicianId);
     if (protocolLog.isSigned) throw new Error('Cannot modify signed protocol');
 
     const step = protocolLog.steps.find(s => s.stepNumber === stepNumber);
@@ -101,6 +117,7 @@ class ProtocolExecutor {
   static async finalizeProtocol(protocolLogId, completion) {
     const protocolLog = await ProtocolLog.findById(protocolLogId);
     if (!protocolLog) throw new Error('Protocol log not found');
+    this._assertClinicianOwnsProtocol(protocolLog, completion.clinicianId);
     if (protocolLog.isSigned) throw new Error('Protocol already finalized');
 
     // Verify all steps completed
@@ -128,12 +145,9 @@ class ProtocolExecutor {
       resolvedAt: new Date(),
     });
 
-    // Update treatment plan risk level if applicable
-    if (protocolLog.protocolType === 'SUICIDE_PROTOCOL' && completion.outcome === 'RESOLVED') {
-      await TreatmentPlan.findByIdAndUpdate(protocolLog.treatmentPlanId, {
-        riskLevel: 'MODERATE', // Downgrade from HIGH/IMMINENT after protocol
-      });
-    }
+    // A resolved protocol is not itself a clinical reassessment. Do not
+    // automatically downgrade the treatment plan's risk state here.
+    // A clinician must record a new formal RiskAssessment before changing it.
 
     return protocolLog;
   }
@@ -150,6 +164,7 @@ class ProtocolExecutor {
       .lean();
 
     if (!protocolLog) throw new Error('Protocol log not found');
+    await this._assertProtocolAccessByPlan(protocolLog, protocolLog.activatedBy?._id || protocolLog.activatedBy);
 
     const totalSteps = protocolLog.steps.length;
     const completedSteps = protocolLog.steps.filter(s => s.completed).length;
@@ -403,6 +418,30 @@ class ProtocolExecutor {
     const template = templates[protocolType];
     if (!template) throw new Error(`No template found for protocol type: ${protocolType}`);
     return template;
+  }
+
+  static _assertClinicianOwnsPlan(plan, clinicianId) {
+    if (!clinicianId || !mongoose.isValidObjectId(clinicianId)) {
+      throw new Error('Unauthorized clinical actor');
+    }
+
+    const assignedClinician = plan.psychologistId || plan.psychologist;
+    if (!assignedClinician || assignedClinician.toString() !== clinicianId.toString()) {
+      throw new Error('Clinician is not assigned to this treatment plan');
+    }
+  }
+
+  static async _assertProtocolAccessByPlan(protocolLog, clinicianId) {
+    const plan = await TreatmentPlan.findById(protocolLog.treatmentPlanId)
+      .select('_id psychologist psychologistId isDeleted');
+
+    if (!plan || plan.isDeleted) throw new Error('Treatment plan not found');
+    this._assertClinicianOwnsPlan(plan, clinicianId);
+    return plan;
+  }
+
+  static async _assertClinicianOwnsProtocol(protocolLog, clinicianId) {
+    return this._assertProtocolAccessByPlan(protocolLog, clinicianId);
   }
 
   static async _requestProtocolCompletion(protocolLogId) {
