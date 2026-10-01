@@ -38,6 +38,8 @@ export const createMeasureSchema = Joi.object({
     .valid('PHQ-9', 'GAD-7', 'BDI-II', 'OTHER')
     .required(),
 
+  assessmentId: mongoIdSchema,
+
   // Keep the original instrument responses; scoring is performed server-side.
   responses: Joi.array()
     .items(
