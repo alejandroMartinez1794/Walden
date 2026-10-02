@@ -118,9 +118,11 @@ export const generateClinicalSummaryHandler = async (req, res) => {
     const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
     const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({ score: m.score, date: m.takenAt }));
 
-    // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
-    const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
+    // No inferir adherencia cuando todavía no existe una fuente clínica fiable.
+    // Las notas tampoco se copian al resumen mientras el pipeline de PHI no tenga
+    // un almacén cifrado/provenance adecuado para esta representación derivada.
+    const lastNotes = [];
+    const adherence = null;
 
     const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
 
