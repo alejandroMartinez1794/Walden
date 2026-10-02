@@ -291,17 +291,12 @@ export const createAssessmentSchema = Joi.object({
 
   notes: textLongSchema.max(2000).optional(),
   comparisonNotes: textLongSchema.max(2000).optional(),
-}).custom((value, helpers) => {
-  if (!value.interpretation && value.testType && value.responses) {
-    return value;
-  }
-  return value;
-}, 'assessment contract validation');
+});
 
 /**
  * Schema para crear plan de tratamiento
  */
- = Joi.object({
+export const createTreatmentPlanSchema = Joi.object({
   patient: mongoIdSchema
     .required()
     .messages({
