@@ -35,7 +35,7 @@ import { mongoIdSchema, textLongSchema, textShortSchema, emailSchema } from './c
 export const createMeasureSchema = Joi.object({
   // Canonical Measure contract. The patient is supplied by the route param.
   name: Joi.string()
-    .valid('PHQ-9', 'GAD-7', 'BDI-II', 'OTHER')
+    .valid('PHQ-9', 'GAD-7', 'PHQ-15', 'WHO-5', 'PC-PTSD-5', 'K10', 'K6', 'BDI-II', 'BAI', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS', 'OTHER')
     .required(),
 
   assessmentId: mongoIdSchema,
