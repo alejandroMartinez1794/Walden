@@ -7,6 +7,8 @@ import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../ut
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import { assertPatientAccess, assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
 export const sendConsentEmail = async (req, res) => {
   try {
@@ -76,37 +78,163 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const {
+      name,
+      responses: rawResponses,
+      itemMap,
+      assessmentId,
+      treatmentPlanId: requestedTreatmentPlanId,
+    } = req.body || {};
 
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    // Resolve the clinical relationship server-side. A patient ID alone is
+    // never treated as proof that this clinician may write to the record.
+    const plan = requestedTreatmentPlanId
+      ? await assertTreatmentPlanAccess({
+          req,
+          treatmentPlanId: requestedTreatmentPlanId,
+          action: 'create clinical measure',
+        })
+      : await assertPatientAccess({
+          req,
+          patientId,
+          action: 'create clinical measure',
+        });
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+    if (String(plan.patient) !== String(patientId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'El plan de tratamiento no pertenece al paciente indicado',
+      });
+    }
 
-    // Build recent PHQ-9 series for trend
-    const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
-    if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
+    const responses = (Array.isArray(rawResponses) ? rawResponses : []).map((response, index) => {
+      if (typeof response === 'number') {
+        return { itemNumber: index + 1, response };
+      }
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
+      return {
+        itemNumber: Number(response?.itemNumber) || index + 1,
+        itemText: response?.itemText ?? response?.question,
+        response: response?.response,
+      };
+    });
+
+    let linkedAssessment = null;
+    if (assessmentId) {
+      linkedAssessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: plan.patient,
+        psychologist: plan.psychologist,
+        ...(String(plan._id) ? { treatmentPlanId: plan._id } : {}),
+      }).select('_id');
+
+      if (!linkedAssessment) {
+        return res.status(400).json({
+          success: false,
+          message: 'La evaluación indicada no pertenece al mismo paciente y plan clínico',
+        });
+      }
+    }
+
+    let score = 0;
+    let severity;
+    let item9;
+
+    if (name === 'PHQ-9') {
+      const s = scorePHQ9(responses);
+      score = s.total;
+      severity = s.severity;
+      item9 = s.item9;
+    } else if (name === 'GAD-7') {
+      const s = scoreGAD7(responses);
+      score = s.total;
+      severity = s.severity;
+    } else {
+      score = responses.reduce((sum, response) => sum + Number(response?.response ?? 0), 0);
+    }
+
+    const measure = await Measure.create({
+      patient: plan.patient,
+      clinician: plan.psychologist,
+      assessmentId: linkedAssessment?._id,
+      treatmentPlanId: plan._id,
+      name,
+      responses,
+      score,
+      itemMap,
+    });
+
+    if (linkedAssessment) {
+      await PsychologicalAssessment.updateOne(
+        { _id: linkedAssessment._id, treatmentPlanId: plan._id },
+        { $set: { measureId: measure._id } }
+      );
+    }
+
+    const measuresPHQ9 = name === 'PHQ-9'
+      ? []
+      : await Measure.find({
+          patient: plan.patient,
+          clinician: plan.psychologist,
+          name: 'PHQ-9',
+          treatmentPlanId: plan._id,
+        }).sort({ takenAt: 1 }).select('score takenAt');
+
+    if (name === 'PHQ-9') {
+      measuresPHQ9.push({ score, takenAt: new Date() });
+    }
+
+    const risk = assessRisk({
+      phq9: name === 'PHQ-9'
+        ? { total: score, item9, severity }
+        : measuresPHQ9.length
+          ? { total: measuresPHQ9.at(-1).score }
+          : undefined,
+      measuresPHQ9,
+    });
 
     const alertsCreated = [];
     for (const flag of risk.flags) {
-      const severityMap = { suicide_risk: 'critical', high_depression: 'high', worsening_trend: 'moderate' };
-      const alert = await Alert.create({ patient: patientId, clinician: clinicianId, type: flag, severity: severityMap[flag] || 'moderate', relatedMeasureId: measure._id });
+      const severityMap = {
+        suicide_risk: 'critical',
+        high_depression: 'high',
+        worsening_trend: 'moderate',
+      };
+      const alert = await Alert.create({
+        patient: plan.patient,
+        clinician: plan.psychologist,
+        type: flag,
+        severity: severityMap[flag] || 'moderate',
+        relatedMeasureId: measure._id,
+      });
       alertsCreated.push(alert);
     }
 
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'create_measure', meta: { name, score, alerts: risk.flags } });
+    await ActivityLog.create({
+      actor: clinicianId,
+      patient: plan.patient,
+      action: 'create_measure',
+      meta: {
+        name,
+        score,
+        alerts: risk.flags,
+        treatmentPlanId: plan._id,
+        assessmentId: linkedAssessment?._id,
+      },
+    });
 
-    res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
+    res.status(201).json({
+      success: true,
+      data: { measure, score, severity, alertsCreated },
+    });
   } catch (error) {
     logger.error('Error creating measure:', error);
-    res.status(500).json({ success: false, message: 'Error al crear medida' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al crear medida',
+    });
   }
 };
-
 export const generateClinicalSummaryHandler = async (req, res) => {
   try {
     const clinicianId = req.userId;
