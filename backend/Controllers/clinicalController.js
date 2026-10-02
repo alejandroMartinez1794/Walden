@@ -4,7 +4,7 @@ import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js'
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
-import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../utils/clinicalRules.js';
+import { scorePHQ9, scoreGAD7, screenForRiskSignals, generateClinicalSummary } from '../utils/clinicalRules.js';
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
@@ -134,7 +134,7 @@ export const createMeasure = async (req, res) => {
     const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
     if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
+    const risk = screenForRiskSignals({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
 
     const alertsCreated = [];
     for (const flag of risk.flags) {
@@ -163,11 +163,9 @@ export const generateClinicalSummaryHandler = async (req, res) => {
     const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
     const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({ score: m.score, date: m.takenAt }));
 
-    // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
+    // No clinical metrics are fabricated when the source data is unavailable.
     const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
-
-    const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
+    const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes });
 
     const log = await ClinicalSuggestionLog.create({ patient: patientId, clinician: clinicianId, summary, accepted: false });
     await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'generate_clinical_summary', meta: { lookbackDays, flags: summary.flags } });
