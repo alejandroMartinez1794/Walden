@@ -7,6 +7,7 @@
 
 import ProtocolLog from '../../models/ProtocolLogSchema.js';
 import ProtocolExecutor from '../../services/ProtocolExecutor.js';
+import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
 
 /**
  * GET /api/v1/clinical/protocols
@@ -39,7 +40,7 @@ export const getProtocols = async (req, res) => {
 
     res.status(200).json({ success: true, data: enriched });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -51,11 +52,22 @@ export const getProtocolDetails = async (req, res) => {
   try {
     const { protocolId } = req.params;
 
-    const status = await ProtocolExecutor.getProtocolStatus(protocolId);
+    const protocol = await ProtocolLog.findById(protocolId).select('treatmentPlanId');
+    if (!protocol) {
+      return res.status(404).json({ success: false, message: 'Protocol not found' });
+    }
+
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: protocol.treatmentPlanId,
+      action: 'read clinical protocol',
+    });
+
+    const status = await ProtocolExecutor.getProtocolStatus(protocolId, req.userId);
 
     res.status(200).json({ success: true, data: status });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -88,7 +100,7 @@ export const completeStep = async (req, res) => {
       data: protocol,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -122,7 +134,7 @@ export const finalizeProtocol = async (req, res) => {
       data: protocol,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -140,7 +152,7 @@ export const getFollowUpProtocols = async (req, res) => {
       count: protocols.length,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -158,7 +170,7 @@ export const getActiveProtocols = async (req, res) => {
       count: protocols.length,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -183,6 +195,12 @@ export const amendProtocol = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Protocol not found' });
     }
 
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId: protocol.treatmentPlanId,
+      action: 'amend clinical protocol',
+    });
+
     await protocol.amend(req.userId, reason, changes);
 
     res.status(200).json({
@@ -191,6 +209,6 @@ export const amendProtocol = async (req, res) => {
       data: protocol,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };

@@ -8,6 +8,8 @@
 import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
 import ClinicalDecisionEngine from '../../services/ClinicalDecisionEngine.js';
 import ClinicalAlert from '../../models/ClinicalAlertSchema.js';
+import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
+import { assertTreatmentPlanAccess } from '../../services/clinicalAuthorization.js';
 
 /**
  * GET /api/v1/clinical/treatment/:treatmentPlanId
@@ -29,14 +31,15 @@ export const getTreatmentPlan = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Treatment plan not found' });
     }
 
-    // Verify clinician has access
-    if (plan.psychologist._id.toString() !== req.userId) {
-      return res.status(403).json({ success: false, message: 'Access denied' });
-    }
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'read treatment plan',
+    });
 
     res.status(200).json({ success: true, data: plan });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -47,6 +50,21 @@ export const getTreatmentPlan = async (req, res) => {
 export const createTreatmentPlan = async (req, res) => {
   try {
     const { patientId, theoreticalOrientation, initialGoals } = req.body;
+
+    // A treatment plan establishes the clinical relationship. Do not allow a
+    // clinician to attach an arbitrary patient identity to their plan.
+    const patient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: req.userId,
+      isDeleted: { $ne: true },
+    }).select('_id psychologist');
+
+    if (!patient) {
+      return res.status(403).json({
+        success: false,
+        message: 'Patient is not assigned to this clinician',
+      });
+    }
 
     // Create with audit context - captured automatically by lifecycle plugin
     const plan = new TreatmentPlan({
@@ -81,7 +99,7 @@ export const createTreatmentPlan = async (req, res) => {
       data: plan,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -94,14 +112,15 @@ export const progressPhase = async (req, res) => {
     const { treatmentPlanId } = req.params;
     const { clinicianNotes, overrideReason } = req.body;
 
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'progress treatment phase',
+    });
+
     const plan = await TreatmentPlan.findById(treatmentPlanId).select('+riskLevel');
     if (!plan) {
       return res.status(404).json({ success: false, message: 'Treatment plan not found' });
-    }
-
-    // Verify access
-    if (plan.psychologist.toString() !== req.userId) {
-      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
     // Get clinical decision engine assessment
@@ -147,7 +166,7 @@ export const progressPhase = async (req, res) => {
       assessment,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -160,10 +179,13 @@ export const updateRiskAssessment = async (req, res) => {
     const { treatmentPlanId } = req.params;
     const { riskLevel, riskFactors, columbiaScore, interventionRequired } = req.body;
 
-    const plan = await TreatmentPlan.findById(treatmentPlanId);
-    if (!plan) {
-      return res.status(404).json({ success: false, message: 'Treatment plan not found' });
-    }
+    const plan = await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'update clinical risk',
+    });
+
+    await plan.populate({ path: 'psychologist' });
 
     // Update risk assessment
     plan.riskLevel = riskLevel;
@@ -207,7 +229,7 @@ export const updateRiskAssessment = async (req, res) => {
       data: plan,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -218,6 +240,12 @@ export const updateRiskAssessment = async (req, res) => {
 export const getProgressMetrics = async (req, res) => {
   try {
     const { treatmentPlanId } = req.params;
+
+    await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'read treatment progress',
+    });
 
     const plan = await TreatmentPlan.findById(treatmentPlanId).populate('sessions');
     if (!plan) {
@@ -237,7 +265,7 @@ export const getProgressMetrics = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -273,6 +301,6 @@ export const getCaseload = async (req, res) => {
 
     res.status(200).json({ success: true, data: enriched });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
