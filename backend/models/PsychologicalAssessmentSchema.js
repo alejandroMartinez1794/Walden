@@ -53,15 +53,19 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
   scores: {
     total: { type: Number, required: true },
     subscales: Map, // Para tests con subescalas (ej: BDI-II tiene cognitivo, somático)
-    percentile: Number, // Percentil según normas
+    percentile: Number,
+    scoreSource: {
+      type: String,
+      enum: ['server', 'submitted'],
+      default: 'server',
+    }, // Percentil según normas
   },
 
   // Interpretación clínica
   interpretation: {
-    severity: {
-      type: String,
-      enum: ['minimal', 'mild', 'moderate', 'severe', 'extremely-severe'],
-    },
+    // La taxonomía de severidad depende del instrumento; no debe forzarse
+    // a un enum global (PHQ-9, AUDIT, WHO-5, etc. usan categorías distintas).
+    severity: { type: String, trim: true, maxlength: 100 },
     clinicalNotes: String,
   },
 
