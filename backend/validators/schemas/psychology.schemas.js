@@ -227,7 +227,7 @@ export const createSessionSchema = Joi.object({
  * - Etc.
  */
 export const createAssessmentSchema = Joi.object({
-  patient: mongoIdSchema.required(),
+  patient: mongoIdSchema.optional(),
   patientId: mongoIdSchema.optional(),
   treatmentPlanId: mongoIdSchema.optional(),
 
@@ -291,7 +291,8 @@ export const createAssessmentSchema = Joi.object({
 
   notes: textLongSchema.max(2000).optional(),
   comparisonNotes: textLongSchema.max(2000).optional(),
-});
+})
+  .or('patient', 'patientId', 'treatmentPlanId');
 
 /**
  * Schema para crear plan de tratamiento
