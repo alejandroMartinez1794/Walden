@@ -1,6 +1,7 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
 import RiskAssessment from '../models/RiskAssessmentSchema.js';
+import ClinicalAlert from '../models/ClinicalAlertSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import Doctor from '../models/DoctorSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
@@ -270,9 +271,27 @@ export const createRiskAssessment = async (req, res) => {
       { runValidators: true }
     );
 
+    // High/imminent formal findings create an operational alert.
+    // Detailed C-SSRS scores remain in the RiskAssessment and are not copied into the alert.
+    let operationalAlert = null;
+    if (['HIGH', 'IMMINENT'].includes(clinicalImpression.overallRiskLevel)) {
+      operationalAlert = await ClinicalAlert.create({
+        patientId,
+        treatmentPlanId: treatmentPlan._id,
+        alertType: 'SUICIDE_RISK',
+        severity: clinicalImpression.overallRiskLevel === 'IMMINENT' ? 'CRITICAL' : 'WARNING',
+        triggeredBy: 'CLINICIAN_MANUAL',
+        triggeredAt: assessment.assessmentDate,
+        title: 'Formal risk assessment requires clinical follow-up',
+        description: 'A formal clinical risk assessment identified elevated suicide/self-harm risk and requires documented follow-up.',
+        recommendedActions: interventionPlan?.immediateActions?.map((action) => action.action).filter(Boolean) || [],
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: assessment,
+      operationalAlert,
     });
   } catch (error) {
     logger.error('Error creating formal risk assessment:', error);
