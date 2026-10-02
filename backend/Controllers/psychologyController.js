@@ -80,7 +80,7 @@ export const getMyPatients = async (req, res) => {
               email: user.email,
               phone: user.phone ? String(user.phone) : '',
               gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
-              dateOfBirth: new Date(), // Placeholder, se debe actualizar
+              // Do not fabricate demographic data when the booking user has no date of birth source.
             },
             status: 'active'
           };

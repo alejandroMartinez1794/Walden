@@ -7,6 +7,7 @@ import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../ut
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
+import { assertPatientAccess } from '../services/clinicalAuthorization.js';
 
 export const sendConsentEmail = async (req, res) => {
   try {
@@ -76,6 +77,13 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
+
+    await assertPatientAccess({
+      req,
+      patientId,
+      action: 'create clinical measure',
+    });
+
     const { name, responses, itemMap } = req.body;
 
     let score = 0; let severity; let item9;
@@ -103,7 +111,7 @@ export const createMeasure = async (req, res) => {
     res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
   } catch (error) {
     logger.error('Error creating measure:', error);
-    res.status(500).json({ success: false, message: 'Error al crear medida' });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Error al crear medida' });
   }
 };
 
@@ -111,6 +119,13 @@ export const generateClinicalSummaryHandler = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
+
+    await assertPatientAccess({
+      req,
+      patientId,
+      action: 'generate clinical summary',
+    });
+
     const { lookbackDays = 30, includeNotes = true } = req.body || {};
 
     const since = new Date(); since.setDate(since.getDate() - Number(lookbackDays));
@@ -120,7 +135,7 @@ export const generateClinicalSummaryHandler = async (req, res) => {
 
     // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
     const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
+    const adherence = null;
 
     const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
 
@@ -137,25 +152,59 @@ export const generateClinicalSummaryHandler = async (req, res) => {
 export const listAlerts = async (req, res) => {
   try {
     const clinicianId = req.userId; const { id: patientId } = req.params;
+
+    await assertPatientAccess({
+      req,
+      patientId,
+      action: 'read clinical alerts',
+    });
+
     const alerts = await Alert.find({ patient: patientId, clinician: clinicianId, resolved: false }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: alerts });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al listar alertas' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al listar alertas' }); }
 };
 
 export const resolveAlert = async (req, res) => {
   try {
     const clinicianId = req.userId; const { alertId } = req.params;
-    const alert = await Alert.findOneAndUpdate({ _id: alertId, clinician: clinicianId }, { $set: { resolved: true, resolvedAt: new Date() } }, { new: true });
+
+    const existingAlert = await Alert.findOne({ _id: alertId, clinician: clinicianId }).select('patient');
+    if (!existingAlert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingAlert.patient,
+      action: 'resolve clinical alert',
+    });
+
+    const alert = await Alert.findOneAndUpdate(
+      { _id: alertId, clinician: clinicianId },
+      { $set: { resolved: true, resolvedAt: new Date() } },
+      { new: true }
+    );
+
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'resolve_alert', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al resolver alerta' }); }
+  } catch (e) {
+    res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al resolver alerta' });
+  }
 };
 
 export const updateAlertMitigation = async (req, res) => {
   try {
     const clinicianId = req.userId; const { alertId } = req.params;
     const { emergencyContact, safetyPlan, urgentAppointment, scheduledAt, notes } = req.body || {};
+
+    const existingAlert = await Alert.findOne({ _id: alertId, clinician: clinicianId }).select('patient');
+    if (!existingAlert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingAlert.patient,
+      action: 'update alert mitigation',
+    });
+
     const alert = await Alert.findOneAndUpdate(
       { _id: alertId, clinician: clinicianId },
       { $set: { mitigation: { emergencyContact, safetyPlan, urgentAppointment, scheduledAt }, notes } },
@@ -164,12 +213,22 @@ export const updateAlertMitigation = async (req, res) => {
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'update_alert_mitigation', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al actualizar mitigación' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al actualizar mitigación' }); }
 };
 
 export const acceptSuggestion = async (req, res) => {
   try {
     const clinicianId = req.userId; const { logId } = req.params; const { accepted, clinicianNotes } = req.body || {};
+
+    const existingLog = await ClinicalSuggestionLog.findOne({ _id: logId, clinician: clinicianId }).select('patient');
+    if (!existingLog) return res.status(404).json({ success: false, message: 'Registro no encontrado' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingLog.patient,
+      action: 'accept clinical suggestion',
+    });
+
     const log = await ClinicalSuggestionLog.findOneAndUpdate(
       { _id: logId, clinician: clinicianId },
       { $set: { accepted: !!accepted, clinicianNotes } },
@@ -178,5 +237,5 @@ export const acceptSuggestion = async (req, res) => {
     if (!log) return res.status(404).json({ success: false, message: 'Registro no encontrado' });
     await ActivityLog.create({ actor: clinicianId, patient: log.patient, action: 'accept_suggestion', meta: { logId, accepted } });
     res.status(200).json({ success: true, data: log });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al registrar aceptación' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al registrar aceptación' }); }
 };
