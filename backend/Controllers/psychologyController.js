@@ -9,7 +9,6 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
-import { assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
 // ============ PACIENTES ============
 
@@ -169,11 +168,25 @@ export const createSession = async (req, res) => {
     // New clinical-core sessions must be anchored to a treatment plan.
     // The plan, not a client-supplied psychologist/patient pair, establishes
     // the authorization boundary.
-    const plan = await assertTreatmentPlanAccess({
-      req,
-      treatmentPlanId,
-      action: 'create therapy session',
-    });
+    if (!treatmentPlanId || !mongoose.isValidObjectId(treatmentPlanId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'treatmentPlanId es obligatorio',
+      });
+    }
+
+    const plan = await TreatmentPlan.findOne({
+      _id: treatmentPlanId,
+      psychologist: psychologistId,
+      isDeleted: { $ne: true },
+    }).select('_id patient psychologist');
+
+    if (!plan) {
+      return res.status(403).json({
+        success: false,
+        message: 'El plan de tratamiento no pertenece al clínico autenticado',
+      });
+    }
 
     const sessionData = {
       ...req.body,
