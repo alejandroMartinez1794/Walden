@@ -230,7 +230,7 @@ export const createAssessmentSchema = Joi.object({
   patient: mongoIdSchema.required(),
 
   testType: Joi.string()
-    .valid('BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS', 'other')
+    .valid('BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PHQ-15', 'WHO-5', 'PC-PTSD-5', 'K10', 'K6', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS', 'other')
     .required(),
 
   testDate: dateISOSchema
@@ -272,7 +272,16 @@ export const createAssessmentSchema = Joi.object({
   ),
 
   notes: textLongSchema.max(2000),
-}).or('responses', 'totalScore', 'scores');
+}).custom((value, helpers) => {
+  const hasResponses = Array.isArray(value.responses) && value.responses.length > 0;
+  const hasTotal = Number.isInteger(value.totalScore) || Number.isInteger(value.scores?.total);
+  if (!hasResponses && !hasTotal) {
+    return helpers.error('any.custom');
+  }
+  return value;
+}, 'assessment payload completeness').messages({
+  'any.custom': 'Debe proporcionar respuestas o una puntuación total válida',
+});
 /**
  * Schema para crear plan de tratamiento
  * 
