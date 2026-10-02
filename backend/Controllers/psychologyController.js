@@ -9,6 +9,7 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
+import { assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
 // ============ PACIENTES ============
 
