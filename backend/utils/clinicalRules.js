@@ -94,16 +94,19 @@ function mapInterventions({ phq9, gad7 }) {
   return suggestions;
 }
 
-export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], lastNotes = [], adherence = 0 }) {
+export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], lastNotes = [], adherence = null }) {
   const phq9Latest = measuresPHQ9[measuresPHQ9.length - 1];
   const gad7Latest = measuresGAD7[measuresGAD7.length - 1];
   const risk = assessRisk({ phq9: phq9Latest, measuresPHQ9 });
+  const adherenceText = Number.isFinite(adherence)
+    ? `Adherencia a tareas registrada en ${Math.round(adherence * 100)}%.`
+    : 'Adherencia a tareas: no disponible con los datos clínicos registrados.';
 
   const formulation = [
     `El paciente presenta un patrón ${phq9Latest?.severity || 'desconocido'} de síntomas depresivos y ${gad7Latest?.severity || 'desconocido'} de ansiedad.`,
     risk.flags.includes('worsening_trend') ? 'Se observa empeoramiento reciente de síntomas, lo que sugiere necesidad de intensificar intervención.' : 'No se observan incrementos clínicamente significativos en las últimas semanas.',
     lastNotes[0] ? `Notas recientes indican: ${lastNotes[0]}` : 'Sin notas recientes disponibles.',
-    `Adherencia a tareas estimada en ${Math.round(adherence * 100)}%.`,
+    adherenceText,
   ].join(' ');
 
   const prioritizedTargets = [
