@@ -113,16 +113,9 @@ const PHQ9Form = () => {
         testDate: formData.testDate,
         responses: formData.responses.map((score, index) => ({
           itemNumber: index + 1,
-          question: questions[index],
+          itemText: questions[index],
           response: score,
         })),
-        scores: {
-          total: totalScore,
-        },
-        interpretation: {
-          severity: severity.label.toLowerCase().replace(/\s/g, '-'),
-          notes: `PHQ-9 Score: ${totalScore}/27. ${severity.label} depression.`,
-        },
       };
 
       const response = await fetch(`${BASE_URL}/psychology/assessments`, {
@@ -137,22 +130,26 @@ const PHQ9Form = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
 
-      // Also store as a clinical measure to trigger alerts and risk banners
-      try {
-        await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ name: 'PHQ-9', responses: formData.responses }),
-        });
-      } catch (e) {
-        // Non-blocking: continue if clinical measure fails
-        console.warn('Failed to create clinical measure:', e);
+      // Persist the longitudinal Measure with explicit provenance.
+      const measureResponse = await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: 'PHQ-9',
+          assessmentId: result.data?._id,
+          responses: formData.responses,
+        }),
+      });
+
+      const measureResult = await measureResponse.json();
+      if (!measureResponse.ok) {
+        throw new Error(measureResult.message || 'La evaluación se guardó, pero no pudo registrarse la medida clínica.');
       }
 
-      toast.success('Evaluación PHQ-9 guardada exitosamente');
+      toast.success('Evaluación PHQ-9 y medida clínica guardadas exitosamente');
       navigate(`/psychology/patients/${formData.patient}`);
     } catch (err) {
       toast.error(err.message);
