@@ -9,6 +9,7 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
+import { assertPatientAccess, assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
 // ============ PACIENTES ============
 
@@ -163,16 +164,35 @@ export const updatePatient = async (req, res) => {
 export const createSession = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const sessionData = { ...req.body, psychologist: psychologistId };
-    
+    const { treatmentPlanId } = req.body;
+
+    // New clinical-core sessions must be anchored to a treatment plan.
+    // The plan, not a client-supplied psychologist/patient pair, establishes
+    // the authorization boundary.
+    const plan = await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'create therapy session',
+    });
+
+    const sessionData = {
+      ...req.body,
+      patient: plan.patient,
+      psychologist: plan.psychologist,
+      treatmentPlanId: plan._id,
+    };
+
+    // Never allow the request body to override the clinical relationships.
+    delete sessionData.patientId;
+    delete sessionData.psychologistId;
+
     const newSession = await TherapySession.create(sessionData);
-    
-    // Actualizar fecha de última sesión del paciente
+
     await PsychologicalPatient.findByIdAndUpdate(
-      req.body.patient,
+      plan.patient,
       { lastSessionDate: sessionData.sessionDate }
     );
-    
+
     res.status(201).json({
       success: true,
       message: 'Sesión registrada exitosamente',
@@ -180,18 +200,29 @@ export const createSession = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error al crear sesión:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar sesión' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar sesión',
+    });
   }
 };
 
 export const getPatientSessions = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const psychologistId = req.userId;
-    
+
+    // The patient id is an identifier, not an authorization claim.
+    // Resolve it through the authenticated clinician's treatment relationship
+    // before reading any session records.
+    const plan = await assertPatientAccess({
+      req,
+      patientId,
+      action: 'read therapy sessions',
+    });
+
     const sessions = await TherapySession.find({
-      patient: patientId,
-      psychologist: psychologistId,
+      patient: plan.patient,
+      psychologist: plan.psychologist || req.userId,
     })
       .sort({ sessionDate: -1 })
       .populate('patient', 'personalInfo.fullName');
@@ -202,7 +233,10 @@ export const getPatientSessions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error al obtener sesiones:', error);
-    res.status(500).json({ success: false, message: 'Error al obtener sesiones' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al obtener sesiones',
+    });
   }
 };
 
