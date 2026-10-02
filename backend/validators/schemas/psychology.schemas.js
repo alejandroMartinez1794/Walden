@@ -255,9 +255,9 @@ export const createAssessmentSchema = Joi.object({
     .items(
       Joi.object({
         itemNumber: Joi.number().integer().min(1).max(100).required(),
-        itemText: textShortSchema.max(500).optional(),
+        itemText: Joi.string().trim().max(500).optional(),
         // Legacy frontend used "question"; it is normalized by the controller.
-        question: textShortSchema.max(500).optional(),
+        question: Joi.string().trim().max(500).optional(),
         response: Joi.number().min(0).max(100).required(),
       }).or('itemText', 'question')
     )
