@@ -233,11 +233,6 @@ export const createAssessmentSchema = Joi.object({
       'any.required': 'El ID del paciente es obligatorio'
     }),
 
-  /**
-   * Tipo de test
-   * 
-   * Tests validados científicamente
-   */
   testType: Joi.string()
     .valid(
       'BDI-II',
@@ -249,6 +244,11 @@ export const createAssessmentSchema = Joi.object({
       'YBOCS',
       'AUDIT',
       'PSS',
+      'K6',
+      'K10',
+      'WHO-5',
+      'PHQ-15',
+      'PC-PTSD-5',
       'other'
     )
     .required()
@@ -264,52 +264,43 @@ export const createAssessmentSchema = Joi.object({
       'date.max': 'No se pueden registrar evaluaciones futuras'
     }),
 
-  /**
-   * Puntuación total del test
-   * 
-   * Cada test tiene su rango:
-   * - BDI-II: 0-63
-   * - BAI: 0-63
-   * - PHQ-9: 0-27
-   * - GAD-7: 0-21
-   * 
-   * Validamos rango amplio (0-100)
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
+  responses: Joi.array()
+    .items(
+      Joi.object({
+        itemNumber: Joi.number().integer().min(1).required(),
+        question: Joi.string().min(1).max(500).trim().optional(),
+        itemText: Joi.string().min(1).max(500).trim().optional(),
+        response: Joi.alternatives().try(
+          Joi.number().integer(),
+          Joi.boolean(),
+          Joi.string().min(1).max(1000).trim()
+        ).required(),
+        score: Joi.number().integer().min(0).max(100).optional()
+      }).or('question', 'itemText')
+    )
+    .min(1)
     .max(100)
     .required()
     .messages({
-      'any.required': 'La puntuación total es obligatoria',
-      'number.min': 'La puntuación mínima es 0',
-      'number.max': 'La puntuación máxima es 100'
+      'any.required': 'Las respuestas son obligatorias',
+      'array.min': 'Debe proporcionar al menos una respuesta',
+      'array.max': 'Máximo 100 respuestas'
     }),
 
-  /**
-   * Interpretación de la puntuación
-   * 
-   * Categorías generales:
-   * - minimal: Síntomas mínimos
-   * - mild: Leve
-   * - moderate: Moderado
-   * - severe: Severo
-   */
-  interpretation: Joi.string()
-    .valid('minimal', 'mild', 'moderate', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La interpretación es obligatoria',
-      'any.only': 'Interpretación inválida'
-    }),
+  scores: Joi.object({
+    total: Joi.number().integer().min(0).max(100).optional(),
+    subscales: Joi.object().unknown(true).optional(),
+    percentile: Joi.number().min(0).max(100).optional()
+  }).optional(),
 
-  // Notas adicionales del psicólogo
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
-});
+  interpretation: Joi.object({
+    severity: Joi.string().max(100).optional(),
+    clinicalNotes: textLongSchema.max(2000).optional(),
+    notes: textLongSchema.max(2000).optional()
+  }).optional(),
+
+  notes: textLongSchema.max(2000).optional()
+}).options({ stripUnknown: true });
 
 /**
  * Schema para crear plan de tratamiento

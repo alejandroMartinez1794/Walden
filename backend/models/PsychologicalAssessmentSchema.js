@@ -29,6 +29,11 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
       'YBOCS',      // Yale-Brown Obsessive Compulsive Scale
       'AUDIT',      // Alcohol Use Disorders Identification Test
       'PSS',        // Perceived Stress Scale
+      'K6',         // Kessler Psychological Distress Scale (6 items)
+      'K10',        // Kessler Psychological Distress Scale (10 items)
+      'WHO-5',      // WHO-5 Well-Being Index
+      'PHQ-15',     // PHQ-15 Somatic Symptom Severity
+      'PC-PTSD-5',  // Primary Care PTSD Screen
       'other'
     ],
   },
@@ -37,24 +42,30 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
 
   // Respuestas del test (array flexible para diferentes instrumentos)
   responses: [{
-    itemNumber: Number,
+    itemNumber: { type: Number, required: true, min: 1 },
     itemText: String,
-    response: mongoose.Schema.Types.Mixed, // Puede ser número, texto, etc.
+    question: String,
+    response: { type: mongoose.Schema.Types.Mixed, required: true },
+    score: { type: Number, min: 0, max: 100 },
   }],
 
   // Puntuaciones
   scores: {
     total: { type: Number, required: true },
     subscales: Map, // Para tests con subescalas (ej: BDI-II tiene cognitivo, somático)
-    percentile: Number, // Percentil según normas
+    percentile: Number,
+    scoreSource: {
+      type: String,
+      enum: ['server', 'submitted'],
+      default: 'server',
+    }, // Percentil según normas
   },
 
   // Interpretación clínica
   interpretation: {
-    severity: {
-      type: String,
-      enum: ['minimal', 'mild', 'moderate', 'severe', 'extremely-severe'],
-    },
+    // La taxonomía de severidad depende del instrumento; no debe forzarse
+    // a un enum global (PHQ-9, AUDIT, WHO-5, etc. usan categorías distintas).
+    severity: { type: String, trim: true, maxlength: 100 },
     clinicalNotes: String,
   },
 
