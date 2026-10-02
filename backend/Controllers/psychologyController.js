@@ -305,7 +305,6 @@ export const createAssessment = async (req, res) => {
       treatmentPlanId,
       testType,
       responses,
-      scores,
       testDate,
       comparisonNotes,
     } = req.body || {};
