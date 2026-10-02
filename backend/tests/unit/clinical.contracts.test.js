@@ -40,7 +40,7 @@ describe('Clinical Assessment → Measure contracts', () => {
     expect(error).toBeUndefined();
   });
 
-  test('rejects incomplete PHQ-9 at the contract layer only when instrument-specific completeness is enforced', () => {
+  test('keeps structural schema validation separate from instrument completeness enforced by the controller', () => {
     const payload = {
       patient: objectId,
       testType: 'PHQ-9',
@@ -49,6 +49,35 @@ describe('Clinical Assessment → Measure contracts', () => {
 
     const { error } = createAssessmentSchema.validate(payload);
     expect(error).toBeUndefined();
+    // Exact PHQ-9 completeness is a domain rule enforced by createAssessment,
+    // not by the generic Joi transport contract.
+  });
+
+  test('accepts patientId as the legacy assessment identity alias', () => {
+    const payload = {
+      patientId: objectId,
+      testType: 'GAD-7',
+      responses: Array.from({ length: 7 }, (_, index) => ({
+        itemNumber: index + 1,
+        response: 1,
+      })),
+    };
+
+    const { error } = createAssessmentSchema.validate(payload);
+    expect(error).toBeUndefined();
+  });
+
+  test('rejects an assessment without any clinical identity', () => {
+    const payload = {
+      testType: 'PHQ-9',
+      responses: Array.from({ length: 9 }, (_, index) => ({
+        itemNumber: index + 1,
+        response: 0,
+      })),
+    };
+
+    const { error } = createAssessmentSchema.validate(payload);
+    expect(error).toBeDefined();
   });
 
   test('accepts normalized Measure responses and provenance', () => {
