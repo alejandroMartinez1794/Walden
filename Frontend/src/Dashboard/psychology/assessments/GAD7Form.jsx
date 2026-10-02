@@ -75,9 +75,10 @@ const GAD7Form = () => {
         patient: formData.patient,
         testType: 'GAD-7',
         testDate: formData.testDate,
-        responses: formData.responses.map((score, idx) => ({ itemNumber: idx + 1, response: score })),
-        scores: { total },
-        interpretation: { severity: severity.label.toLowerCase() },
+        responses: formData.responses.map((score, idx) => ({
+          itemNumber: idx + 1,
+          response: score,
+        })),
       };
       const res = await fetch(`${BASE_URL}/psychology/assessments`, {
         method: 'POST',
@@ -86,15 +87,23 @@ const GAD7Form = () => {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      // Also store clinical measure to enable alerts and summaries
-      try {
-        await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ name: 'GAD-7', responses: formData.responses }),
-        });
-      } catch (e) { console.warn('Failed to create clinical measure:', e); }
-      toast.success('Evaluación GAD-7 guardada');
+      // Persist the longitudinal Measure with explicit provenance.
+      const measureResponse = await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: 'GAD-7',
+          assessmentId: json.data?._id,
+          responses: formData.responses,
+        }),
+      });
+
+      const measureResult = await measureResponse.json();
+      if (!measureResponse.ok) {
+        throw new Error(measureResult.message || 'La evaluación se guardó, pero no pudo registrarse la medida clínica.');
+      }
+
+      toast.success('Evaluación GAD-7 y medida clínica guardadas exitosamente');
       navigate(`/psychology/patients/${formData.patient}`);
     } catch (e) { toast.error(e.message); } finally { setSubmitting(false); }
   };
