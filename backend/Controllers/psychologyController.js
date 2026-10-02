@@ -11,6 +11,57 @@ import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
 import { assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
+const INSTRUMENT_RULES = {
+  'PHQ-9': { items: 9, max: 3 },
+  'GAD-7': { items: 7, max: 3 },
+  'BDI-II': { items: 21, max: 3 },
+  'BAI': { items: 21, max: 3 },
+  'PCL-5': { items: 20, max: 4 },
+  'OCI-R': { items: 18, max: 4 },
+  'YBOCS': { items: 10, max: 4 },
+  'AUDIT': { items: 10, max: 4 },
+};
+
+const normalizeAssessmentResponses = (responses = []) => responses.map((response) => ({
+  itemNumber: Number(response.itemNumber),
+  itemText: response.itemText ?? response.question,
+  response: Number(response.response),
+}));
+
+const validateScorableAssessment = (testType, responses) => {
+  const rule = INSTRUMENT_RULES[testType];
+  if (!rule) {
+    throw Object.assign(
+      new Error(`No existe una regla de puntuación segura para el instrumento ${testType}`),
+      { statusCode: 422 }
+    );
+  }
+
+  if (responses.length !== rule.items) {
+    throw Object.assign(
+      new Error(`${testType} requiere exactamente ${rule.items} respuestas`),
+      { statusCode: 422 }
+    );
+  }
+
+  const itemNumbers = new Set();
+  for (const response of responses) {
+    if (!Number.isInteger(response.itemNumber) || response.itemNumber < 1 || response.itemNumber > rule.items) {
+      throw Object.assign(new Error(`Ítem inválido para ${testType}`), { statusCode: 422 });
+    }
+    if (itemNumbers.has(response.itemNumber)) {
+      throw Object.assign(new Error(`Ítem duplicado en ${testType}`), { statusCode: 422 });
+    }
+    itemNumbers.add(response.itemNumber);
+
+    if (!Number.isFinite(response.response) || response.response < 0 || response.response > rule.max) {
+      throw Object.assign(new Error(`Respuesta fuera de rango para ${testType}`), { statusCode: 422 });
+    }
+  }
+
+  return responses.sort((a, b) => a.itemNumber - b.itemNumber);
+};
+
 // ============ PACIENTES ============
 
 export const createPatient = async (req, res) => {
@@ -259,23 +310,10 @@ export const createAssessment = async (req, res) => {
       comparisonNotes,
     } = req.body || {};
 
-    const patientId = requestedPatientId || requestedPatientIdAlias;
-    if (!patientId || !testType) {
+    if (!testType) {
       return res.status(400).json({
         success: false,
-        message: 'Paciente e instrumento son obligatorios',
-      });
-    }
-
-    const patient = await PsychologicalPatient.findOne({
-      _id: patientId,
-      psychologist: psychologistId,
-    }).select('_id psychologist');
-
-    if (!patient) {
-      return res.status(404).json({
-        success: false,
-        message: 'Paciente no encontrado',
+        message: 'El instrumento es obligatorio',
       });
     }
 
@@ -286,29 +324,62 @@ export const createAssessment = async (req, res) => {
         treatmentPlanId,
         action: 'create psychological assessment',
       });
-
-      if (String(plan.patient) !== String(patient._id)) {
-        return res.status(403).json({
+    } else {
+      const patientId = requestedPatientId || requestedPatientIdAlias;
+      if (!patientId) {
+        return res.status(400).json({
           success: false,
-          message: 'El plan de tratamiento no pertenece al paciente indicado',
+          message: 'Paciente o plan de tratamiento es obligatorio',
         });
       }
+
+      const patient = await PsychologicalPatient.findOne({
+        _id: patientId,
+        psychologist: psychologistId,
+      }).select('_id psychologist');
+
+      if (!patient) {
+        return res.status(404).json({
+          success: false,
+          message: 'Paciente no encontrado',
+        });
+      }
+
+      // Legacy route compatibility: retain the clinician/patient relationship
+      // until every assessment writer has migrated to TreatmentPlan.
+      plan = {
+        patient: patient._id,
+        psychologist: patient.psychologist,
+        _id: undefined,
+      };
     }
 
-    const normalizedResponses = Array.isArray(responses) ? responses : [];
+    const requestedPatientId = requestedPatientId || requestedPatientIdAlias;
+    if (requestedPatientId && String(plan.patient) !== String(requestedPatientId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'El plan de tratamiento no pertenece al paciente indicado',
+      });
+    }
+
+    const normalizedResponses = normalizeAssessmentResponses(
+      Array.isArray(responses) ? responses : []
+    );
+    const orderedResponses = validateScorableAssessment(testType, normalizedResponses);
+
     const assessmentData = {
-      patient: plan?.patient || patient._id,
-      psychologist: plan?.psychologist || psychologistId,
-      ...(plan ? { treatmentPlanId: plan._id } : {}),
+      patient: plan.patient,
+      psychologist: plan.psychologist || psychologistId,
+      ...(plan._id ? { treatmentPlanId: plan._id } : {}),
       testType,
-      responses: normalizedResponses,
+      responses: orderedResponses,
       testDate: testDate || new Date(),
       comparisonNotes,
     };
 
     // Detectar alertas de riesgo automáticamente.
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && normalizedResponses.length) {
-      const suicidalItem = normalizedResponses.find((r) => Number(r?.itemNumber) === 9);
+    if ((testType === 'BDI-II' || testType === 'PHQ-9') && orderedResponses.length) {
+      const suicidalItem = orderedResponses.find((r) => Number(r.itemNumber) === 9);
       if (suicidalItem && Number(suicidalItem.response) > 0) {
         assessmentData.riskAlert = {
           flagged: true,
@@ -320,12 +391,12 @@ export const createAssessment = async (req, res) => {
 
     // El servidor es la fuente de verdad del puntaje; nunca confiamos en
     // totalScore/severity enviados por el cliente.
-    const total = Array.isArray(normalizedResponses)
-      ? normalizedResponses.reduce((sum, response) => sum + Number(response?.response || 0), 0)
-      : Number(scores?.total);
+    // The client-provided score is never authoritative. Scores are derived
+    // exclusively from the normalized, validated item responses.
+    const total = orderedResponses.reduce((sum, response) => sum + response.response, 0);
 
     assessmentData.scores = {
-      total: Number.isFinite(total) ? total : 0,
+      total,
     };
 
     const severity = (() => {
@@ -346,6 +417,12 @@ export const createAssessment = async (req, res) => {
         if (total >= 29) return 'severe';
         if (total >= 20) return 'moderate';
         if (total >= 14) return 'mild';
+        return 'minimal';
+      }
+      if (testType === 'BAI') {
+        if (total >= 26) return 'severe';
+        if (total >= 16) return 'moderate';
+        if (total >= 8) return 'mild';
         return 'minimal';
       }
       return undefined;
