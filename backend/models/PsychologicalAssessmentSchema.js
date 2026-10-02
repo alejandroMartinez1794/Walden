@@ -14,6 +14,8 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
     ref: 'Doctor', 
     required: true 
   },
+  treatmentPlanId: { type: mongoose.Schema.Types.ObjectId, ref: 'TreatmentPlan', index: true },
+  measureId: { type: mongoose.Schema.Types.ObjectId, ref: 'Measure', index: true },
   // Optional during migration; new assessments should be anchored to the active treatment plan.
   treatmentPlanId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -84,6 +86,7 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
 
 // Índice compuesto para facilitar búsquedas
 psychologicalAssessmentSchema.index({ patient: 1, testType: 1, testDate: -1 });
+psychologicalAssessmentSchema.index({ treatmentPlanId: 1, testDate: -1 });
 psychologicalAssessmentSchema.index({ treatmentPlanId: 1, testDate: -1 });
 
 const PHI_FIELDS = ['interpretation.clinicalNotes', 'riskAlert.reason'];
