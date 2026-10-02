@@ -234,15 +234,68 @@ export const getPatientSessions = async (req, res) => {
 export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const assessmentData = { ...req.body, psychologist: psychologistId };
-    
-    // Detectar alertas de riesgo automáticamente
-    const { testType, responses, scores } = req.body;
-    
-    // Ejemplo: BDI-II ítem 9 o PHQ-9 ítem 9 (ideación suicida)
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && responses) {
-      const suicidalItem = responses.find(r => r.itemNumber === 9);
-      if (suicidalItem && suicidalItem.response > 0) {
+    const {
+      patient: requestedPatientId,
+      patientId: requestedPatientIdAlias,
+      treatmentPlanId,
+      testType,
+      responses,
+      scores,
+      testDate,
+      comparisonNotes,
+    } = req.body || {};
+
+    const patientId = requestedPatientId || requestedPatientIdAlias;
+    if (!patientId || !testType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paciente e instrumento son obligatorios',
+      });
+    }
+
+    const patient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: psychologistId,
+    }).select('_id psychologist');
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Paciente no encontrado',
+      });
+    }
+
+    let plan = null;
+    if (treatmentPlanId) {
+      plan = await assertTreatmentPlanAccess({
+        req,
+        treatmentPlanId,
+        action: 'create psychological assessment',
+      });
+
+      if (String(plan.patient) !== String(patient._id)) {
+        return res.status(403).json({
+          success: false,
+          message: 'El plan de tratamiento no pertenece al paciente indicado',
+        });
+      }
+    }
+
+    const normalizedResponses = Array.isArray(responses) ? responses : [];
+    const assessmentData = {
+      patient: plan?.patient || patient._id,
+      psychologist: plan?.psychologist || psychologistId,
+      ...(plan ? { treatmentPlanId: plan._id } : {}),
+      testType,
+      responses: normalizedResponses,
+      testDate: testDate || new Date(),
+      comparisonNotes,
+    };
+
+    // Detectar alertas de riesgo automáticamente.
+    if ((testType === 'BDI-II' || testType === 'PHQ-9') && normalizedResponses.length) {
+      const suicidalItem = normalizedResponses.find((r) => Number(r?.itemNumber) === 9);
+      if (suicidalItem && Number(suicidalItem.response) > 0) {
         assessmentData.riskAlert = {
           flagged: true,
           reason: 'Respuesta positiva en ítem de ideación suicida',
@@ -250,43 +303,46 @@ export const createAssessment = async (req, res) => {
         };
       }
     }
-    
-    // Normalizar puntajes y severidad (PHQ-9 / GAD-7 / BDI-II)
-    const total = scores?.total ?? (Array.isArray(responses) ? responses.reduce((s, r) => s + Number(r.response || 0), 0) : undefined);
-    if (total !== undefined) {
-      assessmentData.scores = { ...(assessmentData.scores || {}), total };
-      const sev = (() => {
-        if (testType === 'PHQ-9') {
-          if (total >= 20) return 'severe';
-          if (total >= 15) return 'moderately-severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'GAD-7') {
-          if (total >= 15) return 'severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'BDI-II') {
-          if (total >= 29) return 'severe';
-          if (total >= 20) return 'moderate';
-          if (total >= 14) return 'mild';
-          return 'minimal';
-        }
-        return undefined;
-      })();
-      if (sev) {
-        assessmentData.interpretation = {
-          ...(assessmentData.interpretation || {}),
-          severity: sev,
-        };
+
+    // El servidor es la fuente de verdad del puntaje; nunca confiamos en
+    // totalScore/severity enviados por el cliente.
+    const total = Array.isArray(normalizedResponses)
+      ? normalizedResponses.reduce((sum, response) => sum + Number(response?.response || 0), 0)
+      : Number(scores?.total);
+
+    assessmentData.scores = {
+      total: Number.isFinite(total) ? total : 0,
+    };
+
+    const severity = (() => {
+      if (testType === 'PHQ-9') {
+        if (total >= 20) return 'severe';
+        if (total >= 15) return 'moderately-severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
       }
+      if (testType === 'GAD-7') {
+        if (total >= 15) return 'severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
+      }
+      if (testType === 'BDI-II') {
+        if (total >= 29) return 'severe';
+        if (total >= 20) return 'moderate';
+        if (total >= 14) return 'mild';
+        return 'minimal';
+      }
+      return undefined;
+    })();
+
+    if (severity) {
+      assessmentData.interpretation = { severity };
     }
 
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
-    
+
     res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
@@ -294,10 +350,12 @@ export const createAssessment = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error al crear evaluación:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar evaluación' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar evaluación',
+    });
   }
 };
-
 export const getPatientAssessments = async (req, res) => {
   try {
     const { patientId } = req.params;
