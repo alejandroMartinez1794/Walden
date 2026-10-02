@@ -1,5 +1,8 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
+import RiskAssessment from '../models/RiskAssessmentSchema.js';
+import TreatmentPlan from '../models/TreatmentPlanSchema.js';
+import Doctor from '../models/DoctorSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
@@ -149,6 +152,165 @@ export const createMeasure = async (req, res) => {
   } catch (error) {
     logger.error('Error creating measure:', error);
     res.status(500).json({ success: false, message: 'Error al crear medida' });
+  }
+};
+
+export const createRiskAssessment = async (req, res) => {
+  try {
+    const clinicianId = req.userId;
+    const {
+      treatmentPlanId,
+      sessionId,
+      assessmentType,
+      assessmentContext,
+      columbiaScale = {},
+      riskFactors,
+      protectiveFactors,
+      clinicalImpression,
+      interventionPlan,
+      legalDocumentation,
+    } = req.body;
+
+    // TreatmentPlan is the clinical authorization boundary.
+    const treatmentPlan = await TreatmentPlan.findOne({
+      _id: treatmentPlanId,
+      psychologist: clinicianId,
+    })
+      .select('+riskLevel patient patientId psychologist psychologistId')
+      .populate('patient', 'user');
+
+    if (!treatmentPlan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan de tratamiento no encontrado',
+      });
+    }
+
+    const patientId = treatmentPlan.patientId || treatmentPlan.patient?.user;
+    if (!patientId) {
+      return res.status(409).json({
+        success: false,
+        message: 'El plan clínico no tiene una identidad de usuario de paciente vinculada',
+      });
+    }
+
+    const screening = columbiaScale.screening || {};
+    const recentOrLifetime = (entry) => Boolean(entry?.recent || entry?.lifetime);
+    let suicidalIdeationScore = 0;
+    if (recentOrLifetime(screening.suicidalIntentWithPlan)) suicidalIdeationScore = 5;
+    else if (recentOrLifetime(screening.suicidalIntent)) suicidalIdeationScore = 4;
+    else if (recentOrLifetime(screening.thoughtsOfMethod)) suicidalIdeationScore = 3;
+    else if (recentOrLifetime(screening.suicidalThoughts)) suicidalIdeationScore = 2;
+    else if (recentOrLifetime(screening.wishToBeDead)) suicidalIdeationScore = 1;
+
+    const intensity = columbiaScale.intensityOfIdeation || {};
+    const intensityValues = [
+      intensity.frequency,
+      intensity.duration,
+      intensity.controllability,
+      intensity.deterrents,
+      intensity.reasonsForIdeation,
+    ].map(Number).filter(Number.isFinite);
+    const intensityScore = suicidalIdeationScore > 0
+      ? intensityValues.reduce((sum, value) => sum + value, 0)
+      : 0;
+
+    const behavior = columbiaScale.behavior || {};
+    let behaviorScore = 0;
+    if (behavior.actualAttempt?.lifetime || behavior.actualAttempt?.recent) behaviorScore = 4;
+    else if (behavior.interruptedAttempt?.lifetime || behavior.interruptedAttempt?.recent) behaviorScore = 3;
+    else if (behavior.abortedAttempt?.lifetime || behavior.abortedAttempt?.recent) behaviorScore = 2;
+    else if (behavior.preparatoryBehavior?.lifetime || behavior.preparatoryBehavior?.recent) behaviorScore = 1;
+
+    const doctor = await Doctor.findById(clinicianId).select('name licenseNumber');
+    if (!doctor) {
+      return res.status(404).json({ success: false, message: 'Profesional clínico no encontrado' });
+    }
+
+    const assessment = await RiskAssessment.create({
+      patientId,
+      treatmentPlanId: treatmentPlan._id,
+      sessionId,
+      assessedBy: clinicianId,
+      assessmentDate: new Date(),
+      assessmentType,
+      assessmentContext,
+      columbiaScale: {
+        ...columbiaScale,
+        suicidalIdeationScore,
+        intensityScore,
+        behaviorScore,
+      },
+      riskFactors,
+      protectiveFactors,
+      clinicalImpression,
+      interventionPlan,
+      legalDocumentation,
+      signature: {
+        clinicianId,
+        clinicianName: doctor.name,
+        licenseNumber: doctor.licenseNumber || 'N/A',
+      },
+    });
+
+    // Only a formal clinician-authored RiskAssessment may change the plan snapshot.
+    await TreatmentPlan.findByIdAndUpdate(
+      treatmentPlan._id,
+      {
+        $set: {
+          riskLevel: clinicalImpression.overallRiskLevel,
+          lastRiskAssessment: {
+            date: assessment.assessmentDate,
+            assessedBy: clinicianId,
+            columbiaScore: suicidalIdeationScore,
+            interventionRequired: ['HIGH', 'IMMINENT'].includes(clinicalImpression.overallRiskLevel),
+          },
+        },
+      },
+      { runValidators: true }
+    );
+
+    res.status(201).json({
+      success: true,
+      data: assessment,
+    });
+  } catch (error) {
+    logger.error('Error creating formal risk assessment:', error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar evaluación formal de riesgo',
+    });
+  }
+};
+
+export const listRiskAssessments = async (req, res) => {
+  try {
+    const clinicianId = req.userId;
+    const { treatmentPlanId } = req.query;
+
+    const plan = await TreatmentPlan.findOne({
+      _id: treatmentPlanId,
+      psychologist: clinicianId,
+    }).select('_id');
+
+    if (!plan) {
+      return res.status(404).json({ success: false, message: 'Plan de tratamiento no encontrado' });
+    }
+
+    const assessments = await RiskAssessment.find({
+      treatmentPlanId: plan._id,
+      assessedBy: clinicianId,
+    })
+      .sort({ assessmentDate: -1 })
+      .select('+assessmentType +assessmentContext +columbiaScale +clinicalImpression +followUp');
+
+    res.status(200).json({
+      success: true,
+      data: assessments,
+    });
+  } catch (error) {
+    logger.error('Error listing formal risk assessments:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener evaluaciones de riesgo' });
   }
 };
 
