@@ -1,5 +1,8 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import TherapySession from '../models/TherapySessionSchema.js';
+import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
@@ -76,31 +79,222 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const {
+      name,
+      measureType,
+      responses: submittedResponses,
+      itemMap,
+      assessmentId,
+      therapySessionId,
+      treatmentPlanId,
+      takenAt,
+    } = req.body;
 
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    const measureTypeMap = {
+      phq9: 'PHQ-9',
+      gad7: 'GAD-7',
+      audit: 'AUDIT',
+      phq2: 'PHQ-2',
+      columbia: 'OTHER',
+      other: 'OTHER',
+    };
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+    let sourceAssessment = null;
+    let nameToPersist = name || measureTypeMap[measureType];
+    let responses = submittedResponses;
+    let submittedScore = null;
+    let sourceTakenAt = takenAt;
 
-    // Build recent PHQ-9 series for trend
-    const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
-    if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
+    if (assessmentId) {
+      sourceAssessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: patientId,
+        psychologist: clinicianId,
+      }).select('testType responses scores.testDate testDate');
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
+      if (!sourceAssessment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Evaluación de origen no encontrada',
+        });
+      }
+
+      if (nameToPersist && nameToPersist !== sourceAssessment.testType) {
+        return res.status(400).json({
+          success: false,
+          message: 'El instrumento no coincide con la evaluación de origen',
+        });
+      }
+
+      nameToPersist = sourceAssessment.testType;
+      responses = sourceAssessment.responses;
+      submittedScore = sourceAssessment.scores?.total ?? null;
+      sourceTakenAt = sourceAssessment.testDate;
+    }
+
+    if (!nameToPersist || !Array.isArray(responses) || responses.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Instrumento y respuestas son obligatorios',
+      });
+    }
+
+    const normalizedResponses = responses.map((response, index) => {
+      if (typeof response === 'number') {
+        return { itemNumber: index + 1, response, score: response };
+      }
+
+      const numericScore = Number.isFinite(Number(response?.score))
+        ? Number(response.score)
+        : Number.isFinite(Number(response?.response))
+          ? Number(response.response)
+          : null;
+
+      return {
+        itemNumber: response?.itemNumber ?? index + 1,
+        question: response?.question ?? response?.itemText,
+        response: response?.response,
+        ...(numericScore !== null ? { score: numericScore } : {}),
+      };
+    });
+
+    const numericScores = normalizedResponses.map((response) => response.score);
+    const canComputeScore = numericScores.length > 0 && numericScores.every(
+      (score) => Number.isFinite(score)
+    );
+
+    const computedScore = canComputeScore
+      ? numericScores.reduce((sum, score) => sum + score, 0)
+      : null;
+
+    if (
+      sourceAssessment &&
+      submittedScore !== null &&
+      computedScore !== null &&
+      submittedScore !== computedScore
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'La puntuación de la evaluación no coincide con sus respuestas',
+      });
+    }
+
+    const score = computedScore ?? submittedScore;
+
+    if (score === null || !Number.isFinite(Number(score))) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fue posible determinar la puntuación de la medición',
+      });
+    }
+
+    // Provenance references must belong to the same patient and clinician.
+    if (therapySessionId) {
+      const session = await TherapySession.findOne({
+        _id: therapySessionId,
+        patient: patientId,
+        psychologist: clinicianId,
+      }).select('_id');
+
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: 'Sesión de origen no encontrada',
+        });
+      }
+    }
+
+    if (treatmentPlanId) {
+      const plan = await TreatmentPlan.findOne({
+        _id: treatmentPlanId,
+        patient: patientId,
+        $or: [
+          { psychologist: clinicianId },
+          { psychologistId: clinicianId },
+        ],
+      }).select('_id');
+
+      if (!plan) {
+        return res.status(404).json({
+          success: false,
+          message: 'Plan de tratamiento de origen no encontrado',
+        });
+      }
+    }
+
+    const measure = await Measure.create({
+      patient: patientId,
+      clinician: clinicianId,
+      name: nameToPersist,
+      responses: normalizedResponses,
+      score: Number(score),
+      scoreSource: computedScore !== null ? 'server' : 'submitted',
+      itemMap,
+      ...(assessmentId ? { assessmentId } : {}),
+      ...(therapySessionId ? { therapySessionId } : {}),
+      ...(treatmentPlanId ? { treatmentPlanId } : {}),
+      ...(sourceTakenAt ? { takenAt: sourceTakenAt } : {}),
+    });
+
+    const measuresPHQ9 = nameToPersist === 'PHQ-9'
+      ? []
+      : await Measure.find({
+          patient: patientId,
+          clinician: clinicianId,
+          name: 'PHQ-9',
+        }).sort({ takenAt: 1 }).select('score takenAt');
+
+    if (nameToPersist === 'PHQ-9') {
+      measuresPHQ9.push({ score: Number(score), takenAt: sourceTakenAt || new Date() });
+    }
+
+    const phq9Response = nameToPersist === 'PHQ-9'
+      ? { total: Number(score), item9: Number(normalizedResponses[8]?.score ?? normalizedResponses[8]?.response ?? 0) }
+      : measuresPHQ9.length
+        ? { total: measuresPHQ9.at(-1).score }
+        : undefined;
+
+    const risk = assessRisk({
+      phq9: phq9Response,
+      measuresPHQ9,
+    });
 
     const alertsCreated = [];
     for (const flag of risk.flags) {
-      const severityMap = { suicide_risk: 'critical', high_depression: 'high', worsening_trend: 'moderate' };
-      const alert = await Alert.create({ patient: patientId, clinician: clinicianId, type: flag, severity: severityMap[flag] || 'moderate', relatedMeasureId: measure._id });
+      const severityMap = {
+        suicide_risk: 'critical',
+        high_depression: 'high',
+        worsening_trend: 'moderate',
+      };
+      const alert = await Alert.create({
+        patient: patientId,
+        clinician: clinicianId,
+        type: flag,
+        severity: severityMap[flag] || 'moderate',
+        relatedMeasureId: measure._id,
+      });
       alertsCreated.push(alert);
     }
 
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'create_measure', meta: { name, score, alerts: risk.flags } });
+    await ActivityLog.create({
+      actor: clinicianId,
+      patient: patientId,
+      action: 'create_measure',
+      meta: {
+        name: nameToPersist,
+        score: Number(score),
+        scoreSource: measure.scoreSource,
+        assessmentId,
+        therapySessionId,
+        treatmentPlanId,
+        alerts: risk.flags,
+      },
+    });
 
-    res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
+    res.status(201).json({
+      success: true,
+      data: { measure, score: Number(score), alertsCreated },
+    });
   } catch (error) {
     logger.error('Error creating measure:', error);
     res.status(500).json({ success: false, message: 'Error al crear medida' });
