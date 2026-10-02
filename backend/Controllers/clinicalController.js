@@ -1,9 +1,10 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
-import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../utils/clinicalRules.js';
+import { scorePHQ9, scoreGAD7, screenForRiskSignals, generateClinicalSummary } from '../utils/clinicalRules.js';
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
@@ -76,20 +77,64 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const { name, responses, itemMap, assessmentId } = req.body;
+
+    let sourceAssessment;
+    if (assessmentId) {
+      sourceAssessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: patientId,
+        psychologist: clinicianId,
+      }).select('_id testType responses testDate');
+
+      if (!sourceAssessment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Evaluación de origen no encontrada',
+        });
+      }
+
+      if (sourceAssessment.testType !== name) {
+        return res.status(409).json({
+          success: false,
+          message: 'El instrumento de la medición no coincide con la evaluación de origen',
+        });
+      }
+    }
+
+    const sourceResponses = sourceAssessment?.responses ?? responses;
+    const normalizedResponses = (Array.isArray(sourceResponses) ? sourceResponses : []).map((response, index) => {
+      if (typeof response === 'number') {
+        return { itemNumber: index + 1, response };
+      }
+      return {
+        ...response,
+        itemNumber: response.itemNumber ?? index + 1,
+        response: response.response ?? response.score,
+      };
+    });
 
     let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    if (name === 'PHQ-9') { const s = scorePHQ9(normalizedResponses); score = s.total; severity = s.severity; item9 = s.item9; }
+    else if (name === 'GAD-7') { const s = scoreGAD7(normalizedResponses); score = s.total; severity = s.severity; }
+    else { score = normalizedResponses.reduce((a, b) => a + Number(b?.response ?? 0), 0); }
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+    const measure = await Measure.create({
+      patient: patientId,
+      clinician: clinicianId,
+      assessmentId,
+      name,
+      responses: normalizedResponses,
+      score,
+      itemMap,
+      ...(sourceAssessment?.testDate ? { takenAt: sourceAssessment.testDate } : {}),
+    });
 
     // Build recent PHQ-9 series for trend
     const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
     if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
+    const risk = screenForRiskSignals({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
 
     const alertsCreated = [];
     for (const flag of risk.flags) {
@@ -118,11 +163,9 @@ export const generateClinicalSummaryHandler = async (req, res) => {
     const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
     const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({ score: m.score, date: m.takenAt }));
 
-    // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
+    // No clinical metrics are fabricated when the source data is unavailable.
     const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
-
-    const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
+    const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes });
 
     const log = await ClinicalSuggestionLog.create({ patient: patientId, clinician: clinicianId, summary, accepted: false });
     await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'generate_clinical_summary', meta: { lookbackDays, flags: summary.flags } });

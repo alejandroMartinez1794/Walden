@@ -8,7 +8,7 @@ export function scorePHQ9(responses = []) {
   const item9 = vals[8] ?? 0;
   let severity = 'minimal';
   if (total >= 20) severity = 'severe';
-  else if (total >= 15) severity = 'moderately severe';
+  else if (total >= 15) severity = 'moderately-severe';
   else if (total >= 10) severity = 'moderate';
   else if (total >= 5) severity = 'mild';
   return { total, severity, item9 };
@@ -42,7 +42,7 @@ export function detectTrend(measures = []) {
   return { slope, delta, worsening };
 }
 
-export function assessRisk({ phq9, measuresPHQ9 = [] }) {
+export function screenForRiskSignals({ phq9, measuresPHQ9 = [] }) {
   const flags = [];
   const reasons = [];
   if (phq9?.total >= 15) { flags.push('high_depression'); reasons.push('PHQ-9 >= 15'); }
@@ -94,16 +94,18 @@ function mapInterventions({ phq9, gad7 }) {
   return suggestions;
 }
 
-export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], lastNotes = [], adherence = 0 }) {
+export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], lastNotes = [], adherence = null }) {
   const phq9Latest = measuresPHQ9[measuresPHQ9.length - 1];
   const gad7Latest = measuresGAD7[measuresGAD7.length - 1];
-  const risk = assessRisk({ phq9: phq9Latest, measuresPHQ9 });
+  const risk = screenForRiskSignals({ phq9: phq9Latest, measuresPHQ9 });
 
   const formulation = [
     `El paciente presenta un patrón ${phq9Latest?.severity || 'desconocido'} de síntomas depresivos y ${gad7Latest?.severity || 'desconocido'} de ansiedad.`,
     risk.flags.includes('worsening_trend') ? 'Se observa empeoramiento reciente de síntomas, lo que sugiere necesidad de intensificar intervención.' : 'No se observan incrementos clínicamente significativos en las últimas semanas.',
     lastNotes[0] ? `Notas recientes indican: ${lastNotes[0]}` : 'Sin notas recientes disponibles.',
-    `Adherencia a tareas estimada en ${Math.round(adherence * 100)}%.`,
+    adherence === null || adherence === undefined
+      ? 'Adherencia a tareas no disponible por falta de datos de asistencia/tareas.'
+      : `Adherencia a tareas registrada en ${Math.round(adherence * 100)}%.`,
   ].join(' ');
 
   const prioritizedTargets = [
@@ -123,10 +125,15 @@ export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], 
   };
 }
 
+// Backward-compatible alias for legacy callers. New clinical workflows should use
+// screenForRiskSignals to make clear that this is screening, not a formal risk assessment.
+export const assessRisk = screenForRiskSignals;
+
 export default {
   scorePHQ9,
   scoreGAD7,
   detectTrend,
+  screenForRiskSignals,
   assessRisk,
   generateClinicalSummary,
 };

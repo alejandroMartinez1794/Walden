@@ -120,7 +120,16 @@ const PHQ9Form = () => {
           total: totalScore,
         },
         interpretation: {
-          severity: severity.label.toLowerCase().replace(/\s/g, '-'),
+          severity: (() => {
+            const labels = {
+              'Mínima': 'minimal',
+              'Leve': 'mild',
+              'Moderada': 'moderate',
+              'Moderadamente severa': 'moderately-severe',
+              'Severa': 'severe',
+            };
+            return labels[severity.label] || 'minimal';
+          })(),
           notes: `PHQ-9 Score: ${totalScore}/27. ${severity.label} depression.`,
         },
       };
@@ -137,19 +146,25 @@ const PHQ9Form = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
 
-      // Also store as a clinical measure to trigger alerts and risk banners
-      try {
-        await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ name: 'PHQ-9', responses: formData.responses }),
-        });
-      } catch (e) {
-        // Non-blocking: continue if clinical measure fails
-        console.warn('Failed to create clinical measure:', e);
+      // The clinical Measure is part of the assessment safety flow.
+      // Do not report success if it fails: it is the record used for longitudinal
+      // risk screening and clinical alerts.
+      const measureResponse = await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: 'PHQ-9',
+          assessmentId: result.data?._id,
+          responses: formData.responses,
+        }),
+      });
+
+      const measureResult = await measureResponse.json();
+      if (!measureResponse.ok) {
+        throw new Error(measureResult.message || 'No fue posible registrar la medición clínica');
       }
 
       toast.success('Evaluación PHQ-9 guardada exitosamente');

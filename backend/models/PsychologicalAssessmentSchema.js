@@ -53,7 +53,7 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
   interpretation: {
     severity: {
       type: String,
-      enum: ['minimal', 'mild', 'moderate', 'severe', 'extremely-severe'],
+      enum: ['minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'],
     },
     clinicalNotes: String,
   },
