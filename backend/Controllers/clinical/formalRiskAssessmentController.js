@@ -59,6 +59,8 @@ export const createFormalRiskAssessment = async (req, res) => {
       patientId: patient.user,
       treatmentPlanId: plan._id,
       sessionId: value.sessionId,
+      sourceAssessmentId: value.sourceAssessmentId,
+      sourceMeasureId: value.sourceMeasureId,
       assessedBy: clinicianId,
       assessmentDate: value.assessmentDate,
       assessmentType: value.assessmentType,
