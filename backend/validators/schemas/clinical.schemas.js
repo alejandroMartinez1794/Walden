@@ -50,7 +50,7 @@ export const createMeasureSchema = Joi.object({
     .optional(),
 
   measureType: Joi.string()
-    .valid('phq9', 'gad7', 'columbia', 'phq2', 'audit', 'other')
+    .valid('phq9', 'gad7', 'bdi-ii', 'other')
     .optional(),
 
   responses: Joi.array()
