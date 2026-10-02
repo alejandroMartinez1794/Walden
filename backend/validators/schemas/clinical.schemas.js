@@ -71,6 +71,8 @@ export const createMeasureSchema = Joi.object({
 
   itemMap: Joi.object().optional(),
 
+  assessmentId: mongoIdSchema.optional(),
+
   // Deprecated: accepted during migration, never used as authoritative data.
   totalScore: Joi.number().integer().min(0).max(100).optional(),
   severity: Joi.string()
