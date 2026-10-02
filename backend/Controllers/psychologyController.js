@@ -9,7 +9,7 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
-import { assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
+import { assertPatientAccess, assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
 // ============ PACIENTES ============
 
@@ -210,11 +210,19 @@ export const createSession = async (req, res) => {
 export const getPatientSessions = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const psychologistId = req.userId;
-    
+
+    // The patient id is an identifier, not an authorization claim.
+    // Resolve it through the authenticated clinician's treatment relationship
+    // before reading any session records.
+    const plan = await assertPatientAccess({
+      req,
+      patientId,
+      action: 'read therapy sessions',
+    });
+
     const sessions = await TherapySession.find({
-      patient: patientId,
-      psychologist: psychologistId,
+      patient: plan.patient,
+      psychologist: plan.psychologist || req.userId,
     })
       .sort({ sessionDate: -1 })
       .populate('patient', 'personalInfo.fullName');
@@ -225,7 +233,10 @@ export const getPatientSessions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error al obtener sesiones:', error);
-    res.status(500).json({ success: false, message: 'Error al obtener sesiones' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al obtener sesiones',
+    });
   }
 };
 
