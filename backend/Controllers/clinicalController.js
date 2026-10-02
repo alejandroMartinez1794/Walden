@@ -78,7 +78,7 @@ export const createMeasure = async (req, res) => {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
     const { name: requestedName, measureType, responses, itemMap, assessmentId } = req.body;
-    const name = requestedName || ({ phq9: 'PHQ-9', gad7: 'GAD-7', other: 'OTHER' }[measureType]);
+    const name = requestedName || ({ phq9: 'PHQ-9', gad7: 'GAD-7', 'bdi-ii': 'BDI-II', other: 'OTHER' }[measureType]);
 
     if (assessmentId) {
       const assessment = await PsychologicalAssessment.findOne({
