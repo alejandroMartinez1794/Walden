@@ -306,6 +306,22 @@ export const createAssessment = async (req, res) => {
 
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
 
+    // Persist the normalized longitudinal measure from the assessment itself.
+    // The server owns this provenance; the frontend must not issue a second write.
+    const measureName = testType === 'other' ? 'OTHER' : testType;
+    if (measureName !== 'OTHER' && numericResponses.length > 0) {
+      const Measure = (await import('../models/MeasureSchema.js')).default;
+      await Measure.create({
+        patient,
+        clinician: psychologistId,
+        assessmentId: newAssessment._id,
+        name: measureName,
+        responses: normalizedResponses,
+        score: total,
+        takenAt: testDate,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
