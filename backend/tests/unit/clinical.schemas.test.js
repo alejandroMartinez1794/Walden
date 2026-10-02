@@ -24,12 +24,11 @@ describe('Clinical Schemas - createMeasureSchema', () => {
     expect(error).toBeUndefined();
   });
 
-  test('debe rechazar un instrumento no soportado por Measure', () => {
-    const { error } = createMeasureSchema.validate({
-      name: 'AUDIT',
-      responses: [1, 2, 3],
-    });
-    expect(error).toBeDefined();
+  test('debe aceptar instrumentos clínicos soportados por Measure', () => {
+    for (const name of ['AUDIT', 'PHQ-15', 'WHO-5', 'PC-PTSD-5', 'K10', 'K6']) {
+      const { error } = createMeasureSchema.validate({ name, responses: [1, 2, 3] });
+      expect(error).toBeUndefined();
+    }
   });
 
   test('debe rechazar respuestas vacías', () => {
