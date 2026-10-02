@@ -2,6 +2,11 @@
 import mongoose from 'mongoose';
 
 const therapySessionSchema = new mongoose.Schema({
+  treatmentPlanId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TreatmentPlan',
+    index: true,
+  },
   // Relaciones
   patient: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -75,6 +80,8 @@ const therapySessionSchema = new mongoose.Schema({
   crisisNotes: String,
 
 }, { timestamps: true });
+
+therapySessionSchema.index({ treatmentPlanId: 1, sessionDate: -1 });
 
 export default mongoose.models.TherapySession || 
   mongoose.model('TherapySession', therapySessionSchema);
