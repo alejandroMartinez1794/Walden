@@ -91,7 +91,11 @@ const GAD7Form = () => {
         await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ name: 'GAD-7', responses: formData.responses }),
+          body: JSON.stringify({
+            name: 'GAD-7',
+            assessmentId: json.data?._id,
+            responses: formData.responses,
+          }),
         });
       } catch (e) { console.warn('Failed to create clinical measure:', e); }
       toast.success('Evaluación GAD-7 guardada');
