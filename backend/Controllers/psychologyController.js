@@ -9,6 +9,7 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
+import { scorePHQ9, scoreGAD7 } from '../utils/clinicalRules.js';
 
 // ============ PACIENTES ============
 
@@ -211,59 +212,125 @@ export const getPatientSessions = async (req, res) => {
 export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const assessmentData = { ...req.body, psychologist: psychologistId };
-    
-    // Detectar alertas de riesgo automáticamente
-    const { testType, responses, scores } = req.body;
-    
-    // Ejemplo: BDI-II ítem 9 o PHQ-9 ítem 9 (ideación suicida)
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && responses) {
-      const suicidalItem = responses.find(r => r.itemNumber === 9);
-      if (suicidalItem && suicidalItem.response > 0) {
-        assessmentData.riskAlert = {
-          flagged: true,
-          reason: 'Respuesta positiva en ítem de ideación suicida',
-          action: 'Requiere evaluación inmediata del riesgo',
-        };
+    const {
+      patient,
+      testType,
+      testDate,
+      responses = [],
+      scores = {},
+      interpretation = {},
+      notes,
+    } = req.body;
+
+    // El servidor calcula el score cuando la representación de respuestas
+    // permite hacerlo. Nunca sustituimos un score calculable por el enviado
+    // por el cliente.
+    const responseScores = responses.map((response) => {
+      if (typeof response?.score === 'number' && Number.isFinite(response.score)) {
+        return response.score;
       }
-    }
-    
-    // Normalizar puntajes y severidad (PHQ-9 / GAD-7 / BDI-II)
-    const total = scores?.total ?? (Array.isArray(responses) ? responses.reduce((s, r) => s + Number(r.response || 0), 0) : undefined);
-    if (total !== undefined) {
-      assessmentData.scores = { ...(assessmentData.scores || {}), total };
-      const sev = (() => {
-        if (testType === 'PHQ-9') {
-          if (total >= 20) return 'severe';
-          if (total >= 15) return 'moderately-severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'GAD-7') {
-          if (total >= 15) return 'severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'BDI-II') {
-          if (total >= 29) return 'severe';
-          if (total >= 20) return 'moderate';
-          if (total >= 14) return 'mild';
-          return 'minimal';
-        }
-        return undefined;
-      })();
-      if (sev) {
-        assessmentData.interpretation = {
-          ...(assessmentData.interpretation || {}),
-          severity: sev,
-        };
+      if (typeof response?.response === 'number' && Number.isFinite(response.response)) {
+        return response.response;
       }
+      if (typeof response?.response === 'boolean') {
+        return response.response ? 1 : 0;
+      }
+      if (typeof response?.response === 'string') {
+        const normalized = response.response.trim().toLowerCase();
+        if (['sí', 'si', 'yes'].includes(normalized)) return 1;
+        if (['no'].includes(normalized)) return 0;
+      }
+      return null;
+    });
+
+    const canComputeScore = responseScores.length > 0 && responseScores.every(
+      (value) => Number.isFinite(value)
+    );
+    const computedTotal = canComputeScore
+      ? responseScores.reduce((sum, value) => sum + value, 0)
+      : null;
+
+    const submittedTotal = Number.isFinite(Number(scores?.total))
+      ? Number(scores.total)
+      : null;
+
+    if (computedTotal !== null && submittedTotal !== null && computedTotal !== submittedTotal) {
+      return res.status(400).json({
+        success: false,
+        message: 'La puntuación enviada no coincide con las respuestas',
+      });
     }
 
+    const total = computedTotal !== null ? computedTotal : submittedTotal;
+
+    if (total === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fue posible determinar la puntuación; el instrumento debe enviar scores.total o puntuaciones por respuesta',
+      });
+    }
+
+    let severity = interpretation?.severity;
+    let item9 = null;
+
+    if (testType === 'PHQ-9') {
+      const scored = scorePHQ9(responses);
+      if (computedTotal !== null && scored.total !== computedTotal) {
+        return res.status(400).json({
+          success: false,
+          message: 'La puntuación PHQ-9 no coincide con las respuestas',
+        });
+      }
+      severity = scored.severity;
+      item9 = scored.item9;
+    } else if (testType === 'GAD-7') {
+      const scored = scoreGAD7(responses);
+      if (computedTotal !== null && scored.total !== computedTotal) {
+        return res.status(400).json({
+          success: false,
+          message: 'La puntuación GAD-7 no coincide con las respuestas',
+        });
+      }
+      severity = scored.severity;
+    }
+
+    const normalizedResponses = responses.map((response) => ({
+      itemNumber: response.itemNumber,
+      itemText: response.itemText ?? response.question,
+      response: response.response,
+      ...(typeof response.score === 'number' ? { score: response.score } : {}),
+    }));
+
+    const riskAlert = (
+      (testType === 'PHQ-9' || testType === 'BDI-II') &&
+      item9 !== null &&
+      item9 > 0
+    ) ? {
+      flagged: true,
+      reason: 'Respuesta positiva en el ítem de ideación suicida',
+      action: 'Requiere evaluación clínica formal del riesgo',
+    } : undefined;
+
+    const assessmentData = {
+      patient,
+      psychologist: psychologistId,
+      testType,
+      testDate,
+      responses: normalizedResponses,
+      scores: {
+        ...scores,
+        total,
+        scoreSource: computedTotal !== null ? 'server' : 'submitted',
+      },
+      interpretation: {
+        severity,
+        clinicalNotes: interpretation?.clinicalNotes ?? interpretation?.notes ?? notes,
+      },
+      ...(riskAlert ? { riskAlert } : {}),
+    };
+
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
-    
+
     res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
