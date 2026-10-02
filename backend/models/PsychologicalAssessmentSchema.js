@@ -29,6 +29,11 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
       'YBOCS',      // Yale-Brown Obsessive Compulsive Scale
       'AUDIT',      // Alcohol Use Disorders Identification Test
       'PSS',        // Perceived Stress Scale
+      'K6',         // Kessler Psychological Distress Scale (6 items)
+      'K10',        // Kessler Psychological Distress Scale (10 items)
+      'WHO-5',      // WHO-5 Well-Being Index
+      'PHQ-15',     // PHQ-15 Somatic Symptom Severity
+      'PC-PTSD-5',  // Primary Care PTSD Screen
       'other'
     ],
   },
@@ -37,9 +42,11 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
 
   // Respuestas del test (array flexible para diferentes instrumentos)
   responses: [{
-    itemNumber: Number,
+    itemNumber: { type: Number, required: true, min: 1 },
     itemText: String,
-    response: mongoose.Schema.Types.Mixed, // Puede ser número, texto, etc.
+    question: String,
+    response: { type: mongoose.Schema.Types.Mixed, required: true },
+    score: { type: Number, min: 0, max: 100 },
   }],
 
   // Puntuaciones
