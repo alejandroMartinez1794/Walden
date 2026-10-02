@@ -354,8 +354,8 @@ export const createAssessment = async (req, res) => {
       };
     }
 
-    const requestedPatientId = requestedPatientId || requestedPatientIdAlias;
-    if (requestedPatientId && String(plan.patient) !== String(requestedPatientId)) {
+    const bodyPatientId = requestedPatientId || requestedPatientIdAlias;
+    if (bodyPatientId && String(plan.patient) !== String(bodyPatientId)) {
       return res.status(403).json({
         success: false,
         message: 'El plan de tratamiento no pertenece al paciente indicado',
