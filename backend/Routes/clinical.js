@@ -1,12 +1,14 @@
 // backend/Routes/clinical.js
 import express from 'express';
 import { authenticate, restrict } from '../auth/verifyToken.js';
-import { createMeasure, generateClinicalSummaryHandler, listAlerts, resolveAlert, updateAlertMitigation, acceptSuggestion, sendConsentEmail } from '../Controllers/clinicalController.js';
+import { createMeasure, createRiskAssessment, listRiskAssessments, generateClinicalSummaryHandler, listAlerts, resolveAlert, updateAlertMitigation, acceptSuggestion, sendConsentEmail } from '../Controllers/clinicalController.js';
 
 // ✅ IMPORTAR VALIDACIÓN
 import { validate, validateId } from '../validators/middleware/validate.js';
 import { 
     createMeasureSchema,
+    createRiskAssessmentSchema,
+    getRiskAssessmentsQuerySchema,
     generateClinicalSummarySchema,
     resolveAlertSchema,
     updateAlertMitigationSchema,
@@ -76,6 +78,11 @@ router.post('/send-consent', validate(sendConsentEmailSchema), sendConsentEmail)
  * - Empeoramiento rápido: +5 puntos en 1 semana
  */
 router.post('/patients/:id/measures', validateId, validate(createMeasureSchema), createMeasure);
+
+// ============ EVALUACIÓN FORMAL DE RIESGO ============
+// PHQ-9/GAD-7 screening never replaces a clinician-authored risk assessment.
+router.post('/risk-assessments', validate(createRiskAssessmentSchema), createRiskAssessment);
+router.get('/risk-assessments', validate(getRiskAssessmentsQuerySchema, 'query'), listRiskAssessments);
 
 // ============ RESUMEN CLÍNICO CON IA ============
 /**
