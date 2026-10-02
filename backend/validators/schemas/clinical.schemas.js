@@ -55,9 +55,8 @@ export const createMeasureSchema = Joi.object({
       'PC-PTSD-5',
       'OTHER'
     )
-    .required()
+    .optional()
     .messages({
-      'any.required': 'El nombre del instrumento es obligatorio',
       'any.only': 'Instrumento clínico inválido'
     }),
 
@@ -95,7 +94,7 @@ export const createMeasureSchema = Joi.object({
   takenAt: dateISOSchema
     .max('now')
     .optional(),
-}).options({ stripUnknown: true });
+}).or('name', 'measureType').options({ stripUnknown: true });
 
 /**
  * Schema para generar resumen clínico con IA
