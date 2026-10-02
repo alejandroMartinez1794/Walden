@@ -86,23 +86,6 @@ const GAD7Form = () => {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      // The clinical Measure is part of the assessment safety flow.
-      // Do not report success if it fails: it is the record used for longitudinal
-      // screening and clinical alerts.
-      const measureResponse = await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          name: 'GAD-7',
-          assessmentId: json.data?._id,
-          responses: formData.responses,
-        }),
-      });
-
-      const measureResult = await measureResponse.json();
-      if (!measureResponse.ok) {
-        throw new Error(measureResult.message || 'No fue posible registrar la medición clínica');
-      }
       toast.success('Evaluación GAD-7 guardada');
       navigate(`/psychology/patients/${formData.patient}`);
     } catch (e) { toast.error(e.message); } finally { setSubmitting(false); }
