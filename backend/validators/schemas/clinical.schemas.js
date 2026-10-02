@@ -33,120 +33,69 @@ import { mongoIdSchema, textLongSchema, textShortSchema, emailSchema } from './c
  * - Respuesta > 0 → Alerta de riesgo suicida
  */
 export const createMeasureSchema = Joi.object({
-  /**
-   * ID del paciente (en params de la ruta)
-   * 
-   * Ruta: POST /clinical/patients/:id/measures
-   * Por lo tanto, 'id' viene de params, no de body
-   */
-
-  /**
-   * Tipo de medición
-   * 
-   * Instrumentos validados:
-   * - phq9: Patient Health Questionnaire-9 (depresión)
-   * - gad7: Generalized Anxiety Disorder-7 (ansiedad)
-   * - columbia: Columbia-Suicide Severity Rating Scale
-   * - phq2: PHQ-2 (screening rápido depresión)
-   * - audit: Alcohol Use Disorders Identification Test
-   */
   measureType: Joi.string()
     .valid('phq9', 'gad7', 'columbia', 'phq2', 'audit', 'other')
+    .optional(),
+
+  name: Joi.string()
+    .valid(
+      'PHQ-9',
+      'GAD-7',
+      'BDI-II',
+      'BAI',
+      'PCL-5',
+      'OCI-R',
+      'YBOCS',
+      'AUDIT',
+      'PSS',
+      'K6',
+      'K10',
+      'WHO-5',
+      'PHQ-15',
+      'PC-PTSD-5',
+      'OTHER'
+    )
     .required()
     .messages({
-      'any.required': 'El tipo de medición es obligatorio',
-      'any.only': 'Tipo de medición inválido'
+      'any.required': 'El nombre del instrumento es obligatorio',
+      'any.only': 'Instrumento clínico inválido'
     }),
 
-  /**
-   * Respuestas del cuestionario
-   * 
-   * Formato: Array de objetos con pregunta y respuesta
-   * 
-   * Ejemplo PHQ-9:
-   * [
-   *   { question: "Poco interés en hacer cosas", score: 2 },
-   *   { question: "Sentirse deprimido", score: 3 },
-   *   ...
-   * ]
-   */
   responses: Joi.array()
     .items(
-      Joi.object({
-        question: textShortSchema
-          .min(5)
-          .max(200)
-          .required(),
-        
-        score: Joi.number()
-          .integer()
-          .min(0)
-          .max(10)
-          .required()
-          .messages({
-            'number.min': 'El score mínimo es 0',
-            'number.max': 'El score máximo es 10'
-          })
-      })
+      Joi.alternatives().try(
+        Joi.number(),
+        Joi.object({
+          itemNumber: Joi.number().integer().min(1).optional(),
+          question: textShortSchema.max(500).optional(),
+          response: Joi.alternatives().try(
+            Joi.number(),
+            Joi.boolean(),
+            textShortSchema.max(1000)
+          ).required(),
+          score: Joi.number().min(0).max(100).optional()
+        })
+      )
     )
     .min(1)
-    .max(50)
-    .required()
-    .messages({
-      'any.required': 'Las respuestas son obligatorias',
-      'array.min': 'Debe proporcionar al menos 1 respuesta',
-      'array.max': 'Máximo 50 respuestas'
-    }),
-
-  /**
-   * Score total calculado
-   * 
-   * Se calcula sumando todos los scores individuales
-   * Backend debería recalcular para validar
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
     .max(100)
     .required()
     .messages({
-      'any.required': 'El score total es obligatorio',
-      'number.min': 'El score mínimo es 0',
-      'number.max': 'El score máximo es 100'
+      'any.required': 'Las respuestas son obligatorias',
+      'array.min': 'Debe proporcionar al menos una respuesta',
+      'array.max': 'Máximo 100 respuestas'
     }),
 
-  /**
-   * Nivel de severidad
-   * 
-   * Basado en score:
-   * - none: Sin síntomas (score 0-4)
-   * - mild: Leve (5-9)
-   * - moderate: Moderado (10-14)
-   * - moderately-severe: Moderadamente severo (15-19)
-   * - severe: Severo (20+)
-   */
-  severity: Joi.string()
-    .valid('none', 'mild', 'moderate', 'moderately-severe', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La severidad es obligatoria',
-      'any.only': 'Severidad inválida'
-    }),
+  itemMap: Joi.object().unknown(true).optional(),
 
-  /**
-   * Notas adicionales del clínico
-   * 
-   * Contexto importante:
-   * - Factores estresantes actuales
-   * - Cambios recientes en vida del paciente
-   * - Observaciones durante la evaluación
-   */
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
-});
+  assessmentId: mongoIdSchema.optional(),
+  therapySessionId: mongoIdSchema.optional(),
+  treatmentPlanId: mongoIdSchema.optional(),
+
+  takenAt: dateISOSchema
+    .max('now')
+    .optional(),
+}).options({ stripUnknown: true });
 
 /**
  * Schema para generar resumen clínico con IA
