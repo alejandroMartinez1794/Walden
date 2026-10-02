@@ -6,7 +6,7 @@ const MeasureSchema = new mongoose.Schema({
   clinician: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
   // Provenance link to the instrument administration that produced this longitudinal measure.
   assessmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'PsychologicalAssessment', index: true },
-  name: { type: String, enum: ['BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS', 'OTHER'], required: true },
+  name: { type: String, enum: ['BDI-II', 'BAI', 'PHQ-9', 'GAD-7', 'PHQ-15', 'WHO-5', 'PC-PTSD-5', 'K10', 'K6', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS', 'OTHER'], required: true },
   responses: [mongoose.Schema.Types.Mixed], // números o {itemNumber, response}
   score: { type: Number, required: true },
   itemMap: mongoose.Schema.Types.Mixed,
