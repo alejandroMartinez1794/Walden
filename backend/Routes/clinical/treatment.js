@@ -14,6 +14,7 @@ import {
   getCaseload,
 } from '../../Controllers/clinical/treatmentController.js';
 import { authenticate, restrict } from '../../auth/verifyToken.js';
+import { createFormalRiskAssessment } from '../../Controllers/clinical/formalRiskAssessmentController.js';
 
 const router = express.Router();
 
@@ -30,7 +31,10 @@ router.get('/:treatmentPlanId/progress', getProgressMetrics);
 // Phase progression
 router.put('/:treatmentPlanId/phase', progressPhase);
 
-// Risk assessment
+// Legacy risk snapshot endpoint retained during migration.
 router.post('/:treatmentPlanId/risk-assessment', updateRiskAssessment);
+
+// Formal risk assessment: creates the immutable clinical authority record candidate.
+router.post('/:treatmentPlanId/risk-assessments', createFormalRiskAssessment);
 
 export default router;
