@@ -4,7 +4,6 @@ import TherapySession from '../models/TherapySessionSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
-import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
@@ -45,53 +44,11 @@ export const getMyPatients = async (req, res) => {
     
     const { status } = req.query;
     
-    // 1. Sincronizar pacientes desde Reservas (Bookings)
-    // Buscar reservas de este doctor donde el usuario no tenga aún un expediente
-    const bookings = await Booking.find({ doctor: psychologistId }).populate('user');
+    // GET debe ser de solo lectura: la creación del expediente clínico requiere
+    // datos demográficos completos y consentimiento/contexto explícitos.
+    // La sincronización desde reservas debe ejecutarse mediante un comando explícito.
     
-    // Extraer usuarios únicos de las reservas
-    const uniqueUsers = {};
-    bookings.forEach(booking => {
-      if (booking.user && booking.user._id) {
-        uniqueUsers[booking.user._id.toString()] = booking.user;
-      }
-    });
-
-    // Verificar cuáles ya tienen expediente
-    const userIds = Object.keys(uniqueUsers);
-    if (userIds.length > 0) {
-      const existingPatients = await PsychologicalPatient.find({
-        psychologist: psychologistId,
-        user: { $in: userIds }
-      });
-      
-      const existingUserIds = new Set(existingPatients.map(p => p.user.toString()));
-      
-      // Crear expedientes para los nuevos
-      const newPatientsToCreate = userIds
-        .filter(id => !existingUserIds.has(id))
-        .map(id => {
-          const user = uniqueUsers[id];
-          return {
-            psychologist: psychologistId,
-            user: id,
-            personalInfo: {
-              fullName: user.name,
-              email: user.email,
-              phone: user.phone ? String(user.phone) : '',
-              gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
-              dateOfBirth: new Date(), // Placeholder, se debe actualizar
-            },
-            status: 'active'
-          };
-        });
-      
-      if (newPatientsToCreate.length > 0) {
-        await PsychologicalPatient.insertMany(newPatientsToCreate);
-      }
-    }
-
-    // 2. Obtener lista completa
+    // Obtener únicamente expedientes clínicos existentes
     const filter = { psychologist: psychologistId };
     if (status) filter.status = status;
     
