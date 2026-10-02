@@ -227,17 +227,10 @@ export const createSessionSchema = Joi.object({
  * - Etc.
  */
 export const createAssessmentSchema = Joi.object({
-  patient: mongoIdSchema
-    .required()
-    .messages({
-      'any.required': 'El ID del paciente es obligatorio'
-    }),
+  patient: mongoIdSchema.required(),
+  patientId: mongoIdSchema.optional(),
+  treatmentPlanId: mongoIdSchema.optional(),
 
-  /**
-   * Tipo de test
-   * 
-   * Tests validados científicamente
-   */
   testType: Joi.string()
     .valid(
       'BDI-II',
@@ -251,77 +244,64 @@ export const createAssessmentSchema = Joi.object({
       'PSS',
       'other'
     )
-    .required()
-    .messages({
-      'any.required': 'El tipo de test es obligatorio',
-      'any.only': 'Tipo de test inválido'
-    }),
+    .required(),
 
   testDate: dateISOSchema
     .max('now')
-    .default(() => new Date())
-    .messages({
-      'date.max': 'No se pueden registrar evaluaciones futuras'
-    }),
+    .default(() => new Date()),
 
-  /**
-   * Puntuación total del test
-   * 
-   * Cada test tiene su rango:
-   * - BDI-II: 0-63
-   * - BAI: 0-63
-   * - PHQ-9: 0-27
-   * - GAD-7: 0-21
-   * 
-   * Validamos rango amplio (0-100)
-   */
-  totalScore: Joi.number()
-    .integer()
-    .min(0)
+  responses: Joi.array()
+    .items(
+      Joi.object({
+        itemNumber: Joi.number().integer().min(1).max(100).required(),
+        itemText: textShortSchema.max(500).optional(),
+        question: textShortSchema.max(500).optional(),
+        response: Joi.alternatives().try(
+          Joi.number().min(0).max(10),
+          textShortSchema.max(500)
+        ).required(),
+      }).or('itemText', 'question')
+    )
+    .min(1)
     .max(100)
-    .required()
-    .messages({
-      'any.required': 'La puntuación total es obligatoria',
-      'number.min': 'La puntuación mínima es 0',
-      'number.max': 'La puntuación máxima es 100'
-    }),
+    .required(),
 
-  /**
-   * Interpretación de la puntuación
-   * 
-   * Categorías generales:
-   * - minimal: Síntomas mínimos
-   * - mild: Leve
-   * - moderate: Moderado
-   * - severe: Severo
-   */
-  interpretation: Joi.string()
-    .valid('minimal', 'mild', 'moderate', 'severe')
-    .required()
-    .messages({
-      'any.required': 'La interpretación es obligatoria',
-      'any.only': 'Interpretación inválida'
-    }),
+  // Legacy client field accepted during migration, but the controller
+  // recalculates the authoritative score from responses.
+  scores: Joi.object({
+    total: Joi.number().integer().min(0).max(100).optional(),
+    subscales: Joi.object().unknown(true).optional(),
+    percentile: Joi.number().optional(),
+  }).optional(),
 
-  // Notas adicionales del psicólogo
-  notes: textLongSchema
-    .max(2000)
-    .messages({
-      'string.max': 'Las notas no pueden exceder 2000 caracteres'
-    })
-});
+  totalScore: Joi.number().integer().min(0).max(100).optional(),
+
+  // Canonical representation is an object. A scalar legacy value is still
+  // accepted so historical clients do not fail during the migration.
+  interpretation: Joi.alternatives().try(
+    Joi.object({
+      severity: Joi.string()
+        .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'moderate', 'severe', 'extremely-severe')
+        .optional(),
+      clinicalNotes: textLongSchema.max(2000).optional(),
+      notes: textLongSchema.max(2000).optional(),
+    }),
+    Joi.string().valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe')
+  ).optional(),
+
+  notes: textLongSchema.max(2000).optional(),
+  comparisonNotes: textLongSchema.max(2000).optional(),
+}).custom((value, helpers) => {
+  if (!value.interpretation && value.testType && value.responses) {
+    return value;
+  }
+  return value;
+}, 'assessment contract validation');
 
 /**
  * Schema para crear plan de tratamiento
- * 
- * Componentes:
- * - Diagnóstico (si aplica)
- * - Objetivos terapéuticos
- * - Intervenciones planificadas
- * - Duración estimada
- * - Frecuencia de sesiones
  */
-export const createTreatmentPlanSchema = Joi.object({
+ = Joi.object({
   patient: mongoIdSchema
     .required()
     .messages({
