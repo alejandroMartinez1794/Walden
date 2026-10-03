@@ -165,7 +165,7 @@ export const generateClinicalSummaryHandler = async (req, res) => {
 
     // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
     const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
+    const adherence = null;
 
     const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
 
