@@ -6,7 +6,7 @@ const psychologicalPatientSchema = new mongoose.Schema({
   // Datos demográficos básicos
   personalInfo: {
     fullName: { type: String, required: true, trim: true, minlength: 3, maxlength: 180, set: sanitizeClinicalText },
-    dateOfBirth: { type: Date, required: true },
+    dateOfBirth: { type: Date },
     gender: { type: String, enum: ['male', 'female', 'other', 'prefer-not-to-say'] },
     phone: { type: String, trim: true, maxlength: 30, set: sanitizeClinicalText },
     email: { type: String, trim: true, maxlength: 254, set: sanitizeClinicalText },
