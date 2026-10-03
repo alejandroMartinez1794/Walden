@@ -2,6 +2,7 @@
 import Measure from '../models/MeasureSchema.js';
 import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
@@ -99,6 +100,22 @@ export const createMeasure = async (req, res) => {
       });
     }
 
+    let treatmentPlan = null;
+    if (treatmentPlanId) {
+      treatmentPlan = await TreatmentPlan.findOne({
+        _id: treatmentPlanId,
+        patient: patient._id,
+        psychologist: clinicianId,
+      }).select('_id patient psychologist');
+
+      if (!treatmentPlan) {
+        return res.status(403).json({
+          success: false,
+          message: 'El plan de tratamiento no pertenece a este paciente',
+        });
+      }
+    }
+
     let assessment = null;
     if (assessmentId) {
       assessment = await PsychologicalAssessment.findOne({
@@ -149,7 +166,7 @@ export const createMeasure = async (req, res) => {
       score,
       itemMap,
       assessmentId: assessment?._id,
-      treatmentPlanId,
+      treatmentPlanId: treatmentPlan?._id,
     });
 
     // Build recent PHQ-9 series for trend. This is screening logic only;
