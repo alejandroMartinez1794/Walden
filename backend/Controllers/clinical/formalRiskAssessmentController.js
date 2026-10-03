@@ -2,6 +2,9 @@ import mongoose from 'mongoose';
 import RiskAssessment from '../../models/RiskAssessmentSchema.js';
 import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
 import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
+import PsychologicalAssessment from '../../models/PsychologicalAssessmentSchema.js';
+import Measure from '../../models/MeasureSchema.js';
+import TherapySession from '../../models/TherapySessionSchema.js';
 import Doctor from '../../models/DoctorSchema.js';
 import { createRiskAssessmentSchema } from '../../validators/schemas/riskAssessment.schemas.js';
 import logger from '../../utils/logger.js';
@@ -53,6 +56,55 @@ export const createFormalRiskAssessment = async (req, res) => {
     const doctor = await Doctor.findById(clinicianId).select('name');
     if (!doctor) {
       return res.status(403).json({ success: false, message: 'Clinician not found' });
+    }
+
+    // Provenance is part of the clinical record, not just metadata. Every
+    // source must belong to the same patient and clinician as the authorized
+    // TreatmentPlan; otherwise a valid clinician token could link another
+    // patient's assessment/session into this risk record.
+    if (value.sourceAssessmentId) {
+      const sourceAssessment = await PsychologicalAssessment.findOne({
+        _id: value.sourceAssessmentId,
+        patient: plan.patient,
+        psychologist: clinicianId,
+      }).select('_id');
+
+      if (!sourceAssessment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Source assessment not found',
+        });
+      }
+    }
+
+    if (value.sourceMeasureId) {
+      const sourceMeasure = await Measure.findOne({
+        _id: value.sourceMeasureId,
+        patient: plan.patient,
+        clinician: clinicianId,
+      }).select('_id');
+
+      if (!sourceMeasure) {
+        return res.status(404).json({
+          success: false,
+          message: 'Source measure not found',
+        });
+      }
+    }
+
+    if (value.sessionId) {
+      const sourceSession = await TherapySession.findOne({
+        _id: value.sessionId,
+        patient: plan.patient,
+        psychologist: clinicianId,
+      }).select('_id');
+
+      if (!sourceSession) {
+        return res.status(404).json({
+          success: false,
+          message: 'Source therapy session not found',
+        });
+      }
     }
 
     const riskAssessment = await RiskAssessment.create({
