@@ -129,70 +129,24 @@ export const createPatient = async (req, res) => {
 export const getMyPatients = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    logger.info(`🧠 getMyPatients: Buscando pacientes para psicólogo ${psychologistId}`);
-    
     const { status } = req.query;
-    
-    // 1. Sincronizar pacientes desde Reservas (Bookings)
-    // Buscar reservas de este doctor donde el usuario no tenga aún un expediente
-    const bookings = await Booking.find({ doctor: psychologistId }).populate('user');
-    
-    // Extraer usuarios únicos de las reservas
-    const uniqueUsers = {};
-    bookings.forEach(booking => {
-      if (booking.user && booking.user._id) {
-        uniqueUsers[booking.user._id.toString()] = booking.user;
-      }
-    });
 
-    // Verificar cuáles ya tienen expediente
-    const userIds = Object.keys(uniqueUsers);
-    if (userIds.length > 0) {
-      const existingPatients = await PsychologicalPatient.find({
-        psychologist: psychologistId,
-        user: { $in: userIds }
-      });
-      
-      const existingUserIds = new Set(existingPatients.map(p => p.user.toString()));
-      
-      // Crear expedientes para los nuevos
-      const newPatientsToCreate = userIds
-        .filter(id => !existingUserIds.has(id))
-        .map(id => {
-          const user = uniqueUsers[id];
-          return {
-            psychologist: psychologistId,
-            user: id,
-            personalInfo: {
-              fullName: user.name,
-              email: user.email,
-              phone: user.phone ? String(user.phone) : '',
-              gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
-              // Do not fabricate demographic data when the booking user has no date of birth source.
-            },
-            status: 'active'
-          };
-        });
-      
-      if (newPatientsToCreate.length > 0) {
-        await PsychologicalPatient.insertMany(newPatientsToCreate);
-      }
-    }
-
-    // 2. Obtener lista completa
-    const filter = { psychologist: psychologistId };
+    const filter = { psychologist: psychologistId, isDeleted: { $ne: true } };
     if (status) filter.status = status;
-    
+
     const patients = await PsychologicalPatient.find(filter)
       .sort({ lastSessionDate: -1, createdAt: -1 });
-    
-    res.status(200).json({
+
+    return res.status(200).json({
       success: true,
       data: patients,
     });
   } catch (error) {
     logger.error('❌ Error en getMyPatients:', error);
-    res.status(500).json({ success: false, message: 'Error al obtener pacientes', error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: 'Error al obtener pacientes',
+    });
   }
 };
 
@@ -251,24 +205,48 @@ export const updatePatient = async (req, res) => {
 export const createSession = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const sessionData = { ...req.body, psychologist: psychologistId };
-    
+    const { treatmentPlanId } = req.body || {};
+
+    if (!treatmentPlanId) {
+      return res.status(400).json({
+        success: false,
+        message: 'El plan de tratamiento es obligatorio para registrar una nueva sesión clínica',
+      });
+    }
+
+    const plan = await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'create therapy session',
+    });
+
+    const sessionData = {
+      ...req.body,
+      patient: plan.patient,
+      psychologist: plan.psychologist,
+      treatmentPlanId: plan._id,
+    };
+    delete sessionData.patientId;
+    delete sessionData.psychologistId;
+
     const newSession = await TherapySession.create(sessionData);
-    
-    // Actualizar fecha de última sesión del paciente
+
     await PsychologicalPatient.findByIdAndUpdate(
-      req.body.patient,
+      plan.patient,
       { lastSessionDate: sessionData.sessionDate }
     );
-    
-    res.status(201).json({
+
+    return res.status(201).json({
       success: true,
       message: 'Sesión registrada exitosamente',
       data: newSession,
     });
   } catch (error) {
     logger.error('Error al crear sesión:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar sesión' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar sesión',
+    });
   }
 };
 
