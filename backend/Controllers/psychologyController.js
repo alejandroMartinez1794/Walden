@@ -2,6 +2,7 @@
 import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import TherapySession from '../models/TherapySessionSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import Measure from '../models/MeasureSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
 import Booking from '../models/BookingSchema.js';
@@ -45,52 +46,11 @@ export const getMyPatients = async (req, res) => {
     
     const { status } = req.query;
     
-    // 1. Sincronizar pacientes desde Reservas (Bookings)
-    // Buscar reservas de este doctor donde el usuario no tenga aún un expediente
-    const bookings = await Booking.find({ doctor: psychologistId }).populate('user');
+    // Patient listing is read-only. Clinical records must not be created as a
+    // side effect of a GET request; booking-to-patient reconciliation belongs
+    // to an explicit migration/command with its own provenance rules.
+    const bookings = [];
     
-    // Extraer usuarios únicos de las reservas
-    const uniqueUsers = {};
-    bookings.forEach(booking => {
-      if (booking.user && booking.user._id) {
-        uniqueUsers[booking.user._id.toString()] = booking.user;
-      }
-    });
-
-    // Verificar cuáles ya tienen expediente
-    const userIds = Object.keys(uniqueUsers);
-    if (userIds.length > 0) {
-      const existingPatients = await PsychologicalPatient.find({
-        psychologist: psychologistId,
-        user: { $in: userIds }
-      });
-      
-      const existingUserIds = new Set(existingPatients.map(p => p.user.toString()));
-      
-      // Crear expedientes para los nuevos
-      const newPatientsToCreate = userIds
-        .filter(id => !existingUserIds.has(id))
-        .map(id => {
-          const user = uniqueUsers[id];
-          return {
-            psychologist: psychologistId,
-            user: id,
-            personalInfo: {
-              fullName: user.name,
-              email: user.email,
-              phone: user.phone ? String(user.phone) : '',
-              gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
-              dateOfBirth: new Date(), // Placeholder, se debe actualizar
-            },
-            status: 'active'
-          };
-        });
-      
-      if (newPatientsToCreate.length > 0) {
-        await PsychologicalPatient.insertMany(newPatientsToCreate);
-      }
-    }
-
     // 2. Obtener lista completa
     const filter = { psychologist: psychologistId };
     if (status) filter.status = status;
@@ -226,6 +186,18 @@ export const createAssessment = async (req, res) => {
       ? { severity: rawInterpretation }
       : (rawInterpretation || {});
 
+    const assignedPatient = await PsychologicalPatient.findOne({
+      _id: patient,
+      psychologist: psychologistId,
+    }).select('_id');
+
+    if (!assignedPatient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Paciente no encontrado',
+      });
+    }
+
     const normalizedResponses = responses.map((response, index) => ({
       itemNumber: response.itemNumber ?? index + 1,
       itemText: response.itemText ?? response.question,
@@ -306,20 +278,30 @@ export const createAssessment = async (req, res) => {
 
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
 
-    // Persist the normalized longitudinal measure from the assessment itself.
-    // The server owns this provenance; the frontend must not issue a second write.
+    // Assessment is the instrument administration; Measure is its normalized
+    // longitudinal projection. The server owns this link so the frontend
+    // cannot create a second, divergent Measure for the same Assessment.
     const measureName = testType === 'other' ? 'OTHER' : testType;
-    if (measureName !== 'OTHER' && numericResponses.length > 0) {
-      const Measure = (await import('../models/MeasureSchema.js')).default;
-      await Measure.create({
-        patient,
-        clinician: psychologistId,
-        assessmentId: newAssessment._id,
-        name: measureName,
-        responses: normalizedResponses,
-        score: total,
-        takenAt: testDate,
-      });
+    if (measureName !== 'OTHER' && total !== undefined) {
+      await Measure.findOneAndUpdate(
+        {
+          assessmentId: newAssessment._id,
+          patient,
+          clinician: psychologistId,
+        },
+        {
+          $setOnInsert: {
+            patient,
+            clinician: psychologistId,
+            assessmentId: newAssessment._id,
+            name: measureName,
+            responses: normalizedResponses,
+            score: total,
+            ...(testDate ? { takenAt: testDate } : {}),
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
     }
 
     res.status(201).json({
