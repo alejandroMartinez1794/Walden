@@ -390,8 +390,24 @@ SafetyPlanSchema.methods.updatePlan = async function (updates, clinician, reason
     changeReason: reason,
   });
 
-  // Apply updates
-  Object.assign(this, updates);
+  // Only clinical content is mutable through this method.
+  // Identity, ownership, status, version and audit history are server-controlled.
+  const mutableFields = [
+    "warningSignals",
+    "internalCopingStrategies",
+    "socialDistraction",
+    "supportContacts",
+    "professionalContacts",
+    "meansRestriction",
+    "reasonsForLiving",
+    "reviewSchedule",
+  ];
+
+  for (const field of mutableFields) {
+    if (Object.prototype.hasOwnProperty.call(updates, field)) {
+      this[field] = updates[field];
+    }
+  }
 
   // Increment version
   this.versionNumber += 1;
@@ -575,19 +591,8 @@ SafetyPlanSchema.pre("save", async function (next) {
     }
   }
 
-  // Ensure crisis lines are populated with defaults
-  if (this.isNew && this.professionalContacts.crisisLines.length === 0) {
-    this.professionalContacts.crisisLines = [
-      {
-        name: "National Suicide Prevention Lifeline",
-        phone: "988",
-        availability: "24/7",
-        textOption: "Text HOME to 741741",
-        language: ["English", "Spanish"],
-      },
-    ];
-  }
-
+  // Crisis contacts are jurisdiction-specific and must be explicitly configured.
+  // Never inject a foreign emergency number or crisis service by default.
   next();
 });
 
