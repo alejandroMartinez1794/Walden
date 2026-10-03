@@ -265,9 +265,6 @@ export const createAssessmentSchema = Joi.object({
   // Legacy alias for interpretation.clinicalNotes.
   notes: textLongSchema.max(2000),
 
-  Joi.object({}).custom((value, helpers) => value)
-    .description('reserved')
-    .optional()
 }).custom((value, helpers) => {
   if (value.scores?.total === undefined && value.totalScore === undefined && value.responses.length === 0) {
     return helpers.error('any.custom', { message: 'Debe proporcionar scores.total, totalScore o responses' });
