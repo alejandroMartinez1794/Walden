@@ -1,5 +1,7 @@
 // backend/Controllers/clinicalController.js
 import Measure from '../models/MeasureSchema.js';
+import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
@@ -76,34 +78,149 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const {
+      name,
+      responses = [],
+      itemMap,
+      assessmentId,
+      treatmentPlanId,
+    } = req.body;
 
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    // Clinical ownership is always derived from the authenticated clinician.
+    const patient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: clinicianId,
+    }).select('_id psychologist');
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+    if (!patient) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tiene acceso clínico a este paciente',
+      });
+    }
 
-    // Build recent PHQ-9 series for trend
-    const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
-    if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
+    let assessment = null;
+    if (assessmentId) {
+      assessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: patient._id,
+        psychologist: clinicianId,
+      }).select('_id patient psychologist testType testDate');
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
+      if (!assessment) {
+        return res.status(403).json({
+          success: false,
+          message: 'La evaluación de origen no pertenece a este paciente',
+        });
+      }
+    }
+
+    const normalizedResponses = Array.isArray(responses) ? responses : [];
+    const numericResponse = (item) => {
+      if (typeof item === 'number') return item;
+      if (typeof item === 'string') return Number(item) || 0;
+      return Number(item?.response ?? item?.score ?? 0) || 0;
+    };
+
+    let score = normalizedResponses.reduce((sum, item) => sum + numericResponse(item), 0);
+    let severity;
+    let item9;
+
+    if (name === 'PHQ-9') {
+      const s = scorePHQ9(normalizedResponses);
+      score = s.total;
+      severity = s.severity;
+      item9 = s.item9;
+    } else if (name === 'GAD-7') {
+      const s = scoreGAD7(normalizedResponses);
+      score = s.total;
+      severity = s.severity;
+    } else {
+      item9 = normalizedResponses.find(
+        (item) => Number(item?.itemNumber) === 9
+      );
+    }
+
+    const measure = await Measure.create({
+      patient: patient._id,
+      clinician: clinicianId,
+      name,
+      responses: normalizedResponses,
+      score,
+      itemMap,
+      assessmentId: assessment?._id,
+      treatmentPlanId,
+    });
+
+    // Build recent PHQ-9 series for trend. This is screening logic only;
+    // it does not replace the formal RiskAssessment workflow.
+    const measuresPHQ9 = name === 'PHQ-9'
+      ? []
+      : await Measure.find({
+          patient: patient._id,
+          clinician: clinicianId,
+          name: 'PHQ-9',
+        })
+        .sort({ takenAt: 1 })
+        .select('score takenAt');
+
+    if (name === 'PHQ-9') {
+      measuresPHQ9.push({ score, takenAt: measure.takenAt });
+    }
+
+    const risk = assessRisk({
+      phq9: name === 'PHQ-9'
+        ? { total: score, item9, severity }
+        : measuresPHQ9.length
+          ? { total: measuresPHQ9.at(-1).score }
+          : undefined,
+      measuresPHQ9,
+    });
 
     const alertsCreated = [];
     for (const flag of risk.flags) {
-      const severityMap = { suicide_risk: 'critical', high_depression: 'high', worsening_trend: 'moderate' };
-      const alert = await Alert.create({ patient: patientId, clinician: clinicianId, type: flag, severity: severityMap[flag] || 'moderate', relatedMeasureId: measure._id });
+      const severityMap = {
+        suicide_risk: 'critical',
+        high_depression: 'high',
+        worsening_trend: 'moderate',
+      };
+      const alert = await Alert.create({
+        patient: patient._id,
+        clinician: clinicianId,
+        type: flag,
+        severity: severityMap[flag] || 'moderate',
+        relatedMeasureId: measure._id,
+      });
       alertsCreated.push(alert);
     }
 
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'create_measure', meta: { name, score, alerts: risk.flags } });
+    await ActivityLog.create({
+      actor: clinicianId,
+      patient: patient._id,
+      action: 'create_measure',
+      meta: {
+        name,
+        score,
+        assessmentId: assessment?._id,
+        alerts: risk.flags,
+      },
+    });
 
-    res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
+    res.status(201).json({
+      success: true,
+      data: {
+        measure,
+        score,
+        severity,
+        alertsCreated,
+      },
+    });
   } catch (error) {
     logger.error('Error creating measure:', error);
-    res.status(500).json({ success: false, message: 'Error al crear medida' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode ? error.message : 'Error al crear medida',
+    });
   }
 };
 
