@@ -6,6 +6,7 @@
  */
 
 import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
+import TherapySession from '../../models/TherapySessionSchema.js';
 import ClinicalDecisionEngine from '../../services/ClinicalDecisionEngine.js';
 import ClinicalAlert from '../../models/ClinicalAlertSchema.js';
 import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
@@ -22,10 +23,6 @@ export const getTreatmentPlan = async (req, res) => {
     const plan = await TreatmentPlan.findById(treatmentPlanId)
       .select('+riskLevel') // Include hidden risk data for clinician
       .populate('patient psychologist', 'name email photo')
-      .populate({
-        path: 'sessions',
-        options: { sort: { sessionDate: -1 }, limit: 5 },
-      });
 
     if (!plan) {
       return res.status(404).json({ success: false, message: 'Treatment plan not found' });
@@ -37,7 +34,15 @@ export const getTreatmentPlan = async (req, res) => {
       action: 'read treatment plan',
     });
 
-    res.status(200).json({ success: true, data: plan });
+    const sessions = await TherapySession.find({ treatmentPlanId })
+      .sort({ sessionDate: -1 })
+      .limit(5)
+      .populate('patient', 'personalInfo.fullName');
+
+    res.status(200).json({
+      success: true,
+      data: { ...plan.toObject(), sessions },
+    });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
@@ -73,16 +78,9 @@ export const createTreatmentPlan = async (req, res) => {
       psychologist: req.userId,
       psychologistId: req.userId,
       theoreticalOrientation: theoreticalOrientation || 'CBT',
-      treatmentGoals: initialGoals || [],
+      goals: initialGoals || [],
       currentPhase: 'INTAKE',
       status: 'ACTIVE',
-      consentHistory: [
-        {
-          consentType: 'INITIAL',
-          consentedAt: new Date(),
-          ipAddress: req.ip,
-        },
-      ],
     });
     plan.$locals.clinicalAuditActor = {
       userId: req.userId,
@@ -247,12 +245,17 @@ export const getProgressMetrics = async (req, res) => {
       action: 'read treatment progress',
     });
 
-    const plan = await TreatmentPlan.findById(treatmentPlanId).populate('sessions');
+    const plan = await TreatmentPlan.findById(treatmentPlanId).select('+riskLevel').lean();
     if (!plan) {
       return res.status(404).json({ success: false, message: 'Treatment plan not found' });
     }
 
-    const metrics = ClinicalDecisionEngine.calculateProgressMetrics(plan, plan.sessions || []);
+    const sessions = await TherapySession.find({ treatmentPlanId })
+      .sort({ sessionDate: -1 })
+      .limit(50)
+      .lean();
+
+    const metrics = ClinicalDecisionEngine.calculateProgressMetrics(plan, sessions);
 
     res.status(200).json({
       success: true,
