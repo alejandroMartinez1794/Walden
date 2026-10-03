@@ -26,10 +26,17 @@ import mongoose from "mongoose";
 const RiskAssessmentSchema = new mongoose.Schema(
   {
     // ============= RELATIONSHIPS =============
+    // Legacy/platform identity. Retained during migration.
     patientId: {
       type: mongoose.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    // Canonical clinical identity for the Clinical Core.
+    psychologicalPatientId: {
+      type: mongoose.Types.ObjectId,
+      ref: "PsychologicalPatient",
       index: true,
     },
     treatmentPlanId: {
@@ -41,6 +48,12 @@ const RiskAssessmentSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "TherapySession",
       // Nullable: Can be standalone assessment (e.g., crisis phone call)
+    },
+    // Optional provenance: a screening assessment may trigger a formal risk evaluation.
+    sourceAssessmentId: {
+      type: mongoose.Types.ObjectId,
+      ref: "PsychologicalAssessment",
+      index: true,
     },
     assessedBy: {
       type: mongoose.Types.ObjectId,
@@ -414,6 +427,7 @@ const RiskAssessmentSchema = new mongoose.Schema(
 
 // ============= INDEXES =============
 RiskAssessmentSchema.index({ patientId: 1, assessmentDate: -1 });
+RiskAssessmentSchema.index({ psychologicalPatientId: 1, assessmentDate: -1 });
 RiskAssessmentSchema.index({ assessedBy: 1, assessmentDate: -1 });
 RiskAssessmentSchema.index({ "clinicalImpression.overallRiskLevel": 1 });
 RiskAssessmentSchema.index({ "followUp.nextAssessmentDue": 1 });
