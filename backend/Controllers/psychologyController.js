@@ -211,59 +211,101 @@ export const getPatientSessions = async (req, res) => {
 export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const assessmentData = { ...req.body, psychologist: psychologistId };
-    
-    // Detectar alertas de riesgo automáticamente
-    const { testType, responses, scores } = req.body;
-    
-    // Ejemplo: BDI-II ítem 9 o PHQ-9 ítem 9 (ideación suicida)
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && responses) {
-      const suicidalItem = responses.find(r => r.itemNumber === 9);
-      if (suicidalItem && suicidalItem.response > 0) {
-        assessmentData.riskAlert = {
-          flagged: true,
-          reason: 'Respuesta positiva en ítem de ideación suicida',
-          action: 'Requiere evaluación inmediata del riesgo',
-        };
+    const {
+      patient,
+      testType,
+      testDate,
+      responses = [],
+      scores = {},
+      totalScore,
+      interpretation: rawInterpretation = {},
+      notes,
+    } = req.body;
+
+    const interpretation = typeof rawInterpretation === 'string'
+      ? { severity: rawInterpretation }
+      : (rawInterpretation || {});
+
+    const normalizedResponses = responses.map((response, index) => ({
+      itemNumber: response.itemNumber ?? index + 1,
+      itemText: response.itemText ?? response.question,
+      response: response.response,
+    }));
+
+    // Scores are derived from the submitted instrument responses whenever they are numeric.
+    const numericResponses = normalizedResponses
+      .map((response) => Number(response.response))
+      .filter((value) => Number.isFinite(value));
+
+    const calculatedTotal = numericResponses.length === normalizedResponses.length
+      ? numericResponses.reduce((sum, value) => sum + value, 0)
+      : undefined;
+
+    const total = calculatedTotal ?? scores.total ?? totalScore;
+
+    const severityForScore = (() => {
+      if (total === undefined) return interpretation.severity;
+
+      if (testType === 'PHQ-9') {
+        if (total >= 20) return 'severe';
+        if (total >= 15) return 'moderately-severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
       }
-    }
-    
-    // Normalizar puntajes y severidad (PHQ-9 / GAD-7 / BDI-II)
-    const total = scores?.total ?? (Array.isArray(responses) ? responses.reduce((s, r) => s + Number(r.response || 0), 0) : undefined);
-    if (total !== undefined) {
-      assessmentData.scores = { ...(assessmentData.scores || {}), total };
-      const sev = (() => {
-        if (testType === 'PHQ-9') {
-          if (total >= 20) return 'severe';
-          if (total >= 15) return 'moderately-severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'GAD-7') {
-          if (total >= 15) return 'severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'BDI-II') {
-          if (total >= 29) return 'severe';
-          if (total >= 20) return 'moderate';
-          if (total >= 14) return 'mild';
-          return 'minimal';
-        }
-        return undefined;
-      })();
-      if (sev) {
-        assessmentData.interpretation = {
-          ...(assessmentData.interpretation || {}),
-          severity: sev,
-        };
+
+      if (testType === 'GAD-7') {
+        if (total >= 15) return 'severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
+      }
+
+      if (testType === 'BDI-II') {
+        if (total >= 29) return 'severe';
+        if (total >= 20) return 'moderate';
+        if (total >= 14) return 'mild';
+        return 'minimal';
+      }
+
+      return interpretation.severity;
+    })();
+
+    const riskAlert = {};
+    if ((testType === 'BDI-II' || testType === 'PHQ-9')) {
+      const criticalItem = normalizedResponses.find((response) => response.itemNumber === 9);
+      if (Number(criticalItem?.response) > 0) {
+        riskAlert.flagged = true;
+        riskAlert.reason = 'Respuesta positiva en ítem de ideación suicida';
+        riskAlert.action = 'Requiere evaluación inmediata del riesgo';
       }
     }
 
+    const assessmentData = {
+      patient,
+      psychologist: psychologistId,
+      testType,
+      testDate,
+      responses: normalizedResponses,
+      scores: {
+        ...scores,
+        ...(total !== undefined ? { total } : {}),
+      },
+      interpretation: {
+        ...interpretation,
+        ...(severityForScore ? { severity: severityForScore } : {}),
+        ...(interpretation.notes && !interpretation.clinicalNotes
+          ? { clinicalNotes: interpretation.notes }
+          : {}),
+        ...(notes && !interpretation.clinicalNotes && !interpretation.notes
+          ? { clinicalNotes: notes }
+          : {}),
+      },
+      ...(riskAlert.flagged ? { riskAlert } : {}),
+    };
+
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
-    
+
     res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
@@ -271,7 +313,10 @@ export const createAssessment = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error al crear evaluación:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar evaluación' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar evaluación',
+    });
   }
 };
 
