@@ -5,7 +5,6 @@ import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js'
 import Measure from '../models/MeasureSchema.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
-import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
