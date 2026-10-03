@@ -113,24 +113,111 @@ export const generateClinicalSummaryHandler = async (req, res) => {
     const { id: patientId } = req.params;
     const { lookbackDays = 30, includeNotes = true } = req.body || {};
 
-    const since = new Date(); since.setDate(since.getDate() - Number(lookbackDays));
-    const measures = await Measure.find({ patient: patientId, clinician: clinicianId, takenAt: { $gte: since } }).sort({ takenAt: 1 }).lean();
-    const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
-    const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({ score: m.score, date: m.takenAt }));
+    const normalizedLookbackDays = Math.min(
+      Math.max(Number(lookbackDays) || 30, 1),
+      365
+    );
 
-    // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
-    const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
+    const patient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: clinicianId,
+    }).select('_id psychologist');
 
-    const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
+    if (!patient) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tiene acceso clínico a este paciente',
+      });
+    }
 
-    const log = await ClinicalSuggestionLog.create({ patient: patientId, clinician: clinicianId, summary, accepted: false });
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'generate_clinical_summary', meta: { lookbackDays, flags: summary.flags } });
+    const since = new Date();
+    since.setDate(since.getDate() - normalizedLookbackDays);
 
-    res.status(201).json({ success: true, data: summary, logId: log._id });
+    const [measures, sessions] = await Promise.all([
+      Measure.find({
+        patient: patient._id,
+        clinician: clinicianId,
+        takenAt: { $gte: since },
+      }).sort({ takenAt: 1 }).lean(),
+
+      TherapySession.find({
+        patient: patient._id,
+        psychologist: clinicianId,
+        sessionDate: { $gte: since, $lte: new Date() },
+      })
+        .sort({ sessionDate: -1 })
+        .select('sessionDate notes soapNotes behavioralAssignments')
+        .lean(),
+    ]);
+
+    const measuresPHQ9 = measures
+      .filter((m) => m.name === 'PHQ-9')
+      .map((m) => ({ score: m.score, date: m.takenAt }));
+
+    const measuresGAD7 = measures
+      .filter((m) => m.name === 'GAD-7')
+      .map((m) => ({ score: m.score, date: m.takenAt }));
+
+    const assignments = sessions.flatMap((session) =>
+      Array.isArray(session.behavioralAssignments)
+        ? session.behavioralAssignments
+        : []
+    );
+
+    // No clinical adherence value is invented. If no assignments exist,
+    // adherence remains 0 because there is nothing documented as completed.
+    const adherence =
+      assignments.length > 0
+        ? assignments.filter((assignment) => assignment.completed === true).length / assignments.length
+        : 0;
+
+    const lastNotes = includeNotes
+      ? sessions
+          .map((session) => session.notes || session.soapNotes?.assessment || session.soapNotes?.subjective)
+          .filter(Boolean)
+          .slice(0, 3)
+      : [];
+
+    const summary = generateClinicalSummary({
+      measuresPHQ9,
+      measuresGAD7,
+      lastNotes,
+      adherence,
+    });
+
+    const log = await ClinicalSuggestionLog.create({
+      patient: patient._id,
+      clinician: clinicianId,
+      summary,
+      accepted: false,
+    });
+
+    await ActivityLog.create({
+      actor: clinicianId,
+      patient: patient._id,
+      action: 'generate_clinical_summary',
+      meta: {
+        lookbackDays: normalizedLookbackDays,
+        flags: summary.flags,
+        sourceCounts: {
+          measures: measures.length,
+          sessions: sessions.length,
+          assignments: assignments.length,
+        },
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: summary,
+      logId: log._id,
+    });
   } catch (error) {
     logger.error('Error generating clinical summary:', error);
-    res.status(500).json({ success: false, message: 'Error al generar resumen clínico' });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode ? error.message : 'Error al generar resumen clínico',
+    });
   }
 };
 
