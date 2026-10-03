@@ -89,6 +89,7 @@ const treatmentPlanSchema = new mongoose.Schema({
   lastRiskAssessment: {
     date: Date,
     assessedBy: { type: mongoose.Types.ObjectId, ref: 'Doctor' },
+    riskAssessmentId: { type: mongoose.Types.ObjectId, ref: 'RiskAssessment', index: true },
     columbiaScore: Number,
     interventionRequired: Boolean,
   },
