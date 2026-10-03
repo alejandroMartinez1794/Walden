@@ -15,6 +15,19 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
     required: true 
   },
 
+  // Optional provenance during migration; new assessments may be anchored to a treatment plan.
+  treatmentPlanId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TreatmentPlan',
+    index: true,
+  },
+  // Longitudinal Measure generated from this assessment, when applicable.
+  measureId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Measure',
+    index: true,
+  },
+
   // Información del test
   testType: {
     type: String,
@@ -53,7 +66,7 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
   interpretation: {
     severity: {
       type: String,
-      enum: ['minimal', 'mild', 'moderate', 'severe', 'extremely-severe'],
+      enum: ['minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'],
     },
     clinicalNotes: String,
   },
@@ -72,6 +85,7 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
 
 // Índice compuesto para facilitar búsquedas
 psychologicalAssessmentSchema.index({ patient: 1, testType: 1, testDate: -1 });
+psychologicalAssessmentSchema.index({ treatmentPlanId: 1, testDate: -1 });
 
 const PHI_FIELDS = ['interpretation.clinicalNotes', 'riskAlert.reason'];
 

@@ -29,12 +29,14 @@ let mongoServer;
  * - Limpio (se borra al terminar)
  */
 export const setupTestDB = async () => {
-  // Crear servidor MongoDB en memoria
+  // Pin the test server to a MongoDB release supported by current GitHub Actions
+  // Ubuntu runners. MongoDB 8.0 supports Ubuntu 20.04, 22.04 and 24.04.
   mongoServer = await MongoMemoryServer.create({
     instance: {
       storageEngine: 'wiredTiger'
     },
     binary: {
+      version: '8.0.12',
       downloadDir: './mongodb-binaries'
     }
   });
