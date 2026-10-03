@@ -15,6 +15,7 @@ import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import TherapySession from '../models/TherapySessionSchema.js';
 import ClinicalAlert from '../models/ClinicalAlertSchema.js';
 import ConsentForm from '../models/ConsentFormSchema.js';
+import ConsentForm from '../models/ConsentFormSchema.js';
 
 class ClinicalDecisionEngine {
   static async assessPhaseProgression(treatmentPlanId) {
