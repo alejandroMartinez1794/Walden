@@ -3,12 +3,13 @@
 
 export function scorePHQ9(responses = []) {
   // responses: array of numbers 0..3 length 9 OR array of objects with {itemNumber, response}
-  const vals = responses.map((r) => (typeof r === 'number' ? r : Number(r?.response || 0)));
+  const vals = responses.map((r) => (typeof r === 'number' ? r : Number(r?.response ?? r?.score ?? 0)));
   const total = vals.reduce((s, v) => s + (Number.isFinite(v) ? v : 0), 0);
-  const item9 = vals[8] ?? 0;
+  const item9Response = responses.find((r) => typeof r !== 'number' && Number(r?.itemNumber) === 9);
+  const item9 = item9Response ? Number(item9Response.response ?? item9Response.score ?? 0) : (vals[8] ?? 0);
   let severity = 'minimal';
   if (total >= 20) severity = 'severe';
-  else if (total >= 15) severity = 'moderately severe';
+  else if (total >= 15) severity = 'moderately-severe';
   else if (total >= 10) severity = 'moderate';
   else if (total >= 5) severity = 'mild';
   return { total, severity, item9 };
