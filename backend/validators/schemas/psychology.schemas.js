@@ -263,7 +263,7 @@ export const createAssessmentSchema = Joi.object({
   interpretation: Joi.alternatives().try(
     Joi.object({
       severity: Joi.string()
-        .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe'),
+        .valid('minimal', 'mild', 'moderate', 'moderately-severe', 'severe', 'extremely-severe', 'mínima', 'leve', 'moderada', 'moderadamente severa', 'severa'),
       clinicalNotes: textLongSchema.max(2000),
       // Legacy frontend alias; the controller canonicalizes it to clinicalNotes.
       notes: textLongSchema.max(2000),
