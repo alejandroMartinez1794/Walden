@@ -181,9 +181,24 @@ export const createAssessment = async (req, res) => {
       notes,
     } = req.body;
 
-    const interpretation = typeof rawInterpretation === 'string'
+    const interpretationInput = typeof rawInterpretation === 'string'
       ? { severity: rawInterpretation }
       : (rawInterpretation || {});
+
+    const severityAliases = {
+      'mínima': 'minimal',
+      'leve': 'mild',
+      'moderada': 'moderate',
+      'moderadamente severa': 'moderately-severe',
+      'severa': 'severe',
+    };
+
+    const interpretation = {
+      ...interpretationInput,
+      ...(interpretationInput.severity && severityAliases[interpretationInput.severity]
+        ? { severity: severityAliases[interpretationInput.severity] }
+        : {}),
+    };
 
     const assignedPatient = await PsychologicalPatient.findOne({
       _id: patient,
