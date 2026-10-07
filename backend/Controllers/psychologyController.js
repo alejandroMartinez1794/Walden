@@ -2,7 +2,7 @@
 import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import TherapySession from '../models/TherapySessionSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
-import Measure from '../models/MeasureSchema.js';
+import { createClinicalMeasure } from '../services/clinicalMeasureService.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
 import User from '../models/UserSchema.js';
@@ -281,26 +281,15 @@ export const createAssessment = async (req, res) => {
     // longitudinal projection. The server owns this link so the frontend
     // cannot create a second, divergent Measure for the same Assessment.
     const measureName = testType === 'other' ? 'OTHER' : testType;
-    if (measureName !== 'OTHER' && total !== undefined) {
-      await Measure.findOneAndUpdate(
-        {
-          assessmentId: newAssessment._id,
-          patient,
-          clinician: psychologistId,
-        },
-        {
-          $setOnInsert: {
-            patient,
-            clinician: psychologistId,
-            assessmentId: newAssessment._id,
-            name: measureName,
-            responses: normalizedResponses,
-            score: total,
-            ...(testDate ? { takenAt: testDate } : {}),
-          },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
+    if (measureName !== 'OTHER' && total !== undefined && normalizedResponses.length > 0) {
+      await createClinicalMeasure({
+        patientId: patient,
+        clinicianId: psychologistId,
+        name: measureName,
+        responses: normalizedResponses,
+        assessmentId: newAssessment._id,
+        takenAt: testDate,
+      });
     }
 
     res.status(201).json({
