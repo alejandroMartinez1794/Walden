@@ -42,6 +42,19 @@ const RiskAssessmentSchema = new mongoose.Schema(
       ref: "TherapySession",
       // Nullable: Can be standalone assessment (e.g., crisis phone call)
     },
+
+    // Provenance: formal risk assessment may be triggered by a screening assessment/measure.
+    sourceAssessmentId: {
+      type: mongoose.Types.ObjectId,
+      ref: "PsychologicalAssessment",
+      index: true,
+    },
+    sourceMeasureId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Measure",
+      index: true,
+    },
+
     assessedBy: {
       type: mongoose.Types.ObjectId,
       ref: "Doctor",
