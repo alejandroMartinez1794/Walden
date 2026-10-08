@@ -33,7 +33,7 @@ import { authenticate, restrict } from '../auth/verifyToken.js';
 import mongoose from 'mongoose';
 import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
-import { createClinicalMeasure } from '../services/clinicalMeasureService.js';
+import { createClinicalAssessment } from '../services/clinicalAssessmentService.js';
 
 // ✅ IMPORTAR VALIDACIÓN
 import { validate, validateId } from '../validators/middleware/validate.js';
@@ -113,9 +113,7 @@ const submitPatientAssessment = async (req, res) => {
         ? (totalScore >= 15 ? 'severe' : totalScore >= 10 ? 'moderate' : totalScore >= 5 ? 'mild' : 'minimal')
         : (totalScore >= 29 ? 'severe' : totalScore >= 20 ? 'moderate' : totalScore >= 14 ? 'mild' : 'minimal');
 
-    const [assessment] = await PsychologicalAssessment.create([{
-      patient: patient._id,
-      psychologist: doctor._id,
+    const assessmentData = {
       testType,
       testDate: req.body.dateTaken || new Date(),
       responses,
@@ -131,15 +129,15 @@ const submitPatientAssessment = async (req, res) => {
           action: 'Evaluar riesgo y activar el protocolo clínico correspondiente',
         },
       } : {}),
-    }], { session });
+    };
 
-    const measureResult = await createClinicalMeasure({
+    const { assessment, measureResult } = await createClinicalAssessment({
+      assessmentData,
       patientId: patient._id,
       clinicianId: doctor._id,
-      name: testType,
+      measureName: testType,
       responses,
-      assessmentId: assessment._id,
-      takenAt: assessment.testDate,
+      takenAt: assessmentData.testDate,
       session,
     });
 
@@ -149,8 +147,8 @@ const submitPatientAssessment = async (req, res) => {
       data: {
         ...assessment.toObject(),
         totalScore,
-        measureId: measureResult.measure._id,
-        alertsCreated: measureResult.alertsCreated.length,
+        measureId: measureResult?.measure?._id,
+        alertsCreated: measureResult?.alertsCreated?.length || 0,
       },
     });
   } catch (error) {
