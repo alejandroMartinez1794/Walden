@@ -8,6 +8,7 @@ import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../ut
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
+import { createClinicalMeasure } from '../services/clinicalMeasureService.js';
 
 export const sendConsentEmail = async (req, res) => {
   try {
@@ -74,7 +75,11 @@ export const sendConsentEmail = async (req, res) => {
 };
 
 export const createMeasure = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
+    session.startTransaction();
+
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
     const { name, responses, itemMap, assessmentId } = req.body;
@@ -85,9 +90,10 @@ export const createMeasure = async (req, res) => {
         _id: assessmentId,
         patient: patientId,
         psychologist: clinicianId,
-      }).select('_id testType responses testDate');
+      }).select('_id testType responses testDate').session(session);
 
       if (!sourceAssessment) {
+        await session.abortTransaction();
         return res.status(404).json({
           success: false,
           message: 'Evaluación de origen no encontrada',
@@ -95,6 +101,7 @@ export const createMeasure = async (req, res) => {
       }
 
       if (sourceAssessment.testType !== name) {
+        await session.abortTransaction();
         return res.status(409).json({
           success: false,
           message: 'El instrumento de la medición no coincide con la evaluación de origen',
@@ -102,53 +109,32 @@ export const createMeasure = async (req, res) => {
       }
     }
 
-    const sourceResponses = sourceAssessment?.responses ?? responses;
-    const normalizedResponses = (Array.isArray(sourceResponses) ? sourceResponses : []).map((response, index) => {
-      if (typeof response === 'number') {
-        return { itemNumber: index + 1, response };
-      }
-      return {
-        ...response,
-        itemNumber: response.itemNumber ?? index + 1,
-        response: response.response ?? response.score,
-      };
-    });
-
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(normalizedResponses); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(normalizedResponses); score = s.total; severity = s.severity; }
-    else { score = normalizedResponses.reduce((a, b) => a + Number(b?.response ?? 0), 0); }
-
-    const measure = await Measure.create({
-      patient: patientId,
-      clinician: clinicianId,
-      assessmentId,
+    const result = await createClinicalMeasure({
+      patientId,
+      clinicianId,
       name,
-      responses: normalizedResponses,
-      score,
+      responses: sourceAssessment?.responses ?? responses,
       itemMap,
-      ...(sourceAssessment?.testDate ? { takenAt: sourceAssessment.testDate } : {}),
+      assessmentId,
+      takenAt: sourceAssessment?.testDate,
+      session,
     });
 
-    // Build recent PHQ-9 series for trend
-    const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
-    if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
+    await session.commitTransaction();
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
-
-    const alertsCreated = [];
-    for (const flag of risk.flags) {
-      const severityMap = { suicide_risk: 'critical', high_depression: 'high', worsening_trend: 'moderate' };
-      const alert = await Alert.create({ patient: patientId, clinician: clinicianId, type: flag, severity: severityMap[flag] || 'moderate', relatedMeasureId: measure._id });
-      alertsCreated.push(alert);
-    }
-
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'create_measure', meta: { name, score, alerts: risk.flags } });
-
-    res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
+    return res.status(201).json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
+    await session.abortTransaction();
     logger.error('Error creating measure:', error);
-    res.status(500).json({ success: false, message: 'Error al crear medida' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al crear medida',
+    });
+  } finally {
+    await session.endSession();
   }
 };
 
