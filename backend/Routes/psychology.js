@@ -30,9 +30,10 @@ import {
 } from '../Controllers/psychologyController.js';
 
 import { authenticate, restrict } from '../auth/verifyToken.js';
-import Doctor from '../models/DoctorSchema.js';
+import mongoose from 'mongoose';
+import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
-import Alert from '../models/AlertSchema.js';
+import { createClinicalMeasure } from '../services/clinicalMeasureService.js';
 
 // ✅ IMPORTAR VALIDACIÓN
 import { validate, validateId } from '../validators/middleware/validate.js';
@@ -48,72 +49,136 @@ import {
 const router = express.Router();
 
 const submitPatientAssessment = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
-    const doctor = await Doctor.findOne({ isApproved: 'approved' });
+    // Legacy patient-facing route: identity comes from the verified token,
+    // never from a client-supplied patientId.
+    if (req.role !== 'paciente' || (req.body.patientId && req.body.patientId !== req.userId)) {
+      return res.status(403).json({ success: false, message: 'No autorizado para enviar esta evaluación' });
+    }
+
+    session.startTransaction();
+    const patientProfiles = await PsychologicalPatient.find({
+      user: req.userId,
+      status: 'active',
+      isDeleted: { $ne: true },
+    }).session(session);
+
+    if (patientProfiles.length !== 1) {
+      await session.abortTransaction();
+      return res.status(patientProfiles.length ? 409 : 404).json({
+        success: false,
+        message: patientProfiles.length
+          ? 'Hay más de un expediente clínico asociado; contacte al profesional tratante'
+          : 'No existe un expediente psicológico activo asociado a esta cuenta',
+      });
+    }
+
+    const patient = patientProfiles[0];
+    const Doctor = (await import('../models/DoctorSchema.js')).default;
+    const doctor = await Doctor.findOne({
+      _id: patient.psychologist,
+      isApproved: 'approved',
+    }).session(session);
+
     if (!doctor) {
-      return res.status(422).json({ success: false, message: 'No hay un psicólogo aprobado disponible para registrar la evaluación' });
+      await session.abortTransaction();
+      return res.status(409).json({ success: false, message: 'El profesional asignado no está disponible para recibir la evaluación' });
     }
 
     const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
-    const totalScore = Number(req.body.totalScore ?? answers.reduce((sum, value) => sum + Number(value || 0), 0));
     const testType = req.body.assessmentType || req.body.testType || 'PHQ-9';
-    const item9Positive = Number(answers[8]) > 0;
-    const suicideRiskInstrument = testType === 'PHQ-9' || testType === 'BDI-II';
+    const supportedTypes = new Set(['PHQ-9', 'GAD-7', 'BDI-II', 'BAI', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS']);
+    if (!supportedTypes.has(testType)) {
+      await session.abortTransaction();
+      return res.status(400).json({ success: false, message: 'Instrumento no compatible con el registro clínico' });
+    }
 
-    const assessment = await PsychologicalAssessment.create({
-      patient: req.body.patientId || req.userId,
+    const responses = answers.map((response, index) => ({
+      itemNumber: index + 1,
+      response: Number(response),
+    }));
+    const calculatedTotal = responses.reduce((sum, item) => sum + item.response, 0);
+    const totalScore = req.body.totalScore === undefined ? calculatedTotal : Number(req.body.totalScore);
+
+    if (!Number.isFinite(totalScore) || totalScore !== calculatedTotal) {
+      await session.abortTransaction();
+      return res.status(400).json({ success: false, message: 'El puntaje enviado no coincide con las respuestas' });
+    }
+
+    const severity = testType === 'PHQ-9'
+      ? (totalScore >= 20 ? 'severe' : totalScore >= 15 ? 'moderately-severe' : totalScore >= 10 ? 'moderate' : totalScore >= 5 ? 'mild' : 'minimal')
+      : testType === 'GAD-7'
+        ? (totalScore >= 15 ? 'severe' : totalScore >= 10 ? 'moderate' : totalScore >= 5 ? 'mild' : 'minimal')
+        : (totalScore >= 29 ? 'severe' : totalScore >= 20 ? 'moderate' : totalScore >= 14 ? 'mild' : 'minimal');
+
+    const [assessment] = await PsychologicalAssessment.create([{
+      patient: patient._id,
       psychologist: doctor._id,
       testType,
       testDate: req.body.dateTaken || new Date(),
-      responses: answers.map((response, index) => ({ itemNumber: index + 1, response })),
+      responses,
       scores: { total: totalScore },
       interpretation: {
-        severity: totalScore >= 20 ? 'severe' : totalScore >= 10 ? 'moderate' : 'minimal',
+        severity,
         clinicalNotes: req.body.detailedNotes,
       },
-      ...(item9Positive && suicideRiskInstrument ? {
+      ...((testType === 'PHQ-9' || testType === 'BDI-II') && Number(answers[8]) > 0 ? {
         riskAlert: {
           flagged: true,
-          reason: 'Respuesta positiva en ítem de ideación suicida',
-          action: 'Requiere evaluación inmediata del riesgo',
+          reason: 'Respuesta positiva en ítem 9; requiere evaluación clínica directa',
+          action: 'Evaluar riesgo y activar el protocolo clínico correspondiente',
         },
       } : {}),
+    }], { session });
+
+    const measureResult = await createClinicalMeasure({
+      patientId: patient._id,
+      clinicianId: doctor._id,
+      name: testType,
+      responses,
+      assessmentId: assessment._id,
+      takenAt: assessment.testDate,
+      session,
     });
 
-    if (totalScore >= 15) {
-      await Alert.create({
-        patient: req.body.patientId || req.userId,
-        clinician: doctor._id,
-        type: 'high_depression',
-        severity: totalScore >= 20 ? 'critical' : 'high',
-        notes: `${'${'}testType} score ${'${'}totalScore}. Depresión de alta severidad detectada.`,
-      });
-    }
-
-    if (item9Positive && suicideRiskInstrument) {
-      await Alert.create({
-        patient: req.body.patientId || req.userId,
-        clinician: doctor._id,
-        type: 'suicide_risk',
-        severity: 'critical',
-        mitigation: { urgentAppointment: true },
-        notes: `${'${'}testType} score ${'${'}totalScore}. Riesgo de ideación suicida detectado por respuesta positiva en el ítem 9.`,
-      });
-    }
-
-    return res.status(201).json({ success: true, data: { ...assessment.toObject(), totalScore } });
+    await session.commitTransaction();
+    return res.status(201).json({
+      success: true,
+      data: {
+        ...assessment.toObject(),
+        totalScore,
+        measureId: measureResult.measure._id,
+        alertsCreated: measureResult.alertsCreated.length,
+      },
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Error al registrar evaluacion' });
+    if (session.inTransaction()) await session.abortTransaction();
+    const status = error.statusCode || 500;
+    return res.status(status).json({
+      success: false,
+      message: status === 500 ? 'Error al registrar evaluación' : error.message,
+    });
+  } finally {
+    await session.endSession();
   }
 };
 const getSubmittedAssessment = async (req, res) => {
   const assessment = await PsychologicalAssessment.findById(req.params.id);
   if (!assessment) {
-    return res.status(404).json({ success: false, message: 'Evaluacion no encontrada' });
+    return res.status(404).json({ success: false, message: 'Evaluación no encontrada' });
   }
 
-  if (req.role !== 'doctor' && assessment.patient.toString() !== req.userId) {
-    return res.status(403).json({ success: false, message: 'access denied' });
+  if (req.role === 'doctor') {
+    if (assessment.psychologist?.toString() !== req.userId) {
+      return res.status(403).json({ success: false, message: 'Acceso denegado' });
+    }
+  } else {
+    const patient = await PsychologicalPatient.findOne({ _id: assessment.patient, user: req.userId });
+    if (!patient) {
+      return res.status(403).json({ success: false, message: 'Acceso denegado' });
+    }
   }
 
   return res.status(200).json({ success: true, data: assessment });
