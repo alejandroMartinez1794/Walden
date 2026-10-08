@@ -295,7 +295,7 @@ export const createAssessment = async (req, res) => {
     };
 
     const measureName = testType === 'other' ? 'OTHER' : testType;
-    const { assessment: newAssessment } = await createClinicalAssessment({
+    const { assessment: newAssessment, measureResult } = await createClinicalAssessment({
       assessmentData,
       patientId: patient,
       clinicianId: psychologistId,
@@ -310,10 +310,16 @@ export const createAssessment = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
-      data: newAssessment,
+      data: {
+        ...newAssessment.toObject(),
+        ...(measureResult ? {
+          measureId: measureResult.measure._id,
+          alertsCreated: measureResult.alertsCreated.length,
+        } : {}),
+      },
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) await session.abortTransaction();
     logger.error('Error al crear evaluación:', error);
     return res.status(error.statusCode || 500).json({
       success: false,
