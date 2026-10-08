@@ -132,9 +132,7 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     const alerts = await Alert.find({ patient: patientProfile._id });
     expect(alerts.length).toBeGreaterThan(0);
 
-    const highRiskAlert = alerts.find(alert => 
-      alert.type === 'high_depression' || alert.severity === 'critical'
-    );
+    const highRiskAlert = alerts.find(alert => alert.type === 'suicide_risk');
     
     expect(highRiskAlert).toBeDefined();
     expect(highRiskAlert.severity).toBe('critical');
