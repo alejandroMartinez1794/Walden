@@ -145,6 +145,30 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(highRiskAlert.notes).toContain('ítem 9');
   });
 
+  test('should create a suicide-risk alert for a positive BDI-II item 9', async () => {
+    const response = await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        totalScore: 9,
+        assessmentType: 'BDI-II',
+        dateTaken: new Date(),
+      })
+      .expect(201);
+
+    expect(response.body.success).toBe(true);
+    const alert = await Alert.findOne({
+      patient: patientProfile._id,
+      clinician: doctor._id,
+      type: 'suicide_risk',
+    });
+    expect(alert).toBeDefined();
+    expect(alert.severity).toBe('critical');
+    expect(alert.notes).toContain('BDI-II score 9');
+  });
+
   test('should distinguish high depression from suicide risk when item 9 is negative', async () => {
     const response = await request(app)
       .post('/api/v1/psychology/assessments/submit')
@@ -250,7 +274,7 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
 });
 
 describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
-  let patient, doctor, token;
+  let patient, doctor, token, patientProfile;
 
   beforeEach(async () => {
     // Create a doctor
@@ -282,6 +306,17 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
       .expect(200);
 
     token = loginResponse.body.token;
+
+    patientProfile = await PsychologicalPatient.create({
+      user: patient._id,
+      psychologist: doctor._id,
+      personalInfo: {
+        fullName: patient.name,
+        dateOfBirth: new Date('1990-01-01'),
+        email: patient.email,
+      },
+      clinicalInfo: { chiefComplaint: 'Evaluación psicológica solicitada por el paciente' },
+    });
   });
 
   test('should allow booking for high-risk patient with proper alerting', async () => {
