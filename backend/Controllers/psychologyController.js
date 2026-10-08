@@ -168,7 +168,11 @@ export const getPatientSessions = async (req, res) => {
 // ============ EVALUACIONES ============
 
 export const createAssessment = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
+    session.startTransaction();
+
     const psychologistId = req.userId;
     const {
       patient,
@@ -203,9 +207,10 @@ export const createAssessment = async (req, res) => {
     const assignedPatient = await PsychologicalPatient.findOne({
       _id: patient,
       psychologist: psychologistId,
-    }).select('_id');
+    }).select('_id').session(session);
 
     if (!assignedPatient) {
+      await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: 'Paciente no encontrado',
@@ -218,7 +223,6 @@ export const createAssessment = async (req, res) => {
       response: response.response,
     }));
 
-    // Scores are derived from the submitted instrument responses whenever they are numeric.
     const numericResponses = normalizedResponses
       .map((response) => Number(response.response))
       .filter((value) => Number.isFinite(value));
@@ -258,7 +262,7 @@ export const createAssessment = async (req, res) => {
     })();
 
     const riskAlert = {};
-    if ((testType === 'BDI-II' || testType === 'PHQ-9')) {
+    if (testType === 'BDI-II' || testType === 'PHQ-9') {
       const criticalItem = normalizedResponses.find((response) => response.itemNumber === 9);
       if (Number(criticalItem?.response) > 0) {
         riskAlert.flagged = true;
@@ -290,11 +294,8 @@ export const createAssessment = async (req, res) => {
       ...(riskAlert.flagged ? { riskAlert } : {}),
     };
 
-    const newAssessment = await PsychologicalAssessment.create(assessmentData);
+    const [newAssessment] = await PsychologicalAssessment.create([assessmentData], { session });
 
-    // Assessment is the instrument administration; Measure is its normalized
-    // longitudinal projection. The server owns this link so the frontend
-    // cannot create a second, divergent Measure for the same Assessment.
     const measureName = testType === 'other' ? 'OTHER' : testType;
     if (measureName !== 'OTHER' && total !== undefined && normalizedResponses.length > 0) {
       await createClinicalMeasure({
@@ -304,20 +305,26 @@ export const createAssessment = async (req, res) => {
         responses: normalizedResponses,
         assessmentId: newAssessment._id,
         takenAt: testDate,
+        session,
       });
     }
 
-    res.status(201).json({
+    await session.commitTransaction();
+
+    return res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
       data: newAssessment,
     });
   } catch (error) {
+    await session.abortTransaction();
     logger.error('Error al crear evaluación:', error);
-    res.status(error.statusCode || 500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || 'Error al registrar evaluación',
     });
+  } finally {
+    await session.endSession();
   }
 };
 
