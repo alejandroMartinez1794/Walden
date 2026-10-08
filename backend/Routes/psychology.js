@@ -80,15 +80,24 @@ const submitPatientAssessment = async (req, res) => {
       } : {}),
     });
 
+    if (totalScore >= 15) {
+      await Alert.create({
+        patient: req.body.patientId || req.userId,
+        clinician: doctor._id,
+        type: 'high_depression',
+        severity: totalScore >= 20 ? 'critical' : 'high',
+        notes: `${'${'}testType} score ${'${'}totalScore}. Depresión de alta severidad detectada.`,
+      });
+    }
+
     if (item9Positive && suicideRiskInstrument) {
       await Alert.create({
         patient: req.body.patientId || req.userId,
         clinician: doctor._id,
         type: 'suicide_risk',
         severity: 'critical',
-        relatedMeasureId: assessment._id,
         mitigation: { urgentAppointment: true },
-        notes: `${testType} score ${totalScore}. Riesgo de ideación suicida detectado por respuesta positiva en el ítem 9.`,
+        notes: `${'${'}testType} score ${'${'}totalScore}. Riesgo de ideación suicida detectado por respuesta positiva en el ítem 9.`,
       });
     }
 
