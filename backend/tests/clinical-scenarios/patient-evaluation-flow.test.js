@@ -119,6 +119,10 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     // Verify the assessment was stored with encrypted PHI
     const assessmentId = assessmentResponse.body.data._id;
     expect(assessmentId).toBeDefined();
+    expect(assessmentResponse.body.data.measureId).toBeDefined();
+    const linkedMeasure = await Measure.findOne({ assessmentId });
+    expect(linkedMeasure).toBeDefined();
+    expect(linkedMeasure.patient.toString()).toBe(patientProfile._id.toString());
 
     // Simulate the automated risk detection process
     // In a real system, this would be triggered by a scheduled job
@@ -158,7 +162,7 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
 
     expect(response.body.success).toBe(true);
 
-    const alerts = await Alert.find({ patient: patient._id });
+    const alerts = await Alert.find({ patient: patientProfile._id });
     expect(alerts).toHaveLength(1);
     expect(alerts[0].type).toBe('high_depression');
     expect(alerts[0].severity).toBe('high');
