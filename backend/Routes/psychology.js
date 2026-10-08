@@ -54,7 +54,7 @@ const submitPatientAssessment = async (req, res) => {
   try {
     // Legacy patient-facing route: identity comes from the verified token,
     // never from a client-supplied patientId.
-    if (req.role !== 'paciente' || (req.body.patientId && req.body.patientId !== req.userId)) {
+    if (!['paciente', 'patient'].includes(String(req.role || '').toLowerCase()) || (req.body.patientId && req.body.patientId !== req.userId)) {
       return res.status(403).json({ success: false, message: 'No autorizado para enviar esta evaluación' });
     }
 
