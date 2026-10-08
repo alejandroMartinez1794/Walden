@@ -304,7 +304,7 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
       .expect(201);
 
     // Verify alert was created
-    const alerts = await Alert.find({ patient: patient._id, severity: 'critical' });
+    const alerts = await Alert.find({ patient: patientProfile._id, severity: 'critical' });
     expect(alerts.length).toBeGreaterThan(0);
 
     // Now try to book an appointment - should succeed despite high risk
