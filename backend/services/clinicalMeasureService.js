@@ -35,29 +35,17 @@ const calculateMeasureScore = (name, responses) => {
   };
 };
 
-export const createClinicalMeasure = async ({
+const ensureRiskArtifacts = async ({
   patientId,
   clinicianId,
+  measure,
   name,
-  responses,
-  itemMap,
-  assessmentId,
-  takenAt,
+  score,
+  severity,
+  item9,
+  session,
+  isNewMeasure,
 }) => {
-  const normalizedResponses = normalizeResponses(responses);
-  const { score, severity, item9 } = calculateMeasureScore(name, normalizedResponses);
-
-  const measure = await Measure.create({
-    patient: patientId,
-    clinician: clinicianId,
-    assessmentId,
-    name,
-    responses: normalizedResponses,
-    score,
-    itemMap,
-    ...(takenAt ? { takenAt } : {}),
-  });
-
   const measuresPHQ9 = name === 'PHQ-9'
     ? [{ score, takenAt: measure.takenAt }]
     : await Measure.find({
@@ -66,7 +54,8 @@ export const createClinicalMeasure = async ({
         name: 'PHQ-9',
       })
         .sort({ takenAt: 1 })
-        .select('score takenAt');
+        .select('score takenAt')
+        .session(session);
 
   const risk = assessRisk({
     phq9: name === 'PHQ-9'
@@ -78,35 +67,126 @@ export const createClinicalMeasure = async ({
   });
 
   const alertsCreated = [];
-  for (const flag of risk.flags) {
-    const severityMap = {
-      suicide_risk: 'critical',
-      high_depression: 'high',
-      worsening_trend: 'moderate',
-    };
+  const severityMap = {
+    suicide_risk: 'critical',
+    high_depression: 'high',
+    worsening_trend: 'moderate',
+  };
 
-    const alert = await Alert.create({
+  for (const flag of risk.flags) {
+    const existingAlert = await Alert.findOne({
+      patient: patientId,
+      clinician: clinicianId,
+      type: flag,
+      relatedMeasureId: measure._id,
+    }).session(session);
+
+    if (existingAlert) {
+      alertsCreated.push(existingAlert);
+      continue;
+    }
+
+    const [alert] = await Alert.create([{
       patient: patientId,
       clinician: clinicianId,
       type: flag,
       severity: severityMap[flag] || 'moderate',
       relatedMeasureId: measure._id,
-    });
+    }], { session });
 
     alertsCreated.push(alert);
   }
 
-  await ActivityLog.create({
+  await ActivityLog.create([{
     actor: clinicianId,
     patient: patientId,
-    action: 'create_measure',
+    action: isNewMeasure ? 'create_measure' : 'reconcile_measure',
     meta: {
       name,
       score,
-      assessmentId,
+      assessmentId: measure.assessmentId,
       alerts: risk.flags,
     },
+  }], { session });
+
+  return { risk, alertsCreated };
+};
+
+/**
+ * Canonical domain write path for Assessment -> Measure.
+ *
+ * All callers must use this service rather than creating Measure records
+ * directly. When a MongoDB session is supplied, the Measure, risk alerts
+ * and audit log participate in the same transaction as the Assessment.
+ */
+export const createClinicalMeasure = async ({
+  patientId,
+  clinicianId,
+  name,
+  responses,
+  itemMap,
+  assessmentId,
+  takenAt,
+  session = null,
+}) => {
+  const normalizedResponses = normalizeResponses(responses);
+  const { score, severity, item9 } = calculateMeasureScore(name, normalizedResponses);
+
+  // assessmentId is the provenance key. Application-level idempotency is used
+  // here deliberately; the unique DB index is deferred until legacy data has
+  // been checked for duplicate/non-provenance records.
+  let measure = assessmentId
+    ? await Measure.findOne({ assessmentId }).session(session)
+    : null;
+
+  let isNewMeasure = false;
+
+  if (measure) {
+    const sameOwner =
+      measure.patient?.toString() === patientId?.toString()
+      && measure.clinician?.toString() === clinicianId?.toString()
+      && measure.name === name;
+
+    if (!sameOwner) {
+      const error = new Error('Assessment provenance is already linked to a different clinical owner or instrument');
+      error.statusCode = 409;
+      throw error;
+    }
+  } else {
+    const payload = {
+      patient: patientId,
+      clinician: clinicianId,
+      assessmentId,
+      name,
+      responses: normalizedResponses,
+      score,
+      itemMap,
+      ...(takenAt ? { takenAt } : {}),
+    };
+
+    const [createdMeasure] = await Measure.create([payload], { session });
+    measure = createdMeasure;
+    isNewMeasure = true;
+  }
+
+  const { risk, alertsCreated } = await ensureRiskArtifacts({
+    patientId,
+    clinicianId,
+    measure,
+    name,
+    score: measure.score,
+    severity,
+    item9,
+    session,
+    isNewMeasure,
   });
 
-  return { measure, score, severity, alertsCreated };
+  return {
+    measure,
+    score: measure.score,
+    severity,
+    alertsCreated,
+    risk,
+    created: isNewMeasure,
+  };
 };
