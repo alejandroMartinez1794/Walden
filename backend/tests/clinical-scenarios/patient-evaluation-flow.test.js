@@ -14,13 +14,11 @@
 process.env.NODE_ENV = 'test';
 
 import request from 'supertest';
-import mongoose from 'mongoose';
 import app from '../../app.js';
 import User from '../../models/UserSchema.js';
 import Doctor from '../../models/DoctorSchema.js';
 import Alert from '../../models/AlertSchema.js';
 import { setupTestDB, teardownTestDB, clearTestDB } from '../integration/setup.js';
-import { clinicalWorker } from '../../workers/clinicalWorker.js';
 
 // Mock email service to avoid actual emails during testing
 jest.mock('../../utils/emailService.js', () => ({
@@ -130,6 +128,27 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     // Verify alert contains proper notes about the assessment
     expect(highRiskAlert.notes).toContain('PHQ-9 score 27');
     expect(highRiskAlert.notes).toContain('ideación suicida');
+  });
+
+  test('should distinguish high depression from suicide risk when item 9 is negative', async () => {
+    const response = await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: [3, 3, 3, 3, 3, 3, 3, 3, 0],
+        totalScore: 24,
+        assessmentType: 'PHQ-9',
+        dateTaken: new Date(),
+      })
+      .expect(201);
+
+    expect(response.body.success).toBe(true);
+
+    const alerts = await Alert.find({ patient: patient._id });
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].type).toBe('high_depression');
+    expect(alerts[0].severity).toBe('critical');
   });
 
   test('should trigger emergency notification for critical risk', async () => {
