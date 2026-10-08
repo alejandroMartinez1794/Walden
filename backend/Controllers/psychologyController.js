@@ -2,7 +2,7 @@
 import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import TherapySession from '../models/TherapySessionSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
-import { createClinicalMeasure } from '../services/clinicalMeasureService.js';
+import { createClinicalAssessment } from '../services/clinicalAssessmentService.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
 import User from '../models/UserSchema.js';
@@ -294,20 +294,16 @@ export const createAssessment = async (req, res) => {
       ...(riskAlert.flagged ? { riskAlert } : {}),
     };
 
-    const [newAssessment] = await PsychologicalAssessment.create([assessmentData], { session });
-
     const measureName = testType === 'other' ? 'OTHER' : testType;
-    if (measureName !== 'OTHER' && total !== undefined && normalizedResponses.length > 0) {
-      await createClinicalMeasure({
-        patientId: patient,
-        clinicianId: psychologistId,
-        name: measureName,
-        responses: normalizedResponses,
-        assessmentId: newAssessment._id,
-        takenAt: testDate,
-        session,
-      });
-    }
+    const { assessment: newAssessment } = await createClinicalAssessment({
+      assessmentData,
+      patientId: patient,
+      clinicianId: psychologistId,
+      measureName: total !== undefined ? measureName : null,
+      responses: normalizedResponses,
+      takenAt: testDate,
+      session,
+    });
 
     await session.commitTransaction();
 
