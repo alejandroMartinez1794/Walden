@@ -15,9 +15,12 @@ const MeasureSchema = new mongoose.Schema({
 
 MeasureSchema.index({ patient: 1, name: 1, takenAt: -1 });
 MeasureSchema.index({ assessmentId: 1, takenAt: -1 });
+// Keep provenance indexed but not unique until a data audit proves that all
+// historical assessmentId values are unique. Uniqueness is a later migration
+// gate, not something this application-layer hardening can safely assume.
 MeasureSchema.index(
   { assessmentId: 1 },
-  { unique: true, sparse: true, name: 'measure_unique_assessment_provenance' }
+  { sparse: true, name: 'measure_assessment_provenance' }
 );
 
 export default mongoose.models.Measure || mongoose.model('Measure', MeasureSchema);
