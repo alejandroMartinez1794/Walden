@@ -1,10 +1,11 @@
 // backend/Controllers/clinicalController.js
+import mongoose from 'mongoose';
 import Measure from '../models/MeasureSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
-import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../utils/clinicalRules.js';
+import { generateClinicalSummary } from '../utils/clinicalRules.js';
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
