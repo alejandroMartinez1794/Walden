@@ -30,8 +30,13 @@ const calculateMeasureScore = (name, responses) => {
     return { score: result.total, severity: result.severity };
   }
 
+  const item9 = name === 'BDI-II'
+    ? responses.find((response) => Number(response?.itemNumber) === 9)?.response
+    : undefined;
+
   return {
     score: responses.reduce((total, response) => total + Number(response?.response ?? 0), 0),
+    ...(item9 !== undefined ? { item9: Number(item9) } : {}),
   };
 };
 
@@ -72,6 +77,13 @@ const ensureRiskArtifacts = async ({
       : undefined,
     measuresPHQ9,
   });
+
+  // BDI-II item 9 is also a suicide-risk signal; do not let the PHQ-9-only
+  // trend engine suppress an explicit positive response from this instrument.
+  if (name === 'BDI-II' && Number(item9 ?? currentItem9 ?? 0) > 0 && !risk.flags.includes('suicide_risk')) {
+    risk.flags.push('suicide_risk');
+    risk.reasons.push('BDI-II ítem 9 positivo');
+  }
 
   const alertsCreated = [];
   const severityMap = {
