@@ -46,23 +46,30 @@ const ensureRiskArtifacts = async ({
   session,
   isNewMeasure,
 }) => {
-  const measuresPHQ9 = name === 'PHQ-9'
-    ? [{ score, takenAt: measure.takenAt }]
-    : await Measure.find({
-        patient: patientId,
-        clinician: clinicianId,
-        name: 'PHQ-9',
-      })
-        .sort({ takenAt: 1 })
-        .select('score takenAt')
-        .session(session);
+  const measuresPHQ9 = await Measure.find({
+    patient: patientId,
+    clinician: clinicianId,
+    name: 'PHQ-9',
+  })
+    .sort({ takenAt: 1 })
+    .select('score takenAt responses')
+    .session(session);
+
+  // A new PHQ-9 is already visible inside the transaction. For a replay,
+  // recover item 9 from the persisted Measure instead of dropping the signal.
+  const currentPHQ9 = name === 'PHQ-9'
+    ? measuresPHQ9.find((candidate) => candidate._id?.toString() === measure._id.toString())
+    : null;
+  const currentItem9 = item9 ?? currentPHQ9?.responses?.find((response) => response?.itemNumber === 9)?.response;
 
   const risk = assessRisk({
-    phq9: name === 'PHQ-9'
-      ? { total: score, item9, severity }
-      : measuresPHQ9.length
-        ? { total: measuresPHQ9.at(-1).score }
-        : undefined,
+    phq9: measuresPHQ9.length
+      ? {
+          total: name === 'PHQ-9' ? score : measuresPHQ9.at(-1).score,
+          item9: currentItem9,
+          severity,
+        }
+      : undefined,
     measuresPHQ9,
   });
 
