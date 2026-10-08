@@ -49,68 +49,54 @@ const router = express.Router();
 
 const submitPatientAssessment = async (req, res) => {
   try {
-    const doctor = await Doctor.findOne({ isApproved: 'approved' }) || await Doctor.create({
-      name: 'Clinical Test Doctor',
-      email: `clinical.test.${Date.now()}@example.com`,
-      password: 'ClinicalTest123!',
-      role: 'doctor',
-      specialization: 'Psicologia',
-      isApproved: 'approved',
-      emailVerified: true,
-    });
+    const doctor = await Doctor.findOne({ isApproved: 'approved' });
+    if (!doctor) {
+      return res.status(422).json({ success: false, message: 'No hay un psicólogo aprobado disponible para registrar la evaluación' });
+    }
 
     const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
     const totalScore = Number(req.body.totalScore ?? answers.reduce((sum, value) => sum + Number(value || 0), 0));
     const testType = req.body.assessmentType || req.body.testType || 'PHQ-9';
+    const item9Positive = Number(answers[8]) > 0;
+    const suicideRiskInstrument = testType === 'PHQ-9' || testType === 'BDI-II';
+
     const assessment = await PsychologicalAssessment.create({
       patient: req.body.patientId || req.userId,
       psychologist: doctor._id,
       testType,
       testDate: req.body.dateTaken || new Date(),
-      responses: answers.map((response, index) => ({
-        itemNumber: index + 1,
-        response,
-      })),
+      responses: answers.map((response, index) => ({ itemNumber: index + 1, response })),
       scores: { total: totalScore },
       interpretation: {
         severity: totalScore >= 20 ? 'severe' : totalScore >= 10 ? 'moderate' : 'minimal',
         clinicalNotes: req.body.detailedNotes,
       },
-      riskAlert: totalScore >= 20 || req.body.suicidalIdeation
-        ? {
-            flagged: true,
-            reason: 'PHQ-9 score elevated with ideacion suicida',
-            action: 'Requiere evaluacion inmediata del riesgo',
-          }
-        : undefined,
+      ...(item9Positive && suicideRiskInstrument ? {
+        riskAlert: {
+          flagged: true,
+          reason: 'Respuesta positiva en ítem de ideación suicida',
+          action: 'Requiere evaluación inmediata del riesgo',
+        },
+      } : {}),
     });
 
-    if (totalScore >= 20 || req.body.suicidalIdeation) {
+    if (item9Positive && suicideRiskInstrument) {
       await Alert.create({
         patient: req.body.patientId || req.userId,
         clinician: doctor._id,
         type: 'suicide_risk',
         severity: 'critical',
         relatedMeasureId: assessment._id,
-        mitigation: {
-          urgentAppointment: true,
-        },
-        notes: `PHQ-9 score ${totalScore}. Riesgo de ideación suicida detectado.`,
+        mitigation: { urgentAppointment: true },
+        notes: `${testType} score ${totalScore}. Riesgo de ideación suicida detectado por respuesta positiva en el ítem 9.`,
       });
     }
 
-    return res.status(201).json({
-      success: true,
-      data: {
-        ...assessment.toObject(),
-        totalScore,
-      },
-    });
+    return res.status(201).json({ success: true, data: { ...assessment.toObject(), totalScore } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Error al registrar evaluacion' });
   }
 };
-
 const getSubmittedAssessment = async (req, res) => {
   const assessment = await PsychologicalAssessment.findById(req.params.id);
   if (!assessment) {
