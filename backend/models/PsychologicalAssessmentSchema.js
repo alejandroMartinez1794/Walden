@@ -24,6 +24,11 @@ const psychologicalAssessmentSchema = new mongoose.Schema({
       'BAI',        // Inventario de Ansiedad de Beck
       'PHQ-9',      // Patient Health Questionnaire-9
       'GAD-7',      // Generalized Anxiety Disorder-7
+      'PHQ-15',
+      'WHO-5',
+      'PC-PTSD-5',
+      'K10',
+      'K6',
       'PCL-5',      // PTSD Checklist
       'OCI-R',      // Obsessive-Compulsive Inventory-Revised
       'YBOCS',      // Yale-Brown Obsessive Compulsive Scale
