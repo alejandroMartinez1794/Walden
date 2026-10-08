@@ -99,6 +99,12 @@ const ensureRiskArtifacts = async ({
       type: flag,
       severity: severityMap[flag] || 'moderate',
       relatedMeasureId: measure._id,
+      ...(flag === 'suicide_risk' ? {
+        mitigation: { urgentAppointment: true },
+        notes: `${name} score ${score}. Respuesta positiva en el ítem 9; requiere evaluación clínica inmediata.`,
+      } : {
+        notes: `${name} score ${score}. Señal de depresión elevada detectada; requiere revisión clínica.`,
+      }),
     }], { session });
 
     alertsCreated.push(alert);
