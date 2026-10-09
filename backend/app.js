@@ -334,6 +334,6 @@ export function createApp() {
   app.use(sentryErrorHandler());
 
   return app;
-};
+}
 
 export default createApp();
