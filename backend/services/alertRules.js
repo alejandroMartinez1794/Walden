@@ -270,7 +270,7 @@ class AlertRulesService {
    * Update a threshold value
    */
   updateThreshold(thresholdName, newValue) {
-    if (this.thresholds.hasOwnProperty(thresholdName)) {
+    if (Object.prototype.hasOwnProperty.call(this.thresholds, thresholdName)) {
       const oldValue = this.thresholds[thresholdName];
       this.thresholds[thresholdName] = newValue;
       
