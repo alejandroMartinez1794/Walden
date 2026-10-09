@@ -6,36 +6,7 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions:
-  contents: write
-
 jobs:
-  temporary-dependency-remediation:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/clinical-assessment-measure-contract'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          persist-credentials: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.x
-      - name: Apply non-breaking npm security fixes and commit lockfile
-        working-directory: backend
-        run: |
-          npm ci
-          npm audit fix || true
-          cd ..
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- backend/package-lock.json backend/package.json; then
-            git add backend/package-lock.json backend/package.json
-            git commit -m "fix(security): update vulnerable npm dependencies"
-            git push origin "HEAD:${GITHUB_HEAD_REF}"
-          else
-            echo "No compatible dependency updates were available."
-          fi
   test:
     runs-on: ubuntu-latest
 
