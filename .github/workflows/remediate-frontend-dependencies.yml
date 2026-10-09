@@ -1,0 +1,45 @@
+name: Remediate frontend dependencies
+on:
+  push:
+    branches:
+      - fix/clinical-assessment-measure-contract
+    paths:
+      - '.github/workflows/remediate-frontend-dependencies.yml'
+      - 'Frontend/package.json'
+      - 'Frontend/package-lock.json'
+permissions:
+  contents: write
+jobs:
+  update-lockfile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/clinical-assessment-measure-contract
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - name: Apply non-breaking security updates
+        run: npm audit fix
+      - name: Report remaining audit findings
+        run: npm audit --json > audit-report.json || true
+      - name: Commit dependency and lockfile updates
+        working-directory: .
+        run: |
+          rm -f Frontend/audit-report.json
+          if ! git diff --quiet -- Frontend/package.json Frontend/package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add Frontend/package.json Frontend/package-lock.json
+            git commit -m "fix: remediate frontend dependency vulnerabilities"
+            git push origin HEAD:fix/clinical-assessment-measure-contract
+          fi
+      - name: Fail if high vulnerabilities remain
+        run: npm audit --audit-level=high
