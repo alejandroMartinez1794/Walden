@@ -238,6 +238,6 @@ describe('Clinical Scenario: PHI Encryption Validation', () => {
       .expect(403); // Forbidden
 
     expect(unauthorizedAccess.body.success).toBe(false);
-    expect(unauthorizedAccess.body.message).toContain('access');
+    expect(unauthorizedAccess.body.message).toBe('Acceso denegado');
   });
 });
