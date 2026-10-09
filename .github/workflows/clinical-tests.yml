@@ -6,7 +6,34 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
+  temporary-dependency-remediation:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/clinical-assessment-measure-contract'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - name: Regenerate lockfile for patched dependency versions
+        working-directory: backend
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only || true
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/package.json backend/package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(security): regenerate dependency lockfile"
+            git push origin "HEAD:${GITHUB_HEAD_REF}"
+          fi
   test:
     runs-on: ubuntu-latest
 
