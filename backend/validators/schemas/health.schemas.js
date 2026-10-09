@@ -92,17 +92,6 @@ export const createHealthMetricSchema = Joi.object({
     .allow('')
     .messages({
       'string.max': 'Las notas no pueden exceder 500 caracteres'
-    }),
-
-  /**
-   * Notas adicionales
-   */
-  notes: Joi.string()
-    .max(500)
-    .optional()
-    .allow('')
-    .messages({
-      'string.max': 'Las notas no pueden exceder 500 caracteres'
     })
 });
 
