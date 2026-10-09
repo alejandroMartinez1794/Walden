@@ -45,7 +45,7 @@ jobs:
     - name: Run clinical scenario tests
       run: |
         cd backend
-        npm run test -- --config=jest-clinical.config.js --testPathPattern=clinical-scenarios --ci --reporters=default --reporters=jest-junit
+        npm run test -- --config=jest-clinical.config.js --testPathPatterns=clinical-scenarios --ci --reporters=default --reporters=jest-junit
 
     - name: Generate coverage report
       run: |
