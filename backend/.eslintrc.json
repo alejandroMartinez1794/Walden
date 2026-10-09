@@ -11,6 +11,7 @@
   },
   "extends": ["eslint:recommended"],
   "rules": {
+    "no-control-regex": "off",
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
   }
 }
