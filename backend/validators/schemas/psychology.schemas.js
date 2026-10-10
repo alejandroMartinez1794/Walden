@@ -237,7 +237,8 @@ export const createAssessmentSchema = Joi.object({
     .max('now')
     .default(() => new Date()),
 
-  // Canonical clients send raw item responses. Legacy clients may only send a total.
+  // Raw item responses are required: total-only payloads cannot be verified
+  // against the instrument or used safely for item-specific risk rules.
   responses: Joi.array()
     .items(
       Joi.object({
@@ -248,7 +249,8 @@ export const createAssessmentSchema = Joi.object({
       }).min(1)
     )
     .min(1)
-    .max(100),
+    .max(100)
+    .required(),
 
   // The server recalculates the total when numeric responses are available.
   scores: Joi.object({
@@ -257,7 +259,7 @@ export const createAssessmentSchema = Joi.object({
     percentile: Joi.number().min(0).max(100),
   }),
 
-  // Legacy totalScore is accepted only during migration and normalized by the controller.
+  // Retained for compatibility checks; controller accepts it only when it matches the calculated total.
   totalScore: Joi.number().integer().min(0).max(100),
 
   interpretation: Joi.alternatives().try(
@@ -274,8 +276,7 @@ export const createAssessmentSchema = Joi.object({
   notes: textLongSchema.max(2000),
 }).custom((value, helpers) => {
   const hasResponses = Array.isArray(value.responses) && value.responses.length > 0;
-  const hasTotal = Number.isInteger(value.totalScore) || Number.isInteger(value.scores?.total);
-  if (!hasResponses && !hasTotal) {
+  if (!hasResponses) {
     return helpers.error('any.custom');
   }
   return value;
