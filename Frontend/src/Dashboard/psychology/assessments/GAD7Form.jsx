@@ -61,6 +61,8 @@ const GAD7Form = () => {
   };
 
   const total = formData.responses.reduce((s, v) => s + Number(v || 0), 0);
+  const answeredCount = formData.responses.filter(Number.isInteger).length;
+  const allAnswered = answeredCount === 7;
   const severity = total >= 15 ? { label: 'Severa', color: 'text-red-600' }
     : total >= 10 ? { label: 'Moderada', color: 'text-orange-600' }
     : total >= 5 ? { label: 'Leve', color: 'text-yellow-600' }
@@ -137,11 +139,12 @@ const GAD7Form = () => {
         <div className="bg-gray-50 rounded-lg p-4 mb-6 flex items-center justify-between">
           <div>
             <p className="text-gray-600">Puntaje total</p>
-            <p className="text-2xl font-bold">{total} / 21</p>
+            <p className="text-2xl font-bold">{allAnswered ? total : '—'} / 21</p>
+            <p className="text-sm text-gray-600 mt-1">Respuestas completadas: {answeredCount}/7</p>
           </div>
           <div>
             <p className="text-gray-600">Severidad</p>
-            <p className={`text-2xl font-bold ${severity.color}`}>{severity.label}</p>
+            <p className={`text-2xl font-bold ${allAnswered ? severity.color : 'text-gray-500'}`}>{allAnswered ? severity.label : 'Pendiente'}</p>
           </div>
         </div>
 
