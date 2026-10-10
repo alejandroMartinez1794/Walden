@@ -197,6 +197,65 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(await Alert.countDocuments()).toBe(0);
   });
 
+  test('psychologist PHQ-9 endpoint persists a positive item-9 risk signal', async () => {
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: doctor.email, password: 'SecurePass123!' })
+      .expect(200);
+
+    const responses = Array.from({ length: 9 }, (_, index) => ({
+      itemNumber: index + 1,
+      response: index === 8 ? 1 : 0,
+    }));
+
+    const result = await request(app)
+      .post('/api/v1/psychology/assessments')
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({
+        patient: patientProfile._id.toString(),
+        testType: 'PHQ-9',
+        testDate: new Date().toISOString(),
+        responses,
+        scores: { total: 1 },
+      })
+      .expect(201);
+
+    expect(result.body.data.riskAlert.flagged).toBe(true);
+    expect(result.body.data.measureId).toBeDefined();
+
+    const alerts = await Alert.find({ patient: patientProfile._id, type: 'suicide_risk' });
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].severity).toBe('critical');
+  });
+
+  test('rejects relabelled PHQ-9 items that could hide a positive item 9', async () => {
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: doctor.email, password: 'SecurePass123!' })
+      .expect(200);
+
+    const responses = Array.from({ length: 9 }, (_, index) => ({
+      itemNumber: index === 8 ? 8 : index + 1,
+      response: index === 8 ? 1 : 0,
+    }));
+
+    await request(app)
+      .post('/api/v1/psychology/assessments')
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({
+        patient: patientProfile._id.toString(),
+        testType: 'PHQ-9',
+        testDate: new Date().toISOString(),
+        responses,
+        scores: { total: 1 },
+      })
+      .expect(400);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+    expect(await Alert.countDocuments()).toBe(0);
+  });
+
   test('rejects an instrument without a validated scoring implementation', async () => {
     await request(app)
       .post('/api/v1/psychology/assessments/submit')
@@ -217,8 +276,7 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
 
   test('rejects PHQ-9 submissions with the wrong number of responses', async () => {
     await request(app)
-      .post('/api/v1/psychology/assessments/submit')
-      .set('Authorization', `Bearer ${token}`)
+      .post('/api/v1/psychology/assessments/submit')      .set('Authorization', `Bearer ${token}`)
       .send({
         patientId: patient._id.toString(),
         answers: Array(8).fill(1),
@@ -437,8 +495,7 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
     const alerts = await Alert.find({ patient: patientProfile._id, severity: 'critical' });
     expect(alerts.length).toBeGreaterThan(0);
 
-    // Now try to book an appointment - should succeed despite high risk
-    const bookingData = {
+    // Now try to book an appointment - should succeed despite high risk    const bookingData = {
       doctorId: doctor._id.toString(),
       appointmentDate: (() => {
         const date = new Date();
