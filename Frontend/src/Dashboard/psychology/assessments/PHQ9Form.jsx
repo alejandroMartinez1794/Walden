@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/assessments/PHQ9Form.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -41,19 +41,10 @@ const PHQ9Form = () => {
     { value: 3, label: 'Casi todos los días' },
   ];
 
-  useEffect(() => {
-    fetchPatients();
-    const preselected = search.get('patient');
-    if (preselected) {
-      setFormData((d) => ({ ...d, patient: preselected }));
-    }
-  }, []);
-
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
-      const authToken = token;
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
-        headers: { Authorization: `Bearer ${authToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
@@ -63,7 +54,18 @@ const PHQ9Form = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  useEffect(() => {
+    const preselected = search.get('patient');
+    if (preselected) {
+      setFormData((d) => ({ ...d, patient: preselected }));
+    }
+  }, [search]);
 
   const handleResponseChange = (index, value) => {
     const newResponses = [...formData.responses];
