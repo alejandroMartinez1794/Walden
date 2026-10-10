@@ -105,13 +105,19 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
 
-    - name: Deploy to staging
-      run: echo "Deploying to staging environment for clinical validation"
-      # Add deployment commands here
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
 
-    - name: Run end-to-end clinical tests
-      run: |
-        echo "Running end-to-end clinical validation tests"
-        # Add e2e tests here
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Run clinical workflow regression tests
+      working-directory: ./backend
+      run: npm run test:clinical -- --config=jest-clinical.config.js --ci --runInBand --reporters=default --reporters=jest-junit
