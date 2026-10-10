@@ -89,16 +89,33 @@ const submitPatientAssessment = async (req, res) => {
 
     const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
     const testType = req.body.assessmentType || req.body.testType || 'PHQ-9';
-    const supportedTypes = new Set(['PHQ-9', 'GAD-7', 'BDI-II', 'BAI', 'PCL-5', 'OCI-R', 'YBOCS', 'AUDIT', 'PSS']);
+    const supportedTypes = new Set(['PHQ-9', 'GAD-7']);
     if (!supportedTypes.has(testType)) {
       await session.abortTransaction();
       return res.status(400).json({ success: false, message: 'Instrumento no compatible con el registro clínico' });
+    }
+
+    const expectedItems = testType === 'PHQ-9' ? 9 : 7;
+    if (answers.length !== expectedItems) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `${testType} requiere exactamente ${expectedItems} respuestas`,
+      });
     }
 
     const responses = answers.map((response, index) => ({
       itemNumber: index + 1,
       response: Number(response),
     }));
+    if (responses.some(({ response }) => !Number.isInteger(response) || response < 0 || response > 3)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `${testType} solo admite respuestas enteras entre 0 y 3`,
+      });
+    }
+
     const calculatedTotal = responses.reduce((sum, item) => sum + item.response, 0);
     const totalScore = req.body.totalScore === undefined ? calculatedTotal : Number(req.body.totalScore);
 
