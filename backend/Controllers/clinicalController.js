@@ -128,7 +128,7 @@ export const createMeasure = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) await session.abortTransaction();
     logger.error('Error creating measure:', error);
     return res.status(error.statusCode || 500).json({
       success: false,
