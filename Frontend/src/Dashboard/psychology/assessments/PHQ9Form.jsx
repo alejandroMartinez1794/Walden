@@ -19,7 +19,7 @@ const PHQ9Form = () => {
   const [formData, setFormData] = useState({
     patient: '',
     testDate: new Date().toISOString().split('T')[0],
-    responses: Array(9).fill(0),
+    responses: Array(9).fill(null),
   });
 
   const questions = [
@@ -92,6 +92,11 @@ const PHQ9Form = () => {
     
     if (!formData.patient) {
       toast.error('Por favor seleccione un paciente');
+      return;
+    }
+
+    if (formData.responses.some((score) => !Number.isInteger(score) || score < 0 || score > 3)) {
+      toast.error('Responda los 9 ítems antes de guardar la evaluación');
       return;
     }
 
@@ -292,7 +297,7 @@ const PHQ9Form = () => {
           </button>
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || formData.responses.some((score) => !Number.isInteger(score))}
             className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Guardando...' : 'Guardar Evaluación'}
