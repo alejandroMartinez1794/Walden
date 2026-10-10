@@ -165,6 +165,8 @@ const PHQ9Form = () => {
 
   const totalScore = calculateScore();
   const severity = getSeverity(totalScore);
+  const answeredCount = formData.responses.filter(Number.isInteger).length;
+  const allAnswered = answeredCount === 9;
   const showSuicidalAlert = hasSuicidalIdeation();
 
   return (
@@ -276,10 +278,11 @@ const PHQ9Form = () => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-2">Puntaje Total</p>
-            <p className="text-5xl font-bold text-primaryColor mb-2">{totalScore}<span className="text-2xl text-gray-500">/27</span></p>
-            <p className={`text-lg font-semibold ${severity.color}`}>
-              Depresión {severity.label}
+            <p className="text-5xl font-bold text-primaryColor mb-2">{allAnswered ? totalScore : '—'}<span className="text-2xl text-gray-500">/27</span></p>
+            <p className={`text-lg font-semibold ${allAnswered ? severity.color : 'text-gray-500'}`}>
+              {allAnswered ? `Depresión ${severity.label}` : 'Evaluación incompleta'}
             </p>
+            <p className="text-sm text-gray-600 mt-2">Respuestas completadas: {answeredCount}/9</p>
             <div className="mt-4 text-xs text-gray-600">
               <p>0-4: Mínima | 5-9: Leve | 10-14: Moderada | 15-19: Moderadamente severa | 20-27: Severa</p>
             </div>
