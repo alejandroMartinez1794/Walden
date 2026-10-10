@@ -55,7 +55,7 @@ jobs:
     - name: Validate coverage thresholds
       run: |
         cd backend
-        node scripts/validateCoverage.js ./coverage/coverage-final.json
+        node scripts/validateCoverage.js ./coverage/coverage-summary.json
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
