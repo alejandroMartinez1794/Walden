@@ -146,6 +146,57 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(highRiskAlert.notes).toContain('ítem 9');
   });
 
+  test('psychologist assessment endpoint enforces the same PHQ-9 contract', async () => {
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: doctor.email, password: 'SecurePass123!' })
+      .expect(200);
+    const doctorToken = doctorLogin.body.token;
+
+    await request(app)
+      .post('/api/v1/psychology/assessments')
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({
+        patient: patientProfile._id.toString(),
+        testType: 'PHQ-9',
+        responses: [],
+        scores: { total: 0 },
+      })
+      .expect(400);
+
+    await request(app)
+      .post('/api/v1/psychology/assessments')
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({
+        patient: patientProfile._id.toString(),
+        testType: 'PHQ-9',
+        responses: Array.from({ length: 9 }, (_, index) => ({
+          itemNumber: index + 1,
+          response: index === 0 ? '1' : 0,
+        })),
+        scores: { total: 1 },
+      })
+      .expect(400);
+
+    await request(app)
+      .post('/api/v1/psychology/assessments')
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({
+        patient: patientProfile._id.toString(),
+        testType: 'BDI-II',
+        responses: Array(21).fill(1).map((response, index) => ({
+          itemNumber: index + 1,
+          response,
+        })),
+        scores: { total: 21 },
+      })
+      .expect(422);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+    expect(await Alert.countDocuments()).toBe(0);
+  });
+
   test('rejects an instrument without a validated scoring implementation', async () => {
     await request(app)
       .post('/api/v1/psychology/assessments/submit')
