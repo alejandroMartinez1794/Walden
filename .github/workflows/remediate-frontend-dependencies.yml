@@ -30,9 +30,9 @@ jobs:
           cache: npm
           cache-dependency-path: Frontend/package-lock.json
 
-      - name: Apply non-breaking npm security fixes
+      - name: Apply available non-breaking npm security fixes
         working-directory: Frontend
-        run: npm audit fix
+        run: npm audit fix || echo "Some advisories require a major upgrade or have no upstream patch; continue to validation."
 
       - name: Validate clean install
         working-directory: Frontend
@@ -42,14 +42,12 @@ jobs:
         working-directory: Frontend
         run: npm run build
 
-      - name: Audit high-severity vulnerabilities
+      - name: Enforce high-severity security gate
         working-directory: Frontend
         run: npm audit --audit-level=high
 
       - name: Commit manifest and lockfile updates
         if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- Frontend/package.json Frontend/package-lock.json; then
             echo "No dependency changes to commit."
