@@ -245,7 +245,7 @@ export const createAssessmentSchema = Joi.object({
         itemNumber: Joi.number().integer().min(1),
         itemText: Joi.string().trim().max(500),
         question: Joi.string().trim().max(500),
-        response: Joi.number().integer().min(0).max(100).strict(),
+        response: Joi.number().integer().min(0).max(100).strict().required(),
       }).min(1)
     )
     .min(1)
@@ -281,7 +281,7 @@ export const createAssessmentSchema = Joi.object({
   }
   return value;
 }, 'assessment payload completeness').messages({
-  'any.custom': 'Debe proporcionar respuestas o una puntuación total válida',
+  'any.custom': 'Debe proporcionar las respuestas originales de la evaluación',
 });
 /**
  * Schema para crear plan de tratamiento
