@@ -217,21 +217,53 @@ export const createAssessment = async (req, res) => {
       });
     }
 
+    const supportedTypes = new Set(['PHQ-9', 'GAD-7']);
+    if (!supportedTypes.has(testType)) {
+      await session.abortTransaction();
+      return res.status(422).json({
+        success: false,
+        message: 'La puntuación automática solo está validada para PHQ-9 y GAD-7',
+      });
+    }
+
     const normalizedResponses = responses.map((response, index) => ({
       itemNumber: response.itemNumber ?? index + 1,
       itemText: response.itemText ?? response.question,
       response: response.response,
     }));
 
-    const numericResponses = normalizedResponses
-      .map((response) => Number(response.response))
-      .filter((value) => Number.isFinite(value));
+    const expectedItems = testType === 'PHQ-9' ? 9 : 7;
+    if (normalizedResponses.length !== expectedItems) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `${testType} requiere exactamente ${expectedItems} respuestas`,
+      });
+    }
 
-    const calculatedTotal = numericResponses.length === normalizedResponses.length
-      ? numericResponses.reduce((sum, value) => sum + value, 0)
-      : undefined;
+    if (normalizedResponses.some(({ response }) => (
+      typeof response !== 'number' || !Number.isInteger(response) || response < 0 || response > 3
+    ))) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `${testType} solo admite respuestas numéricas enteras entre 0 y 3`,
+      });
+    }
 
-    const total = calculatedTotal ?? scores.total ?? totalScore;
+    const calculatedTotal = normalizedResponses.reduce((sum, response) => sum + response.response, 0);
+    const providedTotals = [scores.total, totalScore].filter((value) => value !== undefined);
+    if (providedTotals.some((value) => (
+      typeof value !== 'number' || !Number.isFinite(value) || value !== calculatedTotal
+    ))) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'El puntaje enviado debe ser numérico y coincidir con las respuestas',
+      });
+    }
+
+    const total = calculatedTotal;
 
     const severityForScore = (() => {
       if (total === undefined) return interpretation.severity;
@@ -251,18 +283,11 @@ export const createAssessment = async (req, res) => {
         return 'minimal';
       }
 
-      if (testType === 'BDI-II') {
-        if (total >= 29) return 'severe';
-        if (total >= 20) return 'moderate';
-        if (total >= 14) return 'mild';
-        return 'minimal';
-      }
-
       return interpretation.severity;
     })();
 
     const riskAlert = {};
-    if (testType === 'BDI-II' || testType === 'PHQ-9') {
+    if (testType === 'PHQ-9') {
       const criticalItem = normalizedResponses.find((response) => response.itemNumber === 9);
       if (Number(criticalItem?.response) > 0) {
         riskAlert.flagged = true;
@@ -294,7 +319,7 @@ export const createAssessment = async (req, res) => {
       ...(riskAlert.flagged ? { riskAlert } : {}),
     };
 
-    const measureName = testType === 'other' ? 'OTHER' : testType;
+    const measureName = testType;
     const { assessment: newAssessment, measureResult } = await createClinicalAssessment({
       assessmentData,
       patientId: patient,
