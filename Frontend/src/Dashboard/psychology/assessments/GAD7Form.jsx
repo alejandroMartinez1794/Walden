@@ -19,7 +19,7 @@ const GAD7Form = () => {
   const [formData, setFormData] = useState({
     patient: '',
     testDate: new Date().toISOString().split('T')[0],
-    responses: Array(7).fill(0),
+    responses: Array(7).fill(null),
   });
 
   const questions = [
@@ -69,6 +69,9 @@ const GAD7Form = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!formData.patient) return toast.error('Seleccione un paciente');
+    if (formData.responses.some((score) => !Number.isInteger(score) || score < 0 || score > 3)) {
+      return toast.error('Responda los 7 ítems antes de guardar la evaluación');
+    }
     try {
       setSubmitting(true);
       const payload = {
@@ -142,7 +145,7 @@ const GAD7Form = () => {
           </div>
         </div>
 
-        <button type="submit" disabled={submitting} className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+        <button type="submit" disabled={submitting || formData.responses.some((score) => !Number.isInteger(score))} className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50">
           {submitting ? 'Guardando...' : 'Guardar GAD-7'}
         </button>
       </form>
