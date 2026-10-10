@@ -13,6 +13,7 @@ jobs:
     # Set NODE_ENV at job level so it's available in ALL steps
     env:
       NODE_ENV: test
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     
     strategy:
       matrix:
@@ -49,15 +50,12 @@ jobs:
       
       - name: Generar reporte de cobertura
         run: npm run test:coverage
-        continue-on-error: true
       
       - name: Subir cobertura a Codecov
         if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           directory: ./backend/coverage
           flags: backend
           fail_ci_if_error: false
@@ -73,6 +71,8 @@ jobs:
     steps:
       - name: Checkout código
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -84,9 +84,56 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
       
-      - name: Lint check
-        run: npm run lint || echo "Lint no configurado, saltando..."
-        continue-on-error: true
+      - name: Lint check (archivos JavaScript modificados en el PR)
+        shell: bash
+        run: |
+          git fetch origin main --depth=1
+          changed_files=$(git diff --name-only origin/main...HEAD | grep -E '^Frontend/.*\\.(js|jsx)
+      
+      - name: Build check
+        run: npm run build
+        env:
+          VITE_BACKEND_URL: https://api.basileia.com/api/v1
+  
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v5
+      
+      - name: Backend - Audit de seguridad
+        working-directory: ./backend
+        run: npm audit --audit-level=moderate
+      
+      - name: Frontend - Audit de seguridad
+        working-directory: ./Frontend
+        run: npm audit --audit-level=moderate || true
+  
+  test-summary:
+    needs: [backend-tests, frontend-lint, security-audit]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Resumen de tests
+        run: |
+          echo "📊 Resumen de CI/CD:"
+          echo "Backend tests: ${{ needs.backend-tests.result }}"
+          echo "Frontend lint: ${{ needs.frontend-lint.result }}"
+          echo "Security audit: ${{ needs.security-audit.result }}"
+          
+          if [ "${{ needs.backend-tests.result }}" != "success" ] || [ "${{ needs.frontend-lint.result }}" != "success" ] || [ "${{ needs.security-audit.result }}" != "success" ]; then
+            echo "❌ Al menos un control obligatorio falló; revisar los jobs anteriores."
+            exit 1
+          fi
+          echo "✅ Pruebas de backend, lint de archivos modificados y auditorías de seguridad pasaron."
+ | sed 's#^Frontend/##' || true)
+          if [ -z "$changed_files" ]; then
+            echo "No hay archivos JavaScript/JSX modificados en Frontend."
+            exit 0
+          fi
+          printf '%s\\n' "$changed_files" | xargs -r npx eslint --report-unused-disable-directives --max-warnings 0
       
       - name: Build check
         run: npm run build
