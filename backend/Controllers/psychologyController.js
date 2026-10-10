@@ -247,7 +247,7 @@ export const createAssessment = async (req, res) => {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
-        message: `${testType} las respuestas deben estar numeradas en orden del 1 al `${expectedItems}`,
+        message: `${testType} las respuestas deben estar numeradas en orden del 1 al ${expectedItems}`,
       });
     }
 
