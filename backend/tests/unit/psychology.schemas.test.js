@@ -197,17 +197,15 @@ describe('Psychology Schemas - createAssessmentSchema', () => {
     expect(value.interpretation.clinicalNotes).toBe('Seguimiento.');
   });
 
-  test('debe aceptar payload legacy durante la migración', () => {
-    const { error, value } = createAssessmentSchema.validate({
+  test('debe rechazar payload con puntaje total pero sin respuestas verificables', () => {
+    const { error } = createAssessmentSchema.validate({
       patient: '507f1f77bcf86cd799439011',
       testType: 'PHQ-9',
       totalScore: 12,
       interpretation: 'moderate',
-      notes: 'Registro legacy conservado durante la migración.',
+      notes: 'No se puede verificar el total sin las respuestas originales.',
     });
-    expect(error).toBeUndefined();
-    expect(value.totalScore).toBe(12);
-    expect(value.interpretation).toBe('moderate');
+    expect(error).toBeDefined();
   });
 });
 
