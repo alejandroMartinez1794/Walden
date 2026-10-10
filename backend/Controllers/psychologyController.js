@@ -226,6 +226,14 @@ export const createAssessment = async (req, res) => {
       });
     }
 
+    if (!Array.isArray(responses)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Debe enviar las respuestas originales de la evaluación',
+      });
+    }
+
     const normalizedResponses = responses.map((response, index) => ({
       itemNumber: response.itemNumber ?? index + 1,
       itemText: response.itemText ?? response.question,
