@@ -324,6 +324,24 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(await Measure.countDocuments()).toBe(0);
   });
 
+  test('keeps GAD-7 scores separate from depression-specific alerts', async () => {
+    const response = await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', 'Bearer ' + token)
+      .send({
+        patientId: patient._id.toString(),
+        answers: Array(7).fill(3),
+        totalScore: 21,
+        assessmentType: 'GAD-7',
+        dateTaken: new Date(),
+      })
+      .expect(201);
+
+    expect(response.body.success).toBe(true);
+    const alerts = await Alert.find({ patient: patientProfile._id });
+    expect(alerts).toHaveLength(0);
+  });
+
   test('should distinguish high depression from suicide risk when item 9 is negative', async () => {
     const response = await request(app)
       .post('/api/v1/psychology/assessments/submit')
