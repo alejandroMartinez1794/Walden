@@ -244,7 +244,7 @@ export const createAssessmentSchema = Joi.object({
         itemNumber: Joi.number().integer().min(1),
         itemText: Joi.string().trim().max(500),
         question: Joi.string().trim().max(500),
-        response: Joi.alternatives().try(Joi.number(), Joi.string(), Joi.boolean(), Joi.allow(null)),
+        response: Joi.number().integer().min(0).max(100).strict(),
       }).min(1)
     )
     .min(1)
