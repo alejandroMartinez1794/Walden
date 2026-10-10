@@ -91,16 +91,13 @@ const ensureRiskArtifacts = async ({
     : null;
   const currentItem9 = item9 ?? currentPHQ9?.responses?.find((response) => response?.itemNumber === 9)?.response;
 
-  const risk = assessRisk({
-    phq9: measuresPHQ9.length
-      ? {
-          total: name === 'PHQ-9' ? score : measuresPHQ9.at(-1).score,
-          item9: currentItem9,
-          severity,
-        }
-      : undefined,
-    measuresPHQ9,
-  });
+  // Depression and suicide-risk rules are specific to PHQ-9, not GAD-7.
+  const risk = name === 'PHQ-9'
+    ? assessRisk({
+        phq9: { total: score, item9: currentItem9, severity },
+        measuresPHQ9,
+      })
+    : { flags: [], reasons: [], trend: { slope: 0, delta: 0, worsening: false } };
 
   // BDI-II item 9 is also a suicide-risk signal; do not let the PHQ-9-only
   // trend engine suppress an explicit positive response from this instrument.
