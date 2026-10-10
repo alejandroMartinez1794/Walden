@@ -2,9 +2,9 @@
 import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import TherapySession from '../models/TherapySessionSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import { createClinicalAssessment } from '../services/clinicalAssessmentService.js';
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import PsychologicalClinicalHistory from '../models/PsychologicalClinicalHistorySchema.js';
-import Booking from '../models/BookingSchema.js';
 import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
@@ -45,52 +45,11 @@ export const getMyPatients = async (req, res) => {
     
     const { status } = req.query;
     
-    // 1. Sincronizar pacientes desde Reservas (Bookings)
-    // Buscar reservas de este doctor donde el usuario no tenga aún un expediente
-    const bookings = await Booking.find({ doctor: psychologistId }).populate('user');
+    // Patient listing is read-only. Clinical records must not be created as a
+    // side effect of a GET request; booking-to-patient reconciliation belongs
+    // to an explicit migration/command with its own provenance rules.
+    const bookings = [];
     
-    // Extraer usuarios únicos de las reservas
-    const uniqueUsers = {};
-    bookings.forEach(booking => {
-      if (booking.user && booking.user._id) {
-        uniqueUsers[booking.user._id.toString()] = booking.user;
-      }
-    });
-
-    // Verificar cuáles ya tienen expediente
-    const userIds = Object.keys(uniqueUsers);
-    if (userIds.length > 0) {
-      const existingPatients = await PsychologicalPatient.find({
-        psychologist: psychologistId,
-        user: { $in: userIds }
-      });
-      
-      const existingUserIds = new Set(existingPatients.map(p => p.user.toString()));
-      
-      // Crear expedientes para los nuevos
-      const newPatientsToCreate = userIds
-        .filter(id => !existingUserIds.has(id))
-        .map(id => {
-          const user = uniqueUsers[id];
-          return {
-            psychologist: psychologistId,
-            user: id,
-            personalInfo: {
-              fullName: user.name,
-              email: user.email,
-              phone: user.phone ? String(user.phone) : '',
-              gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
-              dateOfBirth: new Date(), // Placeholder, se debe actualizar
-            },
-            status: 'active'
-          };
-        });
-      
-      if (newPatientsToCreate.length > 0) {
-        await PsychologicalPatient.insertMany(newPatientsToCreate);
-      }
-    }
-
     // 2. Obtener lista completa
     const filter = { psychologist: psychologistId };
     if (status) filter.status = status;
@@ -209,69 +168,165 @@ export const getPatientSessions = async (req, res) => {
 // ============ EVALUACIONES ============
 
 export const createAssessment = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
+    session.startTransaction();
+
     const psychologistId = req.userId;
-    const assessmentData = { ...req.body, psychologist: psychologistId };
-    
-    // Detectar alertas de riesgo automáticamente
-    const { testType, responses, scores } = req.body;
-    
-    // Ejemplo: BDI-II ítem 9 o PHQ-9 ítem 9 (ideación suicida)
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && responses) {
-      const suicidalItem = responses.find(r => r.itemNumber === 9);
-      if (suicidalItem && suicidalItem.response > 0) {
-        assessmentData.riskAlert = {
-          flagged: true,
-          reason: 'Respuesta positiva en ítem de ideación suicida',
-          action: 'Requiere evaluación inmediata del riesgo',
-        };
-      }
+    const {
+      patient,
+      testType,
+      testDate,
+      responses = [],
+      scores = {},
+      totalScore,
+      interpretation: rawInterpretation = {},
+      notes,
+    } = req.body;
+
+    const interpretationInput = typeof rawInterpretation === 'string'
+      ? { severity: rawInterpretation }
+      : (rawInterpretation || {});
+
+    const severityAliases = {
+      'mínima': 'minimal',
+      'leve': 'mild',
+      'moderada': 'moderate',
+      'moderadamente severa': 'moderately-severe',
+      'severa': 'severe',
+    };
+
+    const interpretation = {
+      ...interpretationInput,
+      ...(interpretationInput.severity && severityAliases[interpretationInput.severity]
+        ? { severity: severityAliases[interpretationInput.severity] }
+        : {}),
+    };
+
+    const assignedPatient = await PsychologicalPatient.findOne({
+      _id: patient,
+      psychologist: psychologistId,
+    }).select('_id').session(session);
+
+    if (!assignedPatient) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: 'Paciente no encontrado',
+      });
     }
-    
-    // Normalizar puntajes y severidad (PHQ-9 / GAD-7 / BDI-II)
-    const total = scores?.total ?? (Array.isArray(responses) ? responses.reduce((s, r) => s + Number(r.response || 0), 0) : undefined);
-    if (total !== undefined) {
-      assessmentData.scores = { ...(assessmentData.scores || {}), total };
-      const sev = (() => {
-        if (testType === 'PHQ-9') {
-          if (total >= 20) return 'severe';
-          if (total >= 15) return 'moderately-severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'GAD-7') {
-          if (total >= 15) return 'severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'BDI-II') {
-          if (total >= 29) return 'severe';
-          if (total >= 20) return 'moderate';
-          if (total >= 14) return 'mild';
-          return 'minimal';
-        }
-        return undefined;
-      })();
-      if (sev) {
-        assessmentData.interpretation = {
-          ...(assessmentData.interpretation || {}),
-          severity: sev,
-        };
+
+    const normalizedResponses = responses.map((response, index) => ({
+      itemNumber: response.itemNumber ?? index + 1,
+      itemText: response.itemText ?? response.question,
+      response: response.response,
+    }));
+
+    const numericResponses = normalizedResponses
+      .map((response) => Number(response.response))
+      .filter((value) => Number.isFinite(value));
+
+    const calculatedTotal = numericResponses.length === normalizedResponses.length
+      ? numericResponses.reduce((sum, value) => sum + value, 0)
+      : undefined;
+
+    const total = calculatedTotal ?? scores.total ?? totalScore;
+
+    const severityForScore = (() => {
+      if (total === undefined) return interpretation.severity;
+
+      if (testType === 'PHQ-9') {
+        if (total >= 20) return 'severe';
+        if (total >= 15) return 'moderately-severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
+      }
+
+      if (testType === 'GAD-7') {
+        if (total >= 15) return 'severe';
+        if (total >= 10) return 'moderate';
+        if (total >= 5) return 'mild';
+        return 'minimal';
+      }
+
+      if (testType === 'BDI-II') {
+        if (total >= 29) return 'severe';
+        if (total >= 20) return 'moderate';
+        if (total >= 14) return 'mild';
+        return 'minimal';
+      }
+
+      return interpretation.severity;
+    })();
+
+    const riskAlert = {};
+    if (testType === 'BDI-II' || testType === 'PHQ-9') {
+      const criticalItem = normalizedResponses.find((response) => response.itemNumber === 9);
+      if (Number(criticalItem?.response) > 0) {
+        riskAlert.flagged = true;
+        riskAlert.reason = 'Respuesta positiva en ítem de ideación suicida';
+        riskAlert.action = 'Requiere evaluación inmediata del riesgo';
       }
     }
 
-    const newAssessment = await PsychologicalAssessment.create(assessmentData);
-    
-    res.status(201).json({
+    const assessmentData = {
+      patient,
+      psychologist: psychologistId,
+      testType,
+      testDate,
+      responses: normalizedResponses,
+      scores: {
+        ...scores,
+        ...(total !== undefined ? { total } : {}),
+      },
+      interpretation: {
+        ...interpretation,
+        ...(severityForScore ? { severity: severityForScore } : {}),
+        ...(interpretation.notes && !interpretation.clinicalNotes
+          ? { clinicalNotes: interpretation.notes }
+          : {}),
+        ...(notes && !interpretation.clinicalNotes && !interpretation.notes
+          ? { clinicalNotes: notes }
+          : {}),
+      },
+      ...(riskAlert.flagged ? { riskAlert } : {}),
+    };
+
+    const measureName = testType === 'other' ? 'OTHER' : testType;
+    const { assessment: newAssessment, measureResult } = await createClinicalAssessment({
+      assessmentData,
+      patientId: patient,
+      clinicianId: psychologistId,
+      measureName: total !== undefined ? measureName : null,
+      responses: normalizedResponses,
+      takenAt: testDate,
+      session,
+    });
+
+    await session.commitTransaction();
+
+    return res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
-      data: newAssessment,
+      data: {
+        ...newAssessment.toObject(),
+        ...(measureResult ? {
+          measureId: measureResult.measure._id,
+          alertsCreated: measureResult.alertsCreated.length,
+        } : {}),
+      },
     });
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
     logger.error('Error al crear evaluación:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar evaluación' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar evaluación',
+    });
+  } finally {
+    await session.endSession();
   }
 };
 

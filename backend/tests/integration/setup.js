@@ -14,7 +14,7 @@
  */
 
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import jwt from 'jsonwebtoken';
 import { destroyTokenBlacklistCache } from '../../services/tokenBlacklist.js';
 
@@ -30,9 +30,10 @@ let mongoServer;
  */
 export const setupTestDB = async () => {
   // Crear servidor MongoDB en memoria
-  mongoServer = await MongoMemoryServer.create({
-    instance: {
-      storageEngine: 'wiredTiger'
+  mongoServer = await MongoMemoryReplSet.create({
+    replSet: {
+      count: 1,
+      storageEngine: 'wiredTiger',
     },
     binary: {
       downloadDir: './mongodb-binaries'

@@ -14,13 +14,14 @@
 process.env.NODE_ENV = 'test';
 
 import request from 'supertest';
-import mongoose from 'mongoose';
 import app from '../../app.js';
 import User from '../../models/UserSchema.js';
 import Doctor from '../../models/DoctorSchema.js';
+import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
+import PsychologicalAssessment from '../../models/PsychologicalAssessmentSchema.js';
+import Measure from '../../models/MeasureSchema.js';
 import Alert from '../../models/AlertSchema.js';
 import { setupTestDB, teardownTestDB, clearTestDB } from '../integration/setup.js';
-import { clinicalWorker } from '../../workers/clinicalWorker.js';
 
 // Mock email service to avoid actual emails during testing
 jest.mock('../../utils/emailService.js', () => ({
@@ -51,7 +52,7 @@ afterEach(async () => {
 });
 
 describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
-  let patient, doctor, token;
+  let patient, doctor, token, patientProfile;
 
   beforeEach(async () => {
     // Create a doctor who will receive alerts
@@ -83,6 +84,17 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
       .expect(200);
 
     token = loginResponse.body.token;
+
+    patientProfile = await PsychologicalPatient.create({
+      user: patient._id,
+      psychologist: doctor._id,
+      personalInfo: {
+        fullName: patient.name,
+        dateOfBirth: new Date('1990-01-01'),
+        email: patient.email,
+      },
+      clinicalInfo: { chiefComplaint: 'Evaluación psicológica solicitada por el paciente' },
+    });
   });
 
   test('should detect high risk PHQ-9 score and trigger alert', async () => {
@@ -108,18 +120,20 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     // Verify the assessment was stored with encrypted PHI
     const assessmentId = assessmentResponse.body.data._id;
     expect(assessmentId).toBeDefined();
+    expect(assessmentResponse.body.data.measureId).toBeDefined();
+    const linkedMeasure = await Measure.findOne({ assessmentId });
+    expect(linkedMeasure).toBeDefined();
+    expect(linkedMeasure.patient.toString()).toBe(patientProfile._id.toString());
 
     // Simulate the automated risk detection process
     // In a real system, this would be triggered by a scheduled job
     // Here we simulate the process directly
     
     // Check if an alert was created for high risk
-    const alerts = await Alert.find({ patient: patient._id });
+    const alerts = await Alert.find({ patient: patientProfile._id });
     expect(alerts.length).toBeGreaterThan(0);
 
-    const highRiskAlert = alerts.find(alert => 
-      alert.type === 'high_depression' || alert.severity === 'critical'
-    );
+    const highRiskAlert = alerts.find(alert => alert.type === 'suicide_risk');
     
     expect(highRiskAlert).toBeDefined();
     expect(highRiskAlert.severity).toBe('critical');
@@ -129,7 +143,78 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     
     // Verify alert contains proper notes about the assessment
     expect(highRiskAlert.notes).toContain('PHQ-9 score 27');
-    expect(highRiskAlert.notes).toContain('ideación suicida');
+    expect(highRiskAlert.notes).toContain('ítem 9');
+  });
+
+  test('rejects an instrument without a validated scoring implementation', async () => {
+    await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: Array(21).fill(1),
+        totalScore: 21,
+        assessmentType: 'BDI-II',
+        dateTaken: new Date(),
+      })
+      .expect(400);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+    expect(await Alert.countDocuments()).toBe(0);
+  });
+
+  test('rejects PHQ-9 submissions with the wrong number of responses', async () => {
+    await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: Array(8).fill(1),
+        totalScore: 8,
+        assessmentType: 'PHQ-9',
+      })
+      .expect(400);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+  });
+
+  test('rejects PHQ-9 responses outside the instrument scale', async () => {
+    await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: [4, 0, 0, 0, 0, 0, 0, 0, 0],
+        totalScore: 4,
+        assessmentType: 'PHQ-9',
+      })
+      .expect(400);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+  });
+
+  test('should distinguish high depression from suicide risk when item 9 is negative', async () => {
+    const response = await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: [3, 3, 3, 3, 3, 3, 3, 3, 0],
+        totalScore: 24,
+        assessmentType: 'PHQ-9',
+        dateTaken: new Date(),
+      })
+      .expect(201);
+
+    expect(response.body.success).toBe(true);
+
+    const alerts = await Alert.find({ patient: patientProfile._id });
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].type).toBe('high_depression');
+    expect(alerts[0].severity).toBe('high');
   });
 
   test('should trigger emergency notification for critical risk', async () => {
@@ -153,7 +238,7 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
 
     // Check for critical alert
     const criticalAlerts = await Alert.find({ 
-      patient: patient._id,
+      patient: patientProfile._id,
       severity: 'critical' 
     });
     
@@ -164,6 +249,27 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(criticalAlert.severity).toBe('critical');
     expect(criticalAlert.mitigation).toBeDefined();
     expect(criticalAlert.mitigation.urgentAppointment).toBe(true);
+  });
+
+  test('rejects a patientId that does not match the authenticated patient', async () => {
+    const otherPatient = await User.create({
+      name: 'Other Patient',
+      email: 'other.patient.spoof@test.com',
+      password: 'SecurePass123!',
+      role: 'paciente',
+      emailVerified: true,
+    });
+
+    await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: otherPatient._id.toString(),
+        answers: Array(9).fill(0),
+        totalScore: 0,
+        assessmentType: 'PHQ-9',
+      })
+      .expect(403);
   });
 
   test('should validate encrypted PHI storage', async () => {
@@ -195,7 +301,7 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
 });
 
 describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
-  let patient, doctor, token;
+  let patient, doctor, token, patientProfile;
 
   beforeEach(async () => {
     // Create a doctor
@@ -227,6 +333,17 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
       .expect(200);
 
     token = loginResponse.body.token;
+
+    patientProfile = await PsychologicalPatient.create({
+      user: patient._id,
+      psychologist: doctor._id,
+      personalInfo: {
+        fullName: patient.name,
+        dateOfBirth: new Date('1990-01-01'),
+        email: patient.email,
+      },
+      clinicalInfo: { chiefComplaint: 'Evaluación psicológica solicitada por el paciente' },
+    });
   });
 
   test('should allow booking for high-risk patient with proper alerting', async () => {
@@ -247,7 +364,7 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
       .expect(201);
 
     // Verify alert was created
-    const alerts = await Alert.find({ patient: patient._id, severity: 'critical' });
+    const alerts = await Alert.find({ patient: patientProfile._id, severity: 'critical' });
     expect(alerts.length).toBeGreaterThan(0);
 
     // Now try to book an appointment - should succeed despite high risk

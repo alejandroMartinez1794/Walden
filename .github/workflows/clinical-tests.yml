@@ -45,7 +45,7 @@ jobs:
     - name: Run clinical scenario tests
       run: |
         cd backend
-        npm run test -- --config=jest-clinical.config.js --testPathPattern=clinical-scenarios --ci --reporters=default --reporters=jest-junit
+        npm run test -- --config=jest-clinical.config.js --testPathPatterns=clinical-scenarios --ci --reporters=default --reporters=jest-junit
 
     - name: Generate coverage report
       run: |
@@ -83,15 +83,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm ci
+
     - name: Run security audit
       run: |
         cd backend
-        npm audit --audit-level high
+        npm audit --audit-level moderate
 
     - name: Run linting
       run: |
         cd backend
-        npm run lint || echo "Linting issues found, please review"
+        npm run lint
 
   clinical-validation:
     runs-on: ubuntu-latest

@@ -16,6 +16,8 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import app from '../../app.js';
 import User from '../../models/UserSchema.js';
+import Doctor from '../../models/DoctorSchema.js';
+import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
 import { setupTestDB, teardownTestDB, clearTestDB } from '../integration/setup.js';
 import { encrypt, decrypt } from '../../utils/clinicalCrypto.js';
 
@@ -34,7 +36,7 @@ afterEach(async () => {
 });
 
 describe('Clinical Scenario: PHI Encryption Validation', () => {
-  let patient, token;
+  let patient, token, doctor, patientProfile;
 
   beforeEach(async () => {
     // Create a patient
@@ -56,6 +58,9 @@ describe('Clinical Scenario: PHI Encryption Validation', () => {
       .expect(200);
 
     token = loginResponse.body.token;
+
+    doctor = await Doctor.create({ name: 'Dr. Clinical Test', email: 'clinical.test.doctor@test.com', password: 'SecurePass123!', role: 'doctor', isApproved: true, emailVerified: true });
+    patientProfile = await PsychologicalPatient.create({ user: patient._id, psychologist: doctor._id, personalInfo: { fullName: patient.name, dateOfBirth: new Date('1990-01-01'), email: patient.email }, clinicalInfo: { chiefComplaint: 'Evaluación de prueba' } });
   });
 
   test('should encrypt sensitive patient data before storage', async () => {
@@ -93,7 +98,7 @@ describe('Clinical Scenario: PHI Encryption Validation', () => {
     const assessmentData = {
       patientId: patient._id.toString(),
       answers: [3, 2, 3, 2, 3, 2, 3, 2, 3], // PHQ-9 with score 24
-      totalScore: 24,
+      totalScore: 23,
       suicidalIdeation: 'moderate',
       detailedNotes: 'Patient reported feelings of hopelessness and thoughts of death, but no active plan. Requires weekly therapy sessions.',
       triggers: ['Work stress', 'Family conflicts', 'Financial pressure'],
@@ -144,6 +149,9 @@ describe('Clinical Scenario: PHI Encryption Validation', () => {
       .expect(200);
 
     const doctorToken = doctorLoginResponse.body.token;
+    doctor = await Doctor.findOne({ email: 'carlos.ruiz@test.com' });
+    patientProfile.psychologist = doctor._id;
+    await patientProfile.save();
 
     // Submit patient assessment data
     const assessmentData = {
@@ -230,6 +238,6 @@ describe('Clinical Scenario: PHI Encryption Validation', () => {
       .expect(403); // Forbidden
 
     expect(unauthorizedAccess.body.success).toBe(false);
-    expect(unauthorizedAccess.body.message).toContain('access');
+    expect(unauthorizedAccess.body.message).toBe('Acceso denegado');
   });
 });

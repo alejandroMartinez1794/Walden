@@ -1,0 +1,81 @@
+name: Remediate frontend dependencies
+
+on:
+  push:
+    branches:
+      - fix/clinical-assessment-measure-contract
+    paths:
+      - 'Frontend/package.json'
+      - 'Frontend/package-lock.json'
+      - 'Frontend/postcss.config.js'
+      - 'Frontend/tailwind.config.js'
+      - 'Frontend/src/index.css'
+      - '.github/workflows/remediate-frontend-dependencies.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-remediation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/clinical-assessment-measure-contract
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Reconcile lockfile with package manifest
+        working-directory: Frontend
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Apply available non-breaking npm security fixes
+        working-directory: Frontend
+        run: npm audit fix || echo "npm audit fix reported remaining advisories; continuing to validation."
+
+      - name: Validate clean install
+        working-directory: Frontend
+        run: npm ci
+
+      - name: Audit high-severity vulnerabilities
+        id: audit
+        working-directory: Frontend
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
+      - name: Build frontend
+        id: build
+        working-directory: Frontend
+        continue-on-error: true
+        run: npm run build
+
+      - name: Report lockfile changes without pushing from the workflow
+        if: always()
+        run: |
+          if ! git diff --quiet -- Frontend/package.json Frontend/package-lock.json; then
+            echo "Dependency files changed during validation; review and commit the generated lockfile explicitly."
+            git diff --stat -- Frontend/package.json Frontend/package-lock.json
+          else
+            echo "No dependency file changes generated during validation."
+          fi
+
+      - name: Require security audit and build to pass
+        if: always()
+        env:
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          test "$AUDIT_OUTCOME" = "success" || { echo "High-severity frontend vulnerabilities remain."; exit 1; }
+          test "$BUILD_OUTCOME" = "success" || { echo "Frontend production build failed."; exit 1; }
