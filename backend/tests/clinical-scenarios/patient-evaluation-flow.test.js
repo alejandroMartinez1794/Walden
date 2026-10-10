@@ -18,6 +18,7 @@ import app from '../../app.js';
 import User from '../../models/UserSchema.js';
 import Doctor from '../../models/DoctorSchema.js';
 import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
+import PsychologicalAssessment from '../../models/PsychologicalAssessmentSchema.js';
 import Measure from '../../models/MeasureSchema.js';
 import Alert from '../../models/AlertSchema.js';
 import { setupTestDB, teardownTestDB, clearTestDB } from '../integration/setup.js';
