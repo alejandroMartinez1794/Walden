@@ -241,6 +241,16 @@ export const createAssessment = async (req, res) => {
       });
     }
 
+    // Keep item identity canonical: the risk rule relies on PHQ-9 item 9.
+    // Do not let a client reorder, duplicate, or relabel items to bypass it.
+    if (normalizedResponses.some(({ itemNumber }, index) => itemNumber !== index + 1)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `${testType} las respuestas deben estar numeradas en orden del 1 al `${expectedItems}`,
+      });
+    }
+
     if (normalizedResponses.some(({ response }) => (
       typeof response !== 'number' || !Number.isInteger(response) || response < 0 || response > 3
     ))) {
