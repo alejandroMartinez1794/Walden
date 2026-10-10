@@ -37,6 +37,10 @@ jobs:
           cache: npm
           cache-dependency-path: Frontend/package-lock.json
 
+      - name: Reconcile lockfile with package manifest
+        working-directory: Frontend
+        run: npm install --package-lock-only --ignore-scripts
+
       - name: Apply available non-breaking npm security fixes
         working-directory: Frontend
         run: npm audit fix || echo "npm audit fix reported remaining advisories; continuing to validation."
