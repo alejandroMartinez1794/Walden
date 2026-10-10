@@ -180,6 +180,25 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(await Measure.countDocuments()).toBe(0);
   });
 
+  test('rejects coerced non-numeric PHQ-9 responses', async () => {
+    for (const invalidResponse of [null, '', '1', true]) {
+      await request(app)
+        .post('/api/v1/psychology/assessments/submit')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          patientId: patient._id.toString(),
+          answers: [invalidResponse, 0, 0, 0, 0, 0, 0, 0, 0],
+          totalScore: 0,
+          assessmentType: 'PHQ-9',
+        })
+        .expect(400);
+
+      expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+      expect(await Measure.countDocuments()).toBe(0);
+      expect(await Alert.countDocuments()).toBe(0);
+    }
+  });
+
   test('rejects PHQ-9 responses outside the instrument scale', async () => {
     await request(app)
       .post('/api/v1/psychology/assessments/submit')
