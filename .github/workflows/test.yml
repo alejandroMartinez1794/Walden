@@ -48,12 +48,16 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
       
       - name: Generar reporte de cobertura
-        run: npm run test:coverage || npm test -- --coverage --forceExit
+        run: npm run test:coverage
         continue-on-error: true
       
       - name: Subir cobertura a Codecov
+        if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           directory: ./backend/coverage
           flags: backend
           fail_ci_if_error: false
