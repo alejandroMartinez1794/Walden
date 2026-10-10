@@ -37,10 +37,12 @@ const calculateMeasureScore = (name, responses) => {
     throw error;
   }
 
-  const invalidResponse = responses.find(({ response }) => {
-    const value = Number(response);
-    return !Number.isInteger(value) || value < 0 || value > instrument.maxResponse;
-  });
+  const invalidResponse = responses.find(({ response }) => (
+    typeof response !== 'number'
+    || !Number.isInteger(response)
+    || response < 0
+    || response > instrument.maxResponse
+  ));
 
   if (invalidResponse) {
     const error = new Error(`${name} responses must be integers between 0 and ${instrument.maxResponse}`);
