@@ -495,7 +495,8 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
     const alerts = await Alert.find({ patient: patientProfile._id, severity: 'critical' });
     expect(alerts.length).toBeGreaterThan(0);
 
-    // Now try to book an appointment - should succeed despite high risk    const bookingData = {
+    // Now try to book an appointment - should succeed despite high risk
+    const bookingData = {
       doctorId: doctor._id.toString(),
       appointmentDate: (() => {
         const date = new Date();
