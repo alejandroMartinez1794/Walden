@@ -20,24 +20,46 @@ const normalizeResponses = (responses = []) => (
 );
 
 const calculateMeasureScore = (name, responses) => {
+  const instrument = {
+    'PHQ-9': { itemCount: 9, maxResponse: 3 },
+    'GAD-7': { itemCount: 7, maxResponse: 3 },
+  }[name];
+
+  if (!instrument) {
+    const error = new Error(`Automated scoring is not configured for instrument: ${name}`);
+    error.statusCode = 422;
+    throw error;
+  }
+
+  if (responses.length !== instrument.itemCount) {
+    const error = new Error(`${name} requires exactly ${instrument.itemCount} responses`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const invalidResponse = responses.find(({ response }) => {
+    const value = Number(response);
+    return !Number.isInteger(value) || value < 0 || value > instrument.maxResponse;
+  });
+
+  if (invalidResponse) {
+    const error = new Error(`${name} responses must be integers between 0 and ${instrument.maxResponse}`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const validatedResponses = responses.map((response) => ({
+    ...response,
+    response: Number(response.response),
+  }));
+
   if (name === 'PHQ-9') {
-    const result = scorePHQ9(responses);
+    const result = scorePHQ9(validatedResponses);
     return { score: result.total, severity: result.severity, item9: result.item9 };
   }
 
-  if (name === 'GAD-7') {
-    const result = scoreGAD7(responses);
-    return { score: result.total, severity: result.severity };
-  }
-
-  const item9 = name === 'BDI-II'
-    ? responses.find((response) => Number(response?.itemNumber) === 9)?.response
-    : undefined;
-
-  return {
-    score: responses.reduce((total, response) => total + Number(response?.response ?? 0), 0),
-    ...(item9 !== undefined ? { item9: Number(item9) } : {}),
-  };
+  const result = scoreGAD7(validatedResponses);
+  return { score: result.total, severity: result.severity };
 };
 
 const ensureRiskArtifacts = async ({
