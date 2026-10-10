@@ -106,22 +106,28 @@ const submitPatientAssessment = async (req, res) => {
 
     const responses = answers.map((response, index) => ({
       itemNumber: index + 1,
-      response: Number(response),
+      response,
     }));
-    if (responses.some(({ response }) => !Number.isInteger(response) || response < 0 || response > 3)) {
+    if (responses.some(({ response }) => (
+      typeof response !== 'number' || !Number.isInteger(response) || response < 0 || response > 3
+    ))) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
-        message: `${testType} solo admite respuestas enteras entre 0 y 3`,
+        message: `${testType} solo admite respuestas numéricas enteras entre 0 y 3`,
       });
     }
 
     const calculatedTotal = responses.reduce((sum, item) => sum + item.response, 0);
-    const totalScore = req.body.totalScore === undefined ? calculatedTotal : Number(req.body.totalScore);
+    const totalScore = req.body.totalScore === undefined ? calculatedTotal : req.body.totalScore;
 
-    if (!Number.isFinite(totalScore) || totalScore !== calculatedTotal) {
+    if (
+      typeof totalScore !== 'number'
+      || !Number.isFinite(totalScore)
+      || totalScore !== calculatedTotal
+    ) {
       await session.abortTransaction();
-      return res.status(400).json({ success: false, message: 'El puntaje enviado no coincide con las respuestas' });
+      return res.status(400).json({ success: false, message: 'El puntaje enviado debe ser numérico y coincidir con las respuestas' });
     }
 
     const severity = testType === 'PHQ-9'
