@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: frontend-remediation-${{ github.ref }}
@@ -61,19 +61,14 @@ jobs:
         continue-on-error: true
         run: npm run build
 
-      - name: Commit dependency lockfile changes
+      - name: Report lockfile changes without pushing from the workflow
         if: always()
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet -- Frontend/package.json Frontend/package-lock.json; then
-            git add Frontend/package.json Frontend/package-lock.json
-            git commit -m "fix: remediate frontend dependency vulnerabilities"
-            git fetch origin fix/clinical-assessment-measure-contract
-            git pull --rebase origin fix/clinical-assessment-measure-contract
-            git push origin HEAD:fix/clinical-assessment-measure-contract
+            echo "Dependency files changed during validation; review and commit the generated lockfile explicitly."
+            git diff --stat -- Frontend/package.json Frontend/package-lock.json
           else
-            echo "No dependency manifest or lockfile changes."
+            echo "No dependency file changes generated during validation."
           fi
 
       - name: Require security audit and build to pass
