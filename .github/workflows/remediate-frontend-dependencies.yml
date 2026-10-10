@@ -7,11 +7,18 @@ on:
     paths:
       - 'Frontend/package.json'
       - 'Frontend/package-lock.json'
+      - 'Frontend/postcss.config.js'
+      - 'Frontend/tailwind.config.js'
+      - 'Frontend/src/index.css'
       - '.github/workflows/remediate-frontend-dependencies.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: frontend-remediation-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   audit-fix:
@@ -32,29 +39,44 @@ jobs:
 
       - name: Apply available non-breaking npm security fixes
         working-directory: Frontend
-        run: npm audit fix || echo "Some advisories require a major upgrade or have no upstream patch; continue to validation."
+        run: npm audit fix || echo "npm audit fix reported remaining advisories; continuing to validation."
 
       - name: Validate clean install
         working-directory: Frontend
         run: npm ci
 
-      - name: Build frontend
+      - name: Audit high-severity vulnerabilities
+        id: audit
         working-directory: Frontend
-        run: npm run build
-
-      - name: Enforce high-severity security gate
-        working-directory: Frontend
+        continue-on-error: true
         run: npm audit --audit-level=high
 
-      - name: Commit manifest and lockfile updates
+      - name: Build frontend
+        id: build
+        working-directory: Frontend
+        continue-on-error: true
+        run: npm run build
+
+      - name: Commit dependency lockfile changes
         if: always()
         run: |
-          if git diff --quiet -- Frontend/package.json Frontend/package-lock.json; then
-            echo "No dependency changes to commit."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Frontend/package.json Frontend/package-lock.json
-          git commit -m "fix: remediate frontend npm vulnerabilities"
-          git push origin HEAD:fix/clinical-assessment-measure-contract
+          if ! git diff --quiet -- Frontend/package.json Frontend/package-lock.json; then
+            git add Frontend/package.json Frontend/package-lock.json
+            git commit -m "fix: remediate frontend dependency vulnerabilities"
+            git fetch origin fix/clinical-assessment-measure-contract
+            git pull --rebase origin fix/clinical-assessment-measure-contract
+            git push origin HEAD:fix/clinical-assessment-measure-contract
+          else
+            echo "No dependency manifest or lockfile changes."
+          fi
+
+      - name: Require security audit and build to pass
+        if: always()
+        env:
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          test "$AUDIT_OUTCOME" = "success" || { echo "High-severity frontend vulnerabilities remain."; exit 1; }
+          test "$BUILD_OUTCOME" = "success" || { echo "Frontend production build failed."; exit 1; }
