@@ -145,28 +145,54 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(highRiskAlert.notes).toContain('ítem 9');
   });
 
-  test('should create a suicide-risk alert for a positive BDI-II item 9', async () => {
-    const response = await request(app)
+  test('rejects an instrument without a validated scoring implementation', async () => {
+    await request(app)
       .post('/api/v1/psychology/assessments/submit')
       .set('Authorization', `Bearer ${token}`)
       .send({
         patientId: patient._id.toString(),
-        answers: [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        totalScore: 9,
+        answers: Array(21).fill(1),
+        totalScore: 21,
         assessmentType: 'BDI-II',
         dateTaken: new Date(),
       })
-      .expect(201);
+      .expect(400);
 
-    expect(response.body.success).toBe(true);
-    const alert = await Alert.findOne({
-      patient: patientProfile._id,
-      clinician: doctor._id,
-      type: 'suicide_risk',
-    });
-    expect(alert).toBeDefined();
-    expect(alert.severity).toBe('critical');
-    expect(alert.notes).toContain('BDI-II score 9');
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+    expect(await Alert.countDocuments()).toBe(0);
+  });
+
+  test('rejects PHQ-9 submissions with the wrong number of responses', async () => {
+    await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: Array(8).fill(1),
+        totalScore: 8,
+        assessmentType: 'PHQ-9',
+      })
+      .expect(400);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
+  });
+
+  test('rejects PHQ-9 responses outside the instrument scale', async () => {
+    await request(app)
+      .post('/api/v1/psychology/assessments/submit')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        patientId: patient._id.toString(),
+        answers: [4, 0, 0, 0, 0, 0, 0, 0, 0],
+        totalScore: 4,
+        assessmentType: 'PHQ-9',
+      })
+      .expect(400);
+
+    expect(await PsychologicalAssessment.countDocuments()).toBe(0);
+    expect(await Measure.countDocuments()).toBe(0);
   });
 
   test('should distinguish high depression from suicide risk when item 9 is negative', async () => {
