@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     strategy:
       matrix:
@@ -60,10 +62,8 @@ jobs:
     - name: Upload coverage to Codecov
       if: ${{ env.CODECOV_TOKEN != '' }}
       uses: codecov/codecov-action@v4
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ env.CODECOV_TOKEN }}
         file: ./backend/coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
