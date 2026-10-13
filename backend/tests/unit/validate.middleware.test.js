@@ -45,4 +45,16 @@ describe('validateId middleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(res.status).not.toHaveBeenCalled();
   });
+  test('rejects an invalid nested identifier even when the patient id is valid', () => {
+    const { res, next } = runValidation({
+      id: '507f1f77bcf86cd799439011',
+      alertId: 'not-a-valid-object-id',
+    });
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      errors: [expect.objectContaining({ field: 'alertId' })],
+    }));
+    expect(next).not.toHaveBeenCalled();
+  });
 });
