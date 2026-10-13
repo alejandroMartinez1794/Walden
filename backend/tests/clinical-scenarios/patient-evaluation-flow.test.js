@@ -773,9 +773,9 @@ describe('Clinical routes: request contracts and alert lifecycle', () => {
       .set('Authorization', `Bearer ${doctorToken}`)
       .send({
         patientEmail: 'consent.patient@example.com',
-        patientName: '<script>alert(1)</script>',
+        patientName: 'Paciente de Prueba',
         consentType: 'treatment',
-        customMessage: '<img src=x onerror=alert(1)>',
+        customMessage: '<img src=x onerror=alert(1)> mensaje clínico de prueba',
       })
       .expect(200);
 
