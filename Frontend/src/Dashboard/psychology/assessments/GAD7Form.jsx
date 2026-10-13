@@ -19,7 +19,7 @@ const GAD7Form = () => {
   const [formData, setFormData] = useState({
     patient: '',
     testDate: new Date().toISOString().split('T')[0],
-    responses: Array(7).fill(0),
+    responses: Array(7).fill(null),
   });
 
   const questions = [
@@ -61,6 +61,8 @@ const GAD7Form = () => {
   };
 
   const total = formData.responses.reduce((s, v) => s + Number(v || 0), 0);
+  const answeredCount = formData.responses.filter(Number.isInteger).length;
+  const allAnswered = answeredCount === 7;
   const severity = total >= 15 ? { label: 'Severa', color: 'text-red-600' }
     : total >= 10 ? { label: 'Moderada', color: 'text-orange-600' }
     : total >= 5 ? { label: 'Leve', color: 'text-yellow-600' }
@@ -69,6 +71,9 @@ const GAD7Form = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!formData.patient) return toast.error('Seleccione un paciente');
+    if (formData.responses.some((score) => !Number.isInteger(score) || score < 0 || score > 3)) {
+      return toast.error('Responda los 7 ítems antes de guardar la evaluación');
+    }
     try {
       setSubmitting(true);
       const payload = {
@@ -86,14 +91,6 @@ const GAD7Form = () => {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      // Also store clinical measure to enable alerts and summaries
-      try {
-        await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ name: 'GAD-7', responses: formData.responses }),
-        });
-      } catch (e) { console.warn('Failed to create clinical measure:', e); }
       toast.success('Evaluación GAD-7 guardada');
       navigate(`/psychology/patients/${formData.patient}`);
     } catch (e) { toast.error(e.message); } finally { setSubmitting(false); }
@@ -142,15 +139,16 @@ const GAD7Form = () => {
         <div className="bg-gray-50 rounded-lg p-4 mb-6 flex items-center justify-between">
           <div>
             <p className="text-gray-600">Puntaje total</p>
-            <p className="text-2xl font-bold">{total} / 21</p>
+            <p className="text-2xl font-bold">{allAnswered ? total : '—'} / 21</p>
+            <p className="text-sm text-gray-600 mt-1">Respuestas completadas: {answeredCount}/7</p>
           </div>
           <div>
             <p className="text-gray-600">Severidad</p>
-            <p className={`text-2xl font-bold ${severity.color}`}>{severity.label}</p>
+            <p className={`text-2xl font-bold ${allAnswered ? severity.color : 'text-gray-500'}`}>{allAnswered ? severity.label : 'Pendiente'}</p>
           </div>
         </div>
 
-        <button type="submit" disabled={submitting} className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+        <button type="submit" disabled={submitting || formData.responses.some((score) => !Number.isInteger(score))} className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50">
           {submitting ? 'Guardando...' : 'Guardar GAD-7'}
         </button>
       </form>

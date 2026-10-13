@@ -5,6 +5,7 @@ const AlertSchema = new mongoose.Schema({
   patient: { type: mongoose.Schema.Types.ObjectId, ref: 'PsychologicalPatient', required: true },
   clinician: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
   type: { type: String, enum: ['suicide_risk', 'high_depression', 'worsening_trend', 'other'], required: true },
+  status: { type: String, enum: ['active', 'acknowledged', 'resolved', 'escalated'], default: 'active', index: true },
   severity: { type: String, enum: ['low', 'moderate', 'high', 'critical'], default: 'moderate' },
   relatedMeasureId: { type: mongoose.Schema.Types.ObjectId, ref: 'Measure' },
   mitigation: {

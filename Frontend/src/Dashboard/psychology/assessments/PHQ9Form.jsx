@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/assessments/PHQ9Form.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -19,7 +19,7 @@ const PHQ9Form = () => {
   const [formData, setFormData] = useState({
     patient: '',
     testDate: new Date().toISOString().split('T')[0],
-    responses: Array(9).fill(0),
+    responses: Array(9).fill(null),
   });
 
   const questions = [
@@ -41,19 +41,10 @@ const PHQ9Form = () => {
     { value: 3, label: 'Casi todos los días' },
   ];
 
-  useEffect(() => {
-    fetchPatients();
-    const preselected = search.get('patient');
-    if (preselected) {
-      setFormData((d) => ({ ...d, patient: preselected }));
-    }
-  }, []);
-
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
-      const authToken = token;
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
-        headers: { Authorization: `Bearer ${authToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
@@ -63,7 +54,18 @@ const PHQ9Form = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  useEffect(() => {
+    const preselected = search.get('patient');
+    if (preselected) {
+      setFormData((d) => ({ ...d, patient: preselected }));
+    }
+  }, [search]);
 
   const handleResponseChange = (index, value) => {
     const newResponses = [...formData.responses];
@@ -95,6 +97,11 @@ const PHQ9Form = () => {
       return;
     }
 
+    if (formData.responses.some((score) => !Number.isInteger(score) || score < 0 || score > 3)) {
+      toast.error('Responda los 9 ítems antes de guardar la evaluación');
+      return;
+    }
+
     const totalScore = calculateScore();
     const severity = getSeverity(totalScore);
 
@@ -120,7 +127,16 @@ const PHQ9Form = () => {
           total: totalScore,
         },
         interpretation: {
-          severity: severity.label.toLowerCase().replace(/\s/g, '-'),
+          severity: (() => {
+            const labels = {
+              'Mínima': 'minimal',
+              'Leve': 'mild',
+              'Moderada': 'moderate',
+              'Moderadamente severa': 'moderately-severe',
+              'Severa': 'severe',
+            };
+            return labels[severity.label] || 'minimal';
+          })(),
           notes: `PHQ-9 Score: ${totalScore}/27. ${severity.label} depression.`,
         },
       };
@@ -137,21 +153,6 @@ const PHQ9Form = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
 
-      // Also store as a clinical measure to trigger alerts and risk banners
-      try {
-        await fetch(`${BASE_URL}/clinical/patients/${formData.patient}/measures`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ name: 'PHQ-9', responses: formData.responses }),
-        });
-      } catch (e) {
-        // Non-blocking: continue if clinical measure fails
-        console.warn('Failed to create clinical measure:', e);
-      }
-
       toast.success('Evaluación PHQ-9 guardada exitosamente');
       navigate(`/psychology/patients/${formData.patient}`);
     } catch (err) {
@@ -166,6 +167,8 @@ const PHQ9Form = () => {
 
   const totalScore = calculateScore();
   const severity = getSeverity(totalScore);
+  const answeredCount = formData.responses.filter(Number.isInteger).length;
+  const allAnswered = answeredCount === 9;
   const showSuicidalAlert = hasSuicidalIdeation();
 
   return (
@@ -277,10 +280,11 @@ const PHQ9Form = () => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-2">Puntaje Total</p>
-            <p className="text-5xl font-bold text-primaryColor mb-2">{totalScore}<span className="text-2xl text-gray-500">/27</span></p>
-            <p className={`text-lg font-semibold ${severity.color}`}>
-              Depresión {severity.label}
+            <p className="text-5xl font-bold text-primaryColor mb-2">{allAnswered ? totalScore : '—'}<span className="text-2xl text-gray-500">/27</span></p>
+            <p className={`text-lg font-semibold ${allAnswered ? severity.color : 'text-gray-500'}`}>
+              {allAnswered ? `Depresión ${severity.label}` : 'Evaluación incompleta'}
             </p>
+            <p className="text-sm text-gray-600 mt-2">Respuestas completadas: {answeredCount}/9</p>
             <div className="mt-4 text-xs text-gray-600">
               <p>0-4: Mínima | 5-9: Leve | 10-14: Moderada | 15-19: Moderadamente severa | 20-27: Severa</p>
             </div>
@@ -298,7 +302,7 @@ const PHQ9Form = () => {
           </button>
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || formData.responses.some((score) => !Number.isInteger(score))}
             className="bg-primaryColor text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Guardando...' : 'Guardar Evaluación'}

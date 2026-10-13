@@ -3,12 +3,13 @@
 
 export function scorePHQ9(responses = []) {
   // responses: array of numbers 0..3 length 9 OR array of objects with {itemNumber, response}
-  const vals = responses.map((r) => (typeof r === 'number' ? r : Number(r?.response || 0)));
+  const vals = responses.map((r) => (typeof r === 'number' ? r : Number(r?.response ?? r?.score ?? 0)));
   const total = vals.reduce((s, v) => s + (Number.isFinite(v) ? v : 0), 0);
-  const item9 = vals[8] ?? 0;
+  const item9Response = responses.find((r) => typeof r !== 'number' && Number(r?.itemNumber) === 9);
+  const item9 = item9Response ? Number(item9Response.response ?? item9Response.score ?? 0) : (vals[8] ?? 0);
   let severity = 'minimal';
   if (total >= 20) severity = 'severe';
-  else if (total >= 15) severity = 'moderately severe';
+  else if (total >= 15) severity = 'moderately-severe';
   else if (total >= 10) severity = 'moderate';
   else if (total >= 5) severity = 'mild';
   return { total, severity, item9 };
@@ -94,7 +95,7 @@ function mapInterventions({ phq9, gad7 }) {
   return suggestions;
 }
 
-export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], lastNotes = [], adherence = 0 }) {
+export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], lastNotes = [], adherence = null }) {
   const phq9Latest = measuresPHQ9[measuresPHQ9.length - 1];
   const gad7Latest = measuresGAD7[measuresGAD7.length - 1];
   const risk = assessRisk({ phq9: phq9Latest, measuresPHQ9 });
@@ -103,7 +104,9 @@ export function generateClinicalSummary({ measuresPHQ9 = [], measuresGAD7 = [], 
     `El paciente presenta un patrón ${phq9Latest?.severity || 'desconocido'} de síntomas depresivos y ${gad7Latest?.severity || 'desconocido'} de ansiedad.`,
     risk.flags.includes('worsening_trend') ? 'Se observa empeoramiento reciente de síntomas, lo que sugiere necesidad de intensificar intervención.' : 'No se observan incrementos clínicamente significativos en las últimas semanas.',
     lastNotes[0] ? `Notas recientes indican: ${lastNotes[0]}` : 'Sin notas recientes disponibles.',
-    `Adherencia a tareas estimada en ${Math.round(adherence * 100)}%.`,
+    adherence === null || adherence === undefined
+      ? 'No hay datos verificables de adherencia a tareas disponibles.'
+      : `Adherencia a tareas registrada en ${Math.round(adherence * 100)}%.`,
   ].join(' ');
 
   const prioritizedTargets = [

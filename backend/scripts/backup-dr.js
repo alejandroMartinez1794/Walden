@@ -395,7 +395,7 @@ if (process.argv[1] === __filename) {
         });
       break;
 
-    case 'restore':
+    case 'restore': {
       const backupFile = process.argv[3];
       if (!backupFile) {
         console.error('Usage: node backup-dr.js restore <backup-file>');
@@ -407,6 +407,7 @@ if (process.argv[1] === __filename) {
           process.exit(1);
         });
       break;
+    }
 
     case 'schedule':
       backupSystem.scheduleBackups();

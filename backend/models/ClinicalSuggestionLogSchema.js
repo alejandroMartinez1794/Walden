@@ -6,6 +6,7 @@ const ClinicalSuggestionLogSchema = new mongoose.Schema({
   clinician: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
   summary: mongoose.Schema.Types.Mixed, // { formulation, targets, suggestions, flags, rulesApplied }
   accepted: { type: Boolean, default: false },
+  decision: { type: String, enum: ['accepted', 'rejected', 'deferred'] },
   clinicianNotes: String,
 }, { timestamps: true });
 
