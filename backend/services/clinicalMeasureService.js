@@ -37,6 +37,15 @@ const calculateMeasureScore = (name, responses) => {
     throw error;
   }
 
+  // Item identity is clinically significant: PHQ-9 item 9 must not be
+  // moved or relabelled to suppress the suicide-risk rule.
+  const invalidItemOrder = responses.some(({ itemNumber }, index) => itemNumber !== index + 1);
+  if (invalidItemOrder) {
+    const error = new Error(`${name} responses must be numbered in canonical order`);
+    error.statusCode = 400;
+    throw error;
+  }
+
   const invalidResponse = responses.find(({ response }) => (
     typeof response !== 'number'
     || !Number.isInteger(response)
