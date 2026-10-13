@@ -620,3 +620,67 @@ describe('Clinical Scenario: Appointment Booking with Risk Validation', () => {
     // (in a real implementation, this would be checked in the booking object)
   });
 });
+
+describe('Clinical summary regression: persisted measures map to clinical rules', () => {
+  test('uses stored PHQ-9 score, severity and item 9 when generating a summary', async () => {
+    const doctor = await Doctor.create({
+      name: 'Dr. Summary Regression',
+      email: 'summary.regression@test.com',
+      password: 'SecurePass123!',
+      role: 'doctor',
+      isApproved: true,
+      emailVerified: true,
+    });
+    const patient = await User.create({
+      name: 'Summary Regression Patient',
+      email: 'summary.patient@test.com',
+      password: 'SecurePass123!',
+      role: 'paciente',
+      emailVerified: true,
+    });
+    const patientProfile = await PsychologicalPatient.create({
+      user: patient._id,
+      psychologist: doctor._id,
+      personalInfo: {
+        fullName: patient.name,
+        dateOfBirth: new Date('1990-01-01'),
+        email: patient.email,
+      },
+      clinicalInfo: { chiefComplaint: 'Prueba de resumen clínico' },
+    });
+
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: doctor.email, password: 'SecurePass123!' })
+      .expect(200);
+
+    const responses = Array.from({ length: 9 }, (_, index) => ({
+      itemNumber: index + 1,
+      response: index === 8 ? 1 : 2,
+    }));
+
+    await request(app)
+      .post('/api/v1/psychology/assessments')
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({
+        patient: patientProfile._id.toString(),
+        testType: 'PHQ-9',
+        testDate: new Date().toISOString(),
+        responses,
+        scores: { total: 17 },
+      })
+      .expect(201);
+
+    const summaryResponse = await request(app)
+      .post(`/api/v1/clinical/patients/${patientProfile._id}/clinical-summary`)
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({ dataRange: 'all', analysisType: 'summary' })
+      .expect(201);
+
+    expect(summaryResponse.body.data.flags).toContain('suicide_risk');
+    expect(summaryResponse.body.data.flags).toContain('high_depression');
+    expect(summaryResponse.body.data.suggestedInterventions.length).toBeGreaterThan(0);
+    expect(summaryResponse.body.data.formulation).toContain('moderately-severe');
+    expect(summaryResponse.body.logId).toBeDefined();
+  });
+});
