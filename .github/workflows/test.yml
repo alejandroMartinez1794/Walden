@@ -36,7 +36,10 @@ jobs:
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'test-secret-key-for-ci' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
       - name: Generar reporte de cobertura
-        run: npm run test:coverage
+        # Reuse the clinical Jest config: the default config applies a stale 70% global gate
+        # to the entire legacy backend and tries to instrument non-JS Mongo init files.
+        # Clinical Testing Pipeline owns domain-specific coverage validation.
+        run: npm test -- --config=jest-clinical.config.js --coverage --coverageDirectory=coverage
       - name: Subir cobertura a Codecov
         if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
