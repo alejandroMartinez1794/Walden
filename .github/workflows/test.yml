@@ -29,17 +29,12 @@ jobs:
         run: npm ci
       - name: Hotfix gopd para runner Linux
         run: npm install gopd@1.1.0 --no-save
-      - name: Ejecutar tests
-        run: npm test -- --forceExit --detectOpenHandles
+      - name: Ejecutar suite completa y generar cobertura
+        run: npm test -- --config=jest-clinical.config.js --coverage --coverageDirectory=coverage --forceExit --detectOpenHandles
         env:
           MONGO_URL: ${{ secrets.MONGO_URL_TEST || 'mongodb://localhost:27017/basileia-test' }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'test-secret-key-for-ci' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
-      - name: Generar reporte de cobertura
-        # Reuse the clinical Jest config: the default config applies a stale 70% global gate
-        # to the entire legacy backend and tries to instrument non-JS Mongo init files.
-        # Clinical Testing Pipeline owns domain-specific coverage validation.
-        run: npm test -- --config=jest-clinical.config.js --coverage --coverageDirectory=coverage
       - name: Subir cobertura a Codecov
         if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
