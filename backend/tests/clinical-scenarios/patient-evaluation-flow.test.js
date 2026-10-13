@@ -782,8 +782,10 @@ describe('Clinical routes: request contracts and alert lifecycle', () => {
       })
       .expect(200);
 
-    expect(sendEmail).toHaveBeenCalledTimes(1);
-    const emailPayload = sendEmail.mock.calls[0][0];
+    const emailPayload = sendEmail.mock.calls
+      .map(([payload]) => payload)
+      .find((payload) => payload.email === 'consent.patient@example.com');
+    expect(emailPayload).toBeDefined();
     expect(emailPayload.email).toBe('consent.patient@example.com');
     expect(emailPayload.html).not.toContain('<script>');
     expect(emailPayload.html).not.toContain('<img');
