@@ -768,6 +768,9 @@ describe('Clinical routes: request contracts and alert lifecycle', () => {
   });
 
   test('accepts the consent schema contract and safely escapes supplied HTML', async () => {
+    // The beforeEach login sends a security-notification email; isolate this assertion.
+    sendEmail.mockClear();
+
     await request(app)
       .post('/api/v1/clinical/send-consent')
       .set('Authorization', `Bearer ${doctorToken}`)
