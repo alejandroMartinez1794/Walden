@@ -194,19 +194,23 @@ export const validateMultiple = (validations) => {
  * ```
  */
 export const validateId = (req, res, next) => {
-  // Clinical routes use named identifiers as well as a generic :id.
-  const paramName = ['id', 'alertId', 'logId'].find((key) => req.params[key] !== undefined);
-  const id = paramName ? req.params[paramName] : undefined;
-  const isValid = typeof id === 'string' && /^[a-f\d]{24}$/i.test(id);
+  // Validate every identifier present: nested clinical routes can contain
+  // both a patient :id and an :alertId or :logId.
+  const paramNames = ['id', 'alertId', 'logId'].filter((key) => req.params[key] !== undefined);
+  const identifiersToValidate = paramNames.length ? paramNames : ['id'];
+  const invalidParam = identifiersToValidate.find((key) => {
+    const value = req.params[key];
+    return typeof value !== 'string' || !/^[a-f\d]{24}$/i.test(value);
+  });
 
-  if (!isValid) {
+  if (invalidParam) {
     return res.status(400).json({
       success: false,
       message: 'ID inválido',
       errors: [{
-        field: paramName || 'id',
+        field: invalidParam,
         message: 'ID debe ser un ObjectId válido de MongoDB (24 caracteres hexadecimales)',
-        received: id,
+        received: req.params[invalidParam],
       }],
     });
   }
