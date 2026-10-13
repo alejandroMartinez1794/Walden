@@ -418,6 +418,56 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
       .expect(403);
   });
 
+  test('rejects relabelled PHQ-9 item numbers before creating a measure or alert', async () => {
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: doctor.email, password: 'SecurePass123!' })
+      .expect(200);
+    const responses = Array.from({ length: 9 }, (_, index) => ({
+      itemNumber: index === 8 ? 1 : index + 1,
+      response: index === 8 ? 1 : 0,
+    }));
+
+    await request(app)
+      .post(`/api/v1/clinical/patients/${patientProfile._id}/measures`)
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({ name: 'PHQ-9', responses })
+      .expect(400);
+
+    expect(await Measure.countDocuments()).toBe(0);
+    expect(await Alert.countDocuments()).toBe(0);
+  });
+
+  test('prevents a clinician from creating measures for an unassigned patient', async () => {
+    const otherDoctor = await Doctor.create({
+      name: 'Dr. Unauthorized',
+      email: 'unauthorized.doctor@test.com',
+      password: 'SecurePass123!',
+      role: 'doctor',
+      isApproved: true,
+      emailVerified: true,
+    });
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: otherDoctor.email, password: 'SecurePass123!' })
+      .expect(200);
+
+    await request(app)
+      .post(`/api/v1/clinical/patients/${patientProfile._id}/measures`)
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({
+        name: 'PHQ-9',
+        responses: Array.from({ length: 9 }, (_, index) => ({
+          itemNumber: index + 1,
+          response: 0,
+        })),
+      })
+      .expect(404);
+
+    expect(await Measure.countDocuments()).toBe(0);
+    expect(await Alert.countDocuments()).toBe(0);
+  });
+
   test('should validate encrypted PHI storage', async () => {
     // Submit assessment with sensitive data
     const sensitiveAssessment = {
