@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import Measure from '../models/MeasureSchema.js';
 import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import PsychologicalPatient from '../models/PsychologicalPatientSchema.js';
 import Alert from '../models/AlertSchema.js';
 import ClinicalSuggestionLog from '../models/ClinicalSuggestionLogSchema.js';
 import ActivityLog from '../models/ActivityLogSchema.js';
@@ -84,6 +85,20 @@ export const createMeasure = async (req, res) => {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
     const { name, responses, itemMap, assessmentId } = req.body;
+
+    const assignedPatient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: clinicianId,
+      isDeleted: { $ne: true },
+    }).select('_id').session(session);
+
+    if (!assignedPatient) {
+      await session.abortTransaction();
+      return res.status(404).json({
+        success: false,
+        message: 'Paciente no encontrado',
+      });
+    }
 
     let sourceAssessment;
     if (assessmentId) {
