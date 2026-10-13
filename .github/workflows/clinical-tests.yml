@@ -57,9 +57,6 @@ jobs:
         path: backend/reports/
         if-no-files-found: warn
 
-          backend/reports/
-          backend/coverage/
-
   security:
     runs-on: ubuntu-latest
     needs: test
