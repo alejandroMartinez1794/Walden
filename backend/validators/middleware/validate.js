@@ -197,7 +197,7 @@ export const validateId = (req, res, next) => {
   // Clinical routes use named identifiers as well as a generic :id.
   const paramName = ['id', 'alertId', 'logId'].find((key) => req.params[key] !== undefined);
   const id = paramName ? req.params[paramName] : undefined;
-  const isValid = typeof id === 'string' && /^[a-f\\d]{24}$/i.test(id);
+  const isValid = typeof id === 'string' && /^[a-f\d]{24}$/i.test(id);
 
   if (!isValid) {
     return res.status(400).json({
