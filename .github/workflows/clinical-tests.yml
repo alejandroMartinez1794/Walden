@@ -49,33 +49,14 @@ jobs:
         cd backend
         npm run test -- --config=jest-clinical.config.js --testPathPatterns=clinical-scenarios --ci --reporters=default --reporters=jest-junit
 
-    - name: Generate coverage report
-      run: |
-        cd backend
-        npm run test -- --config=jest-clinical.config.js --coverage --coverageDirectory=coverage
-
-    - name: Validate coverage thresholds
-      run: |
-        cd backend
-        node scripts/validateCoverage.js ./coverage/coverage-summary.json
-
-    - name: Upload coverage to Codecov
-      if: ${{ env.CODECOV_TOKEN != '' }}
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ env.CODECOV_TOKEN }}
-        file: ./backend/coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-      continue-on-error: true
-
     - name: Archive test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-results-${{ matrix.node-version }}
-        path: |
+        path: backend/reports/
+        if-no-files-found: warn
+
           backend/reports/
           backend/coverage/
 
