@@ -160,6 +160,16 @@ export const generateClinicalSummaryHandler = async (req, res) => {
     const { id: patientId } = req.params;
     const { lookbackDays = 30, includeNotes = true } = req.body || {};
 
+    const assignedPatient = await PsychologicalPatient.findOne({
+      _id: patientId,
+      psychologist: clinicianId,
+      isDeleted: { $ne: true },
+    }).select('_id').lean();
+
+    if (!assignedPatient) {
+      return res.status(404).json({ success: false, message: 'Paciente no encontrado' });
+    }
+
     const since = new Date(); since.setDate(since.getDate() - Number(lookbackDays));
     const measures = await Measure.find({ patient: patientId, clinician: clinicianId, takenAt: { $gte: since } }).sort({ takenAt: 1 }).lean();
     const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
