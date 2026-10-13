@@ -158,7 +158,7 @@ export const generateClinicalSummaryHandler = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { lookbackDays = 30, includeNotes = true } = req.body || {};
+    const { dataRange = 'last90days' } = req.body || {};
 
     const assignedPatient = await PsychologicalPatient.findOne({
       _id: patientId,
@@ -170,24 +170,69 @@ export const generateClinicalSummaryHandler = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Paciente no encontrado' });
     }
 
-    const since = new Date(); since.setDate(since.getDate() - Number(lookbackDays));
-    const measures = await Measure.find({ patient: patientId, clinician: clinicianId, takenAt: { $gte: since } }).sort({ takenAt: 1 }).lean();
-    const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({ score: m.score, date: m.takenAt }));
-    const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({ score: m.score, date: m.takenAt }));
+    // Match the public request schema: dataRange is a named range, not a day count.
+    const lookbackDaysByRange = {
+      last30days: 30,
+      last90days: 90,
+      last6months: 183,
+    };
+    const since = dataRange === 'all' ? null : new Date(Date.now() - lookbackDaysByRange[dataRange] * 24 * 60 * 60 * 1000);
+    const measureQuery = { patient: patientId, clinician: clinicianId };
+    if (since) measureQuery.takenAt = { $gte: since };
 
-    // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
-    const lastNotes = includeNotes ? [] : [];
+    const measures = await Measure.find(measureQuery).sort({ takenAt: 1 }).lean();
+    const severityFor = (name, score) => {
+      if (name === 'PHQ-9') {
+        if (score >= 20) return 'severe';
+        if (score >= 15) return 'moderately-severe';
+        if (score >= 10) return 'moderate';
+        if (score >= 5) return 'mild';
+        return 'minimal';
+      }
+      if (name === 'GAD-7') {
+        if (score >= 15) return 'severe';
+        if (score >= 10) return 'moderate';
+        if (score >= 5) return 'mild';
+        return 'minimal';
+      }
+      return 'unknown';
+    };
+    const measuresPHQ9 = measures.filter(m => m.name === 'PHQ-9').map(m => ({
+      score: m.score,
+      total: m.score,
+      severity: severityFor(m.name, m.score),
+      item9: m.responses?.find(response => response?.itemNumber === 9)?.response ?? 0,
+      date: m.takenAt,
+    }));
+    const measuresGAD7 = measures.filter(m => m.name === 'GAD-7').map(m => ({
+      score: m.score,
+      total: m.score,
+      severity: severityFor(m.name, m.score),
+      date: m.takenAt,
+    }));
+
+    // Notes and task adherence are not yet persisted in the clinical summary contract.
+    const lastNotes = [];
     const adherence = null;
-
     const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
 
-    const log = await ClinicalSuggestionLog.create({ patient: patientId, clinician: clinicianId, summary, accepted: false });
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'generate_clinical_summary', meta: { lookbackDays, flags: summary.flags } });
+    const log = await ClinicalSuggestionLog.create({
+      patient: patientId,
+      clinician: clinicianId,
+      summary,
+      accepted: false,
+    });
+    await ActivityLog.create({
+      actor: clinicianId,
+      patient: patientId,
+      action: 'generate_clinical_summary',
+      meta: { dataRange, flags: summary.flags },
+    });
 
-    res.status(201).json({ success: true, data: summary, logId: log._id });
+    return res.status(201).json({ success: true, data: summary, logId: log._id });
   } catch (error) {
     logger.error('Error generating clinical summary:', error);
-    res.status(500).json({ success: false, message: 'Error al generar resumen clínico' });
+    return res.status(500).json({ success: false, message: 'Error al generar resumen clínico' });
   }
 };
 
