@@ -21,6 +21,8 @@ import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
 import PsychologicalAssessment from '../../models/PsychologicalAssessmentSchema.js';
 import Measure from '../../models/MeasureSchema.js';
 import Alert from '../../models/AlertSchema.js';
+import ClinicalSuggestionLog from '../../models/ClinicalSuggestionLogSchema.js';
+import sendEmail from '../../utils/emailService.js';
 import { setupTestDB, teardownTestDB, clearTestDB } from '../integration/setup.js';
 
 // Mock email service to avoid actual emails during testing
@@ -682,5 +684,123 @@ describe('Clinical summary regression: persisted measures map to clinical rules'
     expect(summaryResponse.body.data.suggestedInterventions.length).toBeGreaterThan(0);
     expect(summaryResponse.body.data.formulation).toContain('moderately-severe');
     expect(summaryResponse.body.logId).toBeDefined();
+  });
+});
+
+describe('Clinical routes: request contracts and alert lifecycle', () => {
+  let doctor;
+  let patientProfile;
+  let doctorToken;
+
+  beforeEach(async () => {
+    doctor = await Doctor.create({
+      name: 'Dr. Contract Regression',
+      email: 'contract.regression@test.com',
+      password: 'SecurePass123!',
+      role: 'doctor',
+      isApproved: true,
+      emailVerified: true,
+    });
+    const patient = await User.create({
+      name: 'Contract Regression Patient',
+      email: 'contract.patient@test.com',
+      password: 'SecurePass123!',
+      role: 'paciente',
+      emailVerified: true,
+    });
+    patientProfile = await PsychologicalPatient.create({
+      user: patient._id,
+      psychologist: doctor._id,
+      personalInfo: {
+        fullName: patient.name,
+        dateOfBirth: new Date('1990-01-01'),
+        email: patient.email,
+      },
+      clinicalInfo: { chiefComplaint: 'Pruebas de contrato de rutas clínicas' },
+    });
+    const login = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: doctor.email, password: 'SecurePass123!' })
+      .expect(200);
+    doctorToken = login.body.token;
+  });
+
+  test('filters and paginates alerts, then records mitigation and resolution status', async () => {
+    const alert = await Alert.create({
+      patient: patientProfile._id,
+      clinician: doctor._id,
+      type: 'suicide_risk',
+      severity: 'critical',
+      notes: 'Alerta de prueba',
+    });
+
+    const listed = await request(app)
+      .get(`/api/v1/clinical/patients/${patientProfile._id}/alerts?status=active&riskLevel=critical&page=1&limit=5`)
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .expect(200);
+    expect(listed.body.data).toHaveLength(1);
+    expect(listed.body.pagination).toMatchObject({ page: 1, limit: 5, total: 1, pages: 1 });
+
+    const mitigation = await request(app)
+      .patch(`/api/v1/clinical/alerts/${alert._id}/mitigation`)
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({ mitigationSteps: ['Crear plan de seguridad con el paciente'], reviewInDays: 7 })
+      .expect(200);
+    expect(mitigation.body.data.mitigation.safetyPlan).toContain('Crear plan de seguridad');
+    expect(mitigation.body.data.mitigation.scheduledAt).toBeDefined();
+
+    const acknowledged = await request(app)
+      .patch(`/api/v1/clinical/alerts/${alert._id}/resolve`)
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({ status: 'acknowledged', actionTaken: 'Se revisó la alerta y se contactó al paciente.' })
+      .expect(200);
+    expect(acknowledged.body.data.status).toBe('acknowledged');
+    expect(acknowledged.body.data.resolved).toBe(false);
+
+    const resolved = await request(app)
+      .patch(`/api/v1/clinical/alerts/${alert._id}/resolve`)
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({ status: 'resolved', actionTaken: 'Se completó la evaluación clínica y se documentó el plan de seguimiento.' })
+      .expect(200);
+    expect(resolved.body.data.status).toBe('resolved');
+    expect(resolved.body.data.resolved).toBe(true);
+    expect(resolved.body.data.resolvedAt).toBeDefined();
+  });
+
+  test('accepts the consent schema contract and safely escapes supplied HTML', async () => {
+    await request(app)
+      .post('/api/v1/clinical/send-consent')
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({
+        patientEmail: 'consent.patient@example.com',
+        patientName: '<script>alert(1)</script>',
+        consentType: 'treatment',
+        customMessage: '<img src=x onerror=alert(1)>',
+      })
+      .expect(200);
+
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const emailPayload = sendEmail.mock.calls[0][0];
+    expect(emailPayload.email).toBe('consent.patient@example.com');
+    expect(emailPayload.html).not.toContain('<script>');
+    expect(emailPayload.html).not.toContain('<img');
+  });
+
+  test('stores the action selected for a clinical suggestion', async () => {
+    const suggestion = await ClinicalSuggestionLog.create({
+      patient: patientProfile._id,
+      clinician: doctor._id,
+      summary: { formulation: 'Resumen de prueba' },
+    });
+
+    const response = await request(app)
+      .patch(`/api/v1/clinical/suggestions/${suggestion._id}/accept`)
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .send({ action: 'deferred', notes: 'Se revisará en la próxima sesión.' })
+      .expect(200);
+
+    expect(response.body.data.decision).toBe('deferred');
+    expect(response.body.data.accepted).toBe(false);
+    expect(response.body.data.clinicianNotes).toContain('Decisión clínica: deferred');
   });
 });
