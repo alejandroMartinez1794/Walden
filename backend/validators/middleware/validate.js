@@ -194,24 +194,24 @@ export const validateMultiple = (validations) => {
  * ```
  */
 export const validateId = (req, res, next) => {
-  const { id } = req.params;
-  
-  // Validar formato MongoDB ObjectId
-  const isValid = /^[a-f\d]{24}$/i.test(id);
-  
+  // Clinical routes use named identifiers as well as a generic :id.
+  const paramName = ['id', 'alertId', 'logId'].find((key) => req.params[key] !== undefined);
+  const id = paramName ? req.params[paramName] : undefined;
+  const isValid = typeof id === 'string' && /^[a-f\\d]{24}$/i.test(id);
+
   if (!isValid) {
     return res.status(400).json({
       success: false,
       message: 'ID inválido',
       errors: [{
-        field: 'id',
+        field: paramName || 'id',
         message: 'ID debe ser un ObjectId válido de MongoDB (24 caracteres hexadecimales)',
-        received: id
-      }]
+        received: id,
+      }],
     });
   }
-  
-  next();
+
+  return next();
 };
 
 /**
