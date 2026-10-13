@@ -468,6 +468,27 @@ describe('Clinical Scenario: High Risk Patient Detection Flow', () => {
     expect(await Alert.countDocuments()).toBe(0);
   });
 
+  test('prevents generating a clinical summary for an unassigned patient', async () => {
+    const otherDoctor = await Doctor.create({
+      name: 'Dr. Summary Unauthorized',
+      email: 'summary.unauthorized.doctor@test.com',
+      password: 'SecurePass123!',
+      role: 'doctor',
+      isApproved: true,
+      emailVerified: true,
+    });
+    const doctorLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: otherDoctor.email, password: 'SecurePass123!' })
+      .expect(200);
+
+    await request(app)
+      .post(`/api/v1/clinical/patients/${patientProfile._id}/clinical-summary`)
+      .set('Authorization', `Bearer ${doctorLogin.body.token}`)
+      .send({ dataRange: 'last30days', analysisType: 'summary' })
+      .expect(404);
+  });
+
   test('should validate encrypted PHI storage', async () => {
     // Submit assessment with sensitive data
     const sensitiveAssessment = {
