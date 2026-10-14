@@ -25,9 +25,6 @@ const validAssessment = () => ({
     dutyToProtectConsidered: true,
     informedConsentObtained: true,
   },
-  signature: {
-    licenseNumber: 'TP-123456',
-  },
 });
 
 describe('createRiskAssessmentSchema', () => {
@@ -72,14 +69,11 @@ describe('createRiskAssessmentSchema', () => {
     expect(createRiskAssessmentSchema.validate(invalidScore).error).toBeDefined();
   });
 
-  test('requires legal documentation and a clinician license number', () => {
+  test('requires legal documentation and rejects client-supplied signature data', () => {
     const missingLegal = validAssessment();
     delete missingLegal.legalDocumentation.informedConsentObtained;
     expect(createRiskAssessmentSchema.validate(missingLegal).error).toBeDefined();
 
-    const missingLicense = validAssessment();
-    missingLicense.signature.licenseNumber = '';
-    expect(createRiskAssessmentSchema.validate(missingLicense).error).toBeDefined();
   });
 
   test('rejects unknown top-level fields instead of silently accepting client-controlled data', () => {
