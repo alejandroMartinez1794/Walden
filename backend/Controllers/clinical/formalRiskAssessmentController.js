@@ -3,10 +3,12 @@ import RiskAssessment from '../../models/RiskAssessmentSchema.js';
 import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
 import PsychologicalPatient from '../../models/PsychologicalPatientSchema.js';
 import Doctor from '../../models/DoctorSchema.js';
+import TherapySession from '../../models/TherapySessionSchema.js';
 import { createRiskAssessmentSchema } from '../../validators/schemas/riskAssessment.schemas.js';
 import logger from '../../utils/logger.js';
 
 export const createFormalRiskAssessment = async (req, res) => {
+  let session;
   try {
     const { treatmentPlanId } = req.params;
     const clinicianId = req.userId;
@@ -17,7 +19,7 @@ export const createFormalRiskAssessment = async (req, res) => {
 
     const { error, value } = createRiskAssessmentSchema.validate(req.body, {
       abortEarly: false,
-      stripUnknown: true,
+      stripUnknown: false,
       convert: true,
     });
 
@@ -29,81 +31,130 @@ export const createFormalRiskAssessment = async (req, res) => {
       });
     }
 
-    const plan = await TreatmentPlan.findOne({
-      _id: treatmentPlanId,
-      psychologist: clinicianId,
-    }).select('+riskLevel');
+    session = await mongoose.startSession();
+    let createdAssessment;
 
-    if (!plan) {
-      return res.status(404).json({ success: false, message: 'Treatment plan not found' });
-    }
+    await session.withTransaction(async () => {
+      const plan = await TreatmentPlan.findOne({
+        _id: treatmentPlanId,
+        psychologist: clinicianId,
+        isDeleted: { $ne: true },
+      }).select('+riskLevel').session(session);
 
-    const patient = await PsychologicalPatient.findOne({
-      _id: plan.patient,
-      psychologist: clinicianId,
-    }).select('user psychologist');
+      if (!plan) {
+        const notFound = new Error('Treatment plan not found');
+        notFound.statusCode = 404;
+        throw notFound;
+      }
 
-    if (!patient?.user) {
-      return res.status(409).json({
-        success: false,
-        message: 'Clinical patient is not linked to a platform user; formal risk assessment requires a canonical patient identity',
-      });
-    }
+      const patient = await PsychologicalPatient.findOne({
+        _id: plan.patient,
+        psychologist: clinicianId,
+        isDeleted: { $ne: true },
+      }).select('user psychologist').session(session);
 
-    const doctor = await Doctor.findById(clinicianId).select('name');
-    if (!doctor) {
-      return res.status(403).json({ success: false, message: 'Clinician not found' });
-    }
+      if (!patient?.user) {
+        const identityError = new Error(
+          'Clinical patient is not linked to a platform user; formal risk assessment requires a canonical patient identity',
+        );
+        identityError.statusCode = 409;
+        throw identityError;
+      }
 
-    const riskAssessment = await RiskAssessment.create({
-      patientId: patient.user,
-      treatmentPlanId: plan._id,
-      sessionId: value.sessionId,
-      sourceAssessmentId: value.sourceAssessmentId,
-      sourceMeasureId: value.sourceMeasureId,
-      assessedBy: clinicianId,
-      assessmentDate: value.assessmentDate,
-      assessmentType: value.assessmentType,
-      assessmentContext: value.assessmentContext,
-      columbiaScale: value.columbiaScale,
-      riskFactors: value.riskFactors,
-      protectiveFactors: value.protectiveFactors,
-      clinicalImpression: value.clinicalImpression,
-      interventionPlan: value.interventionPlan,
-      legalDocumentation: value.legalDocumentation,
-      signature: {
-        clinicianId,
-        clinicianName: doctor.name,
-        licenseNumber: value.signature.licenseNumber,
-        signedAt: new Date(),
-      },
-      locked: false,
+      const doctor = await Doctor.findById(clinicianId)
+        .select('name licenseNumber')
+        .session(session);
+
+      if (!doctor) {
+        const clinicianError = new Error('Clinician not found');
+        clinicianError.statusCode = 403;
+        throw clinicianError;
+      }
+
+      if (!doctor.licenseNumber?.trim()) {
+        const licenseError = new Error(
+          'Clinician profile must contain a verified license number before signing a formal risk assessment',
+        );
+        licenseError.statusCode = 409;
+        throw licenseError;
+      }
+
+      if (value.sessionId) {
+        const therapySession = await TherapySession.findOne({
+          _id: value.sessionId,
+          treatmentPlanId: plan._id,
+          patient: plan.patient,
+        }).session(session);
+
+        if (!therapySession) {
+          const sessionError = new Error('Session does not belong to this patient and treatment plan');
+          sessionError.statusCode = 400;
+          throw sessionError;
+        }
+      }
+
+      // Until source-record ownership checks are implemented, reject provenance IDs
+      // rather than persisting unverified links supplied by a client.
+      if (value.sourceAssessmentId || value.sourceMeasureId) {
+        const provenanceError = new Error(
+          'Source assessment and measure linkage is not yet enabled until patient ownership can be verified',
+        );
+        provenanceError.statusCode = 400;
+        throw provenanceError;
+      }
+
+      const [riskAssessment] = await RiskAssessment.create([{
+        patientId: patient.user,
+        treatmentPlanId: plan._id,
+        sessionId: value.sessionId,
+        assessedBy: clinicianId,
+        assessmentDate: value.assessmentDate,
+        assessmentType: value.assessmentType,
+        assessmentContext: value.assessmentContext,
+        columbiaScale: value.columbiaScale,
+        riskFactors: value.riskFactors,
+        protectiveFactors: value.protectiveFactors,
+        clinicalImpression: value.clinicalImpression,
+        interventionPlan: value.interventionPlan,
+        followUp: value.followUp,
+        legalDocumentation: value.legalDocumentation,
+        signature: {
+          clinicianId,
+          clinicianName: doctor.name,
+          licenseNumber: doctor.licenseNumber,
+          signedAt: new Date(),
+        },
+        locked: false,
+      }], { session });
+
+      riskAssessment.$session(session);
+      await riskAssessment.signAndLock(doctor);
+
+      plan.riskLevel = value.clinicalImpression.overallRiskLevel;
+      plan.lastRiskAssessment = {
+        date: riskAssessment.assessmentDate,
+        assessedBy: clinicianId,
+        columbiaScore: value.columbiaScale.suicidalIdeationScore,
+        interventionRequired: ['HIGH', 'IMMINENT'].includes(value.clinicalImpression.overallRiskLevel),
+        riskAssessmentId: riskAssessment._id,
+      };
+
+      plan.$locals.clinicalAuditActor = {
+        userId: clinicianId,
+        role: 'Doctor',
+        email: req.user?.email,
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+      };
+
+      await plan.save({ session });
+      createdAssessment = riskAssessment;
     });
-
-    plan.riskLevel = value.clinicalImpression.overallRiskLevel;
-    plan.lastRiskAssessment = {
-      date: riskAssessment.assessmentDate,
-      assessedBy: clinicianId,
-      columbiaScore: value.columbiaScale.suicidalIdeationScore,
-      interventionRequired: value.clinicalImpression.overallRiskLevel === 'HIGH'
-        || value.clinicalImpression.overallRiskLevel === 'IMMINENT',
-      riskAssessmentId: riskAssessment._id,
-    };
-
-    plan.$locals.clinicalAuditActor = {
-      userId: clinicianId,
-      role: 'Doctor',
-      email: req.user?.email,
-      ip: req.ip,
-      userAgent: req.get('user-agent'),
-    };
-
-    await plan.save();
 
     return res.status(201).json({
       success: true,
-      message: 'Formal risk assessment recorded',
-      data: riskAssessment,
+      message: 'Formal risk assessment recorded and locked',
+      data: createdAssessment,
     });
   } catch (error) {
     logger.error('Error creating formal risk assessment:', error);
@@ -111,5 +162,7 @@ export const createFormalRiskAssessment = async (req, res) => {
       success: false,
       message: error.message || 'Error creating formal risk assessment',
     });
+  } finally {
+    if (session) await session.endSession();
   }
 };
