@@ -188,7 +188,4 @@ export const createRiskAssessmentSchema = Joi.object({
     reminderSent: booleanSchema.optional(),
   }).required().unknown(false),
   legalDocumentation: legalDocumentationSchema,
-  signature: Joi.object({
-    licenseNumber: boundedText(100).required(),
-  }).required().unknown(false),
 }).unknown(false);
