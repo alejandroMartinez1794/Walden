@@ -511,6 +511,7 @@ RiskAssessmentSchema.methods.signAndLock = async function (clinician) {
   const contentString = JSON.stringify(this.toObject(), null, 2);
   const hash = crypto.createHash("sha256").update(contentString).digest("hex");
 
+  this.$locals.allowSigning = true;
   this.signature = {
     clinicianId: clinician._id,
     clinicianName: clinician.name,
@@ -521,7 +522,11 @@ RiskAssessmentSchema.methods.signAndLock = async function (clinician) {
 
   this.locked = true;
 
-  await this.save();
+  try {
+    await this.save();
+  } finally {
+    this.$locals.allowSigning = false;
+  }
   return this;
 };
 
@@ -549,7 +554,12 @@ RiskAssessmentSchema.methods.amend = async function (clinician, reason, field, n
 
   this.set(field, newValue);
 
-  await this.save();
+  this.$locals.allowAmendment = true;
+  try {
+    await this.save();
+  } finally {
+    this.$locals.allowAmendment = false;
+  }
   return this;
 };
 
@@ -591,7 +601,13 @@ RiskAssessmentSchema.methods.toLegalReport = function () {
 
 RiskAssessmentSchema.pre("save", async function (next) {
   // Prevent editing locked assessments (except amendments)
-  if (this.locked && this.isModified() && !this.isModified("amendments")) {
+  if (
+    this.locked &&
+    !this.isNew &&
+    this.isModified() &&
+    !this.$locals.allowSigning &&
+    !this.$locals.allowAmendment
+  ) {
     throw new Error(
       "Cannot modify locked assessment. Use .amend() method for corrections."
     );
