@@ -1,4 +1,5 @@
 /**
+import { updateRiskSnapshotSchema } from '../../validators/schemas/riskSnapshot.schemas.js';
  * Clinical Treatment Controller
  * 
  * Handles all treatment plan operations, phase transitions, and clinical decision support.
@@ -177,51 +178,18 @@ export const updateRiskAssessment = async (req, res) => {
     const { treatmentPlanId } = req.params;
     const { riskLevel, riskFactors, columbiaScore, interventionRequired } = req.body || {};
 
-    // This legacy endpoint updates a risk snapshot, not a formal assessment.
-    // Validate every client-controlled value before touching the treatment plan.
-    const allowedRiskLevels = new Set(['LOW', 'MODERATE', 'HIGH', 'IMMINENT']);
-    if (!allowedRiskLevels.has(riskLevel)) {
-      return res.status(400).json({ success: false, message: 'Invalid risk level' });
-    }
-
-    if (
-      columbiaScore !== undefined &&
-      (!Number.isInteger(columbiaScore) || columbiaScore < 0 || columbiaScore > 5)
-    ) {
-      return res.status(400).json({ success: false, message: 'Invalid Columbia score' });
-    }
-
-    if (interventionRequired !== undefined && typeof interventionRequired !== 'boolean') {
-      return res.status(400).json({ success: false, message: 'interventionRequired must be a boolean' });
-    }
-
-    if (riskFactors !== undefined) {
-      if (!Array.isArray(riskFactors) || riskFactors.length > 100) {
-        return res.status(400).json({ success: false, message: 'Invalid risk factors list' });
-      }
-
-      const validSeverities = new Set(['LOW', 'MODERATE', 'HIGH']);
-      const invalidFactor = riskFactors.some((factor) => (
-        !factor ||
-        typeof factor.factor !== 'string' ||
-        !factor.factor.trim() ||
-        factor.factor.length > 500 ||
-        !validSeverities.has(factor.severity) ||
-        (factor.mitigationPlan !== undefined &&
-          (typeof factor.mitigationPlan !== 'string' || factor.mitigationPlan.length > 2000))
-      ));
-
-      if (invalidFactor) {
-        return res.status(400).json({ success: false, message: 'Invalid risk factor data' });
-      }
-    }
-
-    if (['HIGH', 'IMMINENT'].includes(riskLevel) && interventionRequired !== true) {
+    // Validate client-controlled risk snapshot data before accessing or mutating the plan.
+    const { error: validationError, value: validatedRiskSnapshot } =
+      updateRiskSnapshotSchema.validate(req.body || {}, { abortEarly: false, convert: true });
+    if (validationError) {
       return res.status(400).json({
         success: false,
-        message: 'HIGH or IMMINENT risk requires an explicit intervention flag',
+        message: 'Invalid risk snapshot',
+        errors: validationError.details.map((detail) => detail.message),
       });
     }
+
+    const { riskLevel, riskFactors, columbiaScore, interventionRequired } = validatedRiskSnapshot;
 
     const plan = await assertTreatmentPlanAccess({
       req,
