@@ -84,6 +84,7 @@ export const createFormalRiskAssessment = async (req, res) => {
           _id: value.sessionId,
           treatmentPlanId: plan._id,
           patient: plan.patient,
+          psychologist: clinicianId,
         }).session(session);
 
         if (!therapySession) {
