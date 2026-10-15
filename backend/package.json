@@ -25,7 +25,8 @@
     "pentest": "node scripts/pentest-basic.js",
     "drp-validate": "node scripts/drp-validation.js",
     "go-no-go": "node scripts/go-no-go-matrix.js",
-    "prelaunch-validation": "npm run sic-audit && npm run pentest && npm run drp-validate && npm run go-no-go"
+    "prelaunch-validation": "npm run sic-audit && npm run pentest && npm run drp-validate && npm run go-no-go",
+    "generate-certs": "node scripts/generateCerts.js"
   },
   "keywords": [],
   "author": "",
