@@ -21,7 +21,8 @@ Este documento describe cómo configurar HTTPS/TLS para el backend de Basileia e
 
 ```bash
 cd backend
-npm install node-forge
+npm ci
+# Requires OpenSSL CLI
 npm run generate-certs
 ```
 

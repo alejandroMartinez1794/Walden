@@ -7,6 +7,10 @@ import { scorePHQ9, scoreGAD7, assessRisk, generateClinicalSummary } from '../ut
 
 import sendEmail from '../utils/emailService.js';
 import logger from '../utils/logger.js';
+import PsychologicalAssessment from '../models/PsychologicalAssessmentSchema.js';
+import TherapySession from '../models/TherapySessionSchema.js';
+import TreatmentPlan from '../models/TreatmentPlanSchema.js';
+import { assertPatientAccess, assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
 
 export const sendConsentEmail = async (req, res) => {
   try {
@@ -76,34 +80,259 @@ export const createMeasure = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
-    const { name, responses, itemMap } = req.body;
+    const {
+      name,
+      measureType,
+      responses: submittedResponses,
+      itemMap,
+      assessmentId,
+      therapySessionId,
+      treatmentPlanId,
+      takenAt,
+    } = req.body || {};
 
-    let score = 0; let severity; let item9;
-    if (name === 'PHQ-9') { const s = scorePHQ9(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; item9 = s.item9; }
-    else if (name === 'GAD-7') { const s = scoreGAD7(Array.isArray(responses) ? responses : []); score = s.total; severity = s.severity; }
-    else { score = (responses || []).reduce((a, b) => a + Number(b?.response || b || 0), 0); }
+    const measureTypeMap = {
+      phq9: 'PHQ-9',
+      gad7: 'GAD-7',
+      audit: 'AUDIT',
+      phq2: 'PHQ-2',
+      columbia: 'OTHER',
+      other: 'OTHER',
+    };
 
-    const measure = await Measure.create({ patient: patientId, clinician: clinicianId, name, responses, score, itemMap });
+    const nameToPersist = name || measureTypeMap[measureType];
+    if (!nameToPersist) {
+      return res.status(400).json({
+        success: false,
+        message: 'El instrumento es obligatorio',
+      });
+    }
 
-    // Build recent PHQ-9 series for trend
-    const measuresPHQ9 = name === 'PHQ-9' ? [] : await Measure.find({ patient: patientId, clinician: clinicianId, name: 'PHQ-9' }).sort({ takenAt: 1 }).select('score takenAt');
-    if (name === 'PHQ-9') measuresPHQ9.push({ score, takenAt: new Date() });
+    const plan = treatmentPlanId
+      ? await assertTreatmentPlanAccess({
+          req,
+          treatmentPlanId,
+          action: 'create clinical measure',
+        })
+      : await assertPatientAccess({
+          req,
+          patientId,
+          action: 'create clinical measure',
+        });
 
-    const risk = assessRisk({ phq9: name === 'PHQ-9' ? { total: score, item9, severity } : measuresPHQ9.length ? { total: measuresPHQ9.at(-1).score } : undefined, measuresPHQ9 });
+    if (String(plan.patient) !== String(patientId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'El plan de tratamiento no pertenece al paciente indicado',
+      });
+    }
+
+    let sourceAssessment = null;
+    let responses = submittedResponses;
+    let sourceTakenAt = takenAt;
+
+    if (assessmentId) {
+      sourceAssessment = await PsychologicalAssessment.findOne({
+        _id: assessmentId,
+        patient: plan.patient,
+        psychologist: plan.psychologist,
+        ...(plan._id ? { treatmentPlanId: plan._id } : {}),
+      }).select('_id testType responses scores.testDate testDate');
+
+      if (!sourceAssessment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Evaluación de origen no encontrada',
+        });
+      }
+
+      if (nameToPersist !== sourceAssessment.testType) {
+        return res.status(400).json({
+          success: false,
+          message: 'El instrumento no coincide con la evaluación de origen',
+        });
+      }
+
+      responses = sourceAssessment.responses;
+      sourceTakenAt = sourceAssessment.testDate;
+    }
+
+    const normalizedResponses = (Array.isArray(responses) ? responses : [])
+      .map((response, index) => {
+        if (typeof response === 'number') {
+          return {
+            itemNumber: index + 1,
+            response,
+            score: response,
+          };
+        }
+
+        const numericScore = Number(response?.score ?? response?.response);
+        return {
+          itemNumber: Number(response?.itemNumber) || index + 1,
+          question: response?.question ?? response?.itemText,
+          response: response?.response ?? response?.score,
+          score: Number.isFinite(numericScore) ? numericScore : undefined,
+        };
+      });
+
+    if (!normalizedResponses.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Las respuestas son obligatorias',
+      });
+    }
+
+    const rules = {
+      'PHQ-9': { items: 9, max: 3 },
+      'GAD-7': { items: 7, max: 3 },
+      'BDI-II': { items: 21, max: 3 },
+      'BAI': { items: 21, max: 3 },
+      'PCL-5': { items: 20, max: 4 },
+      'OCI-R': { items: 18, max: 4 },
+      'YBOCS': { items: 10, max: 4 },
+      'AUDIT': { items: 10, max: 4 },
+    };
+    const rule = rules[nameToPersist];
+
+    if (rule && normalizedResponses.length !== rule.items) {
+      return res.status(422).json({
+        success: false,
+        message: `${nameToPersist} requiere exactamente ${rule.items} respuestas`,
+      });
+    }
+
+    const seen = new Set();
+    for (const response of normalizedResponses) {
+      if (!Number.isInteger(response.itemNumber) || seen.has(response.itemNumber)) {
+        return res.status(422).json({
+          success: false,
+          message: 'Las respuestas contienen ítems inválidos o duplicados',
+        });
+      }
+      seen.add(response.itemNumber);
+
+      if (!Number.isFinite(response.score) || response.score < 0 || (rule && response.score > rule.max)) {
+        return res.status(422).json({
+          success: false,
+          message: `Respuesta fuera de rango para ${nameToPersist}`,
+        });
+      }
+    }
+
+    const score = normalizedResponses.reduce((sum, response) => sum + response.score, 0);
+
+    let severity;
+    let item9;
+    if (nameToPersist === 'PHQ-9') {
+      const scored = scorePHQ9(normalizedResponses);
+      severity = scored.severity;
+      item9 = scored.item9;
+    } else if (nameToPersist === 'GAD-7') {
+      severity = scoreGAD7(normalizedResponses).severity;
+    }
+
+    if (therapySessionId) {
+      const session = await TherapySession.findOne({
+        _id: therapySessionId,
+        patient: plan.patient,
+        psychologist: plan.psychologist,
+        ...(plan._id ? { treatmentPlanId: plan._id } : {}),
+      }).select('_id');
+
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: 'Sesión de origen no encontrada',
+        });
+      }
+    }
+
+    const measure = await Measure.create({
+      patient: plan.patient,
+      clinician: plan.psychologist,
+      assessmentId: sourceAssessment?._id,
+      therapySessionId,
+      treatmentPlanId: plan._id,
+      name: nameToPersist,
+      responses: normalizedResponses,
+      score,
+      scoreSource: 'server',
+      itemMap,
+      ...(sourceTakenAt ? { takenAt: sourceTakenAt } : {}),
+    });
+
+    if (sourceAssessment) {
+      await PsychologicalAssessment.updateOne(
+        { _id: sourceAssessment._id, ...(plan._id ? { treatmentPlanId: plan._id } : {}) },
+        { $set: { measureId: measure._id } }
+      );
+    }
+
+    const measuresPHQ9 = nameToPersist === 'PHQ-9'
+      ? []
+      : await Measure.find({
+          patient: plan.patient,
+          clinician: plan.psychologist,
+          name: 'PHQ-9',
+          treatmentPlanId: plan._id,
+        }).sort({ takenAt: 1 }).select('score takenAt');
+
+    if (nameToPersist === 'PHQ-9') {
+      measuresPHQ9.push({ score, takenAt: sourceTakenAt || new Date() });
+    }
+
+    const risk = assessRisk({
+      phq9: nameToPersist === 'PHQ-9'
+        ? { total: score, item9, severity }
+        : measuresPHQ9.length
+          ? { total: measuresPHQ9.at(-1).score }
+          : undefined,
+      measuresPHQ9,
+    });
 
     const alertsCreated = [];
     for (const flag of risk.flags) {
-      const severityMap = { suicide_risk: 'critical', high_depression: 'high', worsening_trend: 'moderate' };
-      const alert = await Alert.create({ patient: patientId, clinician: clinicianId, type: flag, severity: severityMap[flag] || 'moderate', relatedMeasureId: measure._id });
-      alertsCreated.push(alert);
+      const severityMap = {
+        suicide_risk: 'critical',
+        high_depression: 'high',
+        worsening_trend: 'moderate',
+      };
+
+      alertsCreated.push(await Alert.create({
+        patient: plan.patient,
+        clinician: plan.psychologist,
+        type: flag,
+        severity: severityMap[flag] || 'moderate',
+        relatedMeasureId: measure._id,
+      }));
     }
 
-    await ActivityLog.create({ actor: clinicianId, patient: patientId, action: 'create_measure', meta: { name, score, alerts: risk.flags } });
+    await ActivityLog.create({
+      actor: clinicianId,
+      patient: plan.patient,
+      action: 'create_measure',
+      meta: {
+        name: nameToPersist,
+        score,
+        scoreSource: measure.scoreSource,
+        assessmentId: sourceAssessment?._id,
+        therapySessionId,
+        treatmentPlanId: plan._id,
+        alerts: risk.flags,
+      },
+    });
 
-    res.status(201).json({ success: true, data: { measure, score, severity, alertsCreated } });
+    return res.status(201).json({
+      success: true,
+      data: { measure, score, severity, alertsCreated },
+    });
   } catch (error) {
     logger.error('Error creating measure:', error);
-    res.status(500).json({ success: false, message: 'Error al crear medida' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al crear medida',
+    });
   }
 };
 
@@ -111,6 +340,13 @@ export const generateClinicalSummaryHandler = async (req, res) => {
   try {
     const clinicianId = req.userId;
     const { id: patientId } = req.params;
+
+    await assertPatientAccess({
+      req,
+      patientId,
+      action: 'generate clinical summary',
+    });
+
     const { lookbackDays = 30, includeNotes = true } = req.body || {};
 
     const since = new Date(); since.setDate(since.getDate() - Number(lookbackDays));
@@ -120,7 +356,7 @@ export const generateClinicalSummaryHandler = async (req, res) => {
 
     // TODO: lastNotes y adherencia provendrán de Sessions/Tareas cuando estén
     const lastNotes = includeNotes ? [] : [];
-    const adherence = 0.7;
+    const adherence = null;
 
     const summary = generateClinicalSummary({ measuresPHQ9, measuresGAD7, lastNotes, adherence });
 
@@ -137,25 +373,59 @@ export const generateClinicalSummaryHandler = async (req, res) => {
 export const listAlerts = async (req, res) => {
   try {
     const clinicianId = req.userId; const { id: patientId } = req.params;
+
+    await assertPatientAccess({
+      req,
+      patientId,
+      action: 'read clinical alerts',
+    });
+
     const alerts = await Alert.find({ patient: patientId, clinician: clinicianId, resolved: false }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: alerts });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al listar alertas' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al listar alertas' }); }
 };
 
 export const resolveAlert = async (req, res) => {
   try {
     const clinicianId = req.userId; const { alertId } = req.params;
-    const alert = await Alert.findOneAndUpdate({ _id: alertId, clinician: clinicianId }, { $set: { resolved: true, resolvedAt: new Date() } }, { new: true });
+
+    const existingAlert = await Alert.findOne({ _id: alertId, clinician: clinicianId }).select('patient');
+    if (!existingAlert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingAlert.patient,
+      action: 'resolve clinical alert',
+    });
+
+    const alert = await Alert.findOneAndUpdate(
+      { _id: alertId, clinician: clinicianId },
+      { $set: { resolved: true, resolvedAt: new Date() } },
+      { new: true }
+    );
+
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'resolve_alert', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al resolver alerta' }); }
+  } catch (e) {
+    res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al resolver alerta' });
+  }
 };
 
 export const updateAlertMitigation = async (req, res) => {
   try {
     const clinicianId = req.userId; const { alertId } = req.params;
     const { emergencyContact, safetyPlan, urgentAppointment, scheduledAt, notes } = req.body || {};
+
+    const existingAlert = await Alert.findOne({ _id: alertId, clinician: clinicianId }).select('patient');
+    if (!existingAlert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingAlert.patient,
+      action: 'update alert mitigation',
+    });
+
     const alert = await Alert.findOneAndUpdate(
       { _id: alertId, clinician: clinicianId },
       { $set: { mitigation: { emergencyContact, safetyPlan, urgentAppointment, scheduledAt }, notes } },
@@ -164,12 +434,22 @@ export const updateAlertMitigation = async (req, res) => {
     if (!alert) return res.status(404).json({ success: false, message: 'Alerta no encontrada' });
     await ActivityLog.create({ actor: clinicianId, patient: alert.patient, action: 'update_alert_mitigation', meta: { alertId } });
     res.status(200).json({ success: true, data: alert });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al actualizar mitigación' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al actualizar mitigación' }); }
 };
 
 export const acceptSuggestion = async (req, res) => {
   try {
     const clinicianId = req.userId; const { logId } = req.params; const { accepted, clinicianNotes } = req.body || {};
+
+    const existingLog = await ClinicalSuggestionLog.findOne({ _id: logId, clinician: clinicianId }).select('patient');
+    if (!existingLog) return res.status(404).json({ success: false, message: 'Registro no encontrado' });
+
+    await assertPatientAccess({
+      req,
+      patientId: existingLog.patient,
+      action: 'accept clinical suggestion',
+    });
+
     const log = await ClinicalSuggestionLog.findOneAndUpdate(
       { _id: logId, clinician: clinicianId },
       { $set: { accepted: !!accepted, clinicianNotes } },
@@ -178,5 +458,5 @@ export const acceptSuggestion = async (req, res) => {
     if (!log) return res.status(404).json({ success: false, message: 'Registro no encontrado' });
     await ActivityLog.create({ actor: clinicianId, patient: log.patient, action: 'accept_suggestion', meta: { logId, accepted } });
     res.status(200).json({ success: true, data: log });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error al registrar aceptación' }); }
+  } catch (e) { res.status(e.statusCode || 500).json({ success: false, message: e.message || 'Error al registrar aceptación' }); }
 };

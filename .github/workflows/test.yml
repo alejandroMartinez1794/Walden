@@ -35,7 +35,7 @@ jobs:
           # cache-dependency-path: backend/package-lock.json
       
       - name: Instalar dependencias
-        run: npm install
+        run: npm ci
 
       - name: Hotfix gopd para runner Linux
         run: npm install gopd@1.1.0 --no-save
@@ -48,8 +48,7 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-long!!' }}
       
       - name: Generar reporte de cobertura
-        run: npm run test:coverage || npm test -- --coverage --forceExit
-        continue-on-error: true
+        run: npm run test:coverage -- --forceExit
       
       - name: Subir cobertura a Codecov
         uses: codecov/codecov-action@v4
@@ -81,8 +80,7 @@ jobs:
         run: npm ci
       
       - name: Lint check
-        run: npm run lint || echo "Lint no configurado, saltando..."
-        continue-on-error: true
+        run: npm run lint
       
       - name: Build check
         run: npm run build
@@ -98,11 +96,11 @@ jobs:
       
       - name: Backend - Audit de seguridad
         working-directory: ./backend
-        run: npm audit --audit-level=moderate || true
+        run: npm audit --audit-level=low
       
       - name: Frontend - Audit de seguridad
         working-directory: ./Frontend
-        run: npm audit --audit-level=moderate || true
+        run: npm audit --audit-level=low
   
   test-summary:
     needs: [backend-tests, frontend-lint, security-audit]
@@ -117,10 +115,11 @@ jobs:
           echo "Frontend lint: ${{ needs.frontend-lint.result }}"
           echo "Security audit: ${{ needs.security-audit.result }}"
           
-          # Solo falla si backend-tests falló (frontend y security son opcionales)
-          if [ "${{ needs.backend-tests.result }}" == "failure" ]; then
-            echo "❌ Backend tests fallaron - revisar logs"
+          # No se permite marcar CI como aprobado si falla cualquier control crítico.
+          if [ "${{ needs.backend-tests.result }}" != "success" ] || \
+             [ "${{ needs.frontend-lint.result }}" != "success" ] || \
+             [ "${{ needs.security-audit.result }}" != "success" ]; then
+            echo "❌ CI bloqueado: tests, lint o auditoría de dependencias fallaron"
             exit 1
-          elif [ "${{ needs.backend-tests.result }}" == "success" ]; then
-            echo "✅ Todos los tests críticos pasaron"
           fi
+          echo "✅ Tests, lint y auditoría de dependencias pasaron"

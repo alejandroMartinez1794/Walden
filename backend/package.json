@@ -25,7 +25,8 @@
     "pentest": "node scripts/pentest-basic.js",
     "drp-validate": "node scripts/drp-validation.js",
     "go-no-go": "node scripts/go-no-go-matrix.js",
-    "prelaunch-validation": "npm run sic-audit && npm run pentest && npm run drp-validate && npm run go-no-go"
+    "prelaunch-validation": "npm run sic-audit && npm run pentest && npm run drp-validate && npm run go-no-go",
+    "generate-certs": "node scripts/generateCerts.js"
   },
   "keywords": [],
   "author": "",
@@ -65,7 +66,6 @@
     "multer": "^1.4.5-lts.1",
     "newrelic": "^12.25.1",
     "node-cron": "^3.0.2",
-    "node-forge": "^1.4.0",
     "nodemailer": "^8.0.7",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.3",

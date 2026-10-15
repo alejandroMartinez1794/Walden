@@ -9,6 +9,94 @@ import User from '../models/UserSchema.js';
 import ClinicalLog from '../models/ClinicalLogSchema.js';
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
+import { assertTreatmentPlanAccess } from '../services/clinicalAuthorization.js';
+
+
+const SCORABLE_INSTRUMENTS = {
+  'PHQ-9': { items: 9, max: 3 },
+  'GAD-7': { items: 7, max: 3 },
+  'BDI-II': { items: 21, max: 3 },
+  'BAI': { items: 21, max: 3 },
+  'PCL-5': { items: 20, max: 4 },
+  'OCI-R': { items: 18, max: 4 },
+  'YBOCS': { items: 10, max: 4 },
+  'AUDIT': { items: 10, max: 4 },
+};
+
+const normalizeAssessmentResponses = (responses = []) => responses
+  .map((response) => ({
+    itemNumber: Number(response.itemNumber),
+    itemText: response.itemText ?? response.question,
+    response: Number(response.response),
+  }))
+  .sort((a, b) => a.itemNumber - b.itemNumber);
+
+const validateAssessmentResponses = (testType, responses) => {
+  const rule = SCORABLE_INSTRUMENTS[testType];
+  if (!rule) {
+    const error = new Error(`No existe una regla de puntuación segura para el instrumento ${testType}`);
+    error.statusCode = 422;
+    throw error;
+  }
+
+  if (responses.length !== rule.items) {
+    const error = new Error(`${testType} requiere exactamente ${rule.items} respuestas`);
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const seen = new Set();
+  for (const response of responses) {
+    if (!Number.isInteger(response.itemNumber) || response.itemNumber < 1 || response.itemNumber > rule.items) {
+      const error = new Error(`Ítem inválido para ${testType}`);
+      error.statusCode = 422;
+      throw error;
+    }
+    if (seen.has(response.itemNumber)) {
+      const error = new Error(`Ítem duplicado en ${testType}`);
+      error.statusCode = 422;
+      throw error;
+    }
+    seen.add(response.itemNumber);
+
+    if (!Number.isFinite(response.response) || response.response < 0 || response.response > rule.max) {
+      const error = new Error(`Respuesta fuera de rango para ${testType}`);
+      error.statusCode = 422;
+      throw error;
+    }
+  }
+
+  return responses;
+};
+
+const calculateAssessmentSeverity = (testType, total) => {
+  if (testType === 'PHQ-9') {
+    if (total >= 20) return 'severe';
+    if (total >= 15) return 'moderately-severe';
+    if (total >= 10) return 'moderate';
+    if (total >= 5) return 'mild';
+    return 'minimal';
+  }
+  if (testType === 'GAD-7') {
+    if (total >= 15) return 'severe';
+    if (total >= 10) return 'moderate';
+    if (total >= 5) return 'mild';
+    return 'minimal';
+  }
+  if (testType === 'BDI-II') {
+    if (total >= 29) return 'severe';
+    if (total >= 20) return 'moderate';
+    if (total >= 14) return 'mild';
+    return 'minimal';
+  }
+  if (testType === 'BAI') {
+    if (total >= 26) return 'severe';
+    if (total >= 16) return 'moderate';
+    if (total >= 8) return 'mild';
+    return 'minimal';
+  }
+  return undefined;
+};
 
 // ============ PACIENTES ============
 
@@ -41,70 +129,24 @@ export const createPatient = async (req, res) => {
 export const getMyPatients = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    logger.info(`🧠 getMyPatients: Buscando pacientes para psicólogo ${psychologistId}`);
-    
     const { status } = req.query;
-    
-    // 1. Sincronizar pacientes desde Reservas (Bookings)
-    // Buscar reservas de este doctor donde el usuario no tenga aún un expediente
-    const bookings = await Booking.find({ doctor: psychologistId }).populate('user');
-    
-    // Extraer usuarios únicos de las reservas
-    const uniqueUsers = {};
-    bookings.forEach(booking => {
-      if (booking.user && booking.user._id) {
-        uniqueUsers[booking.user._id.toString()] = booking.user;
-      }
-    });
 
-    // Verificar cuáles ya tienen expediente
-    const userIds = Object.keys(uniqueUsers);
-    if (userIds.length > 0) {
-      const existingPatients = await PsychologicalPatient.find({
-        psychologist: psychologistId,
-        user: { $in: userIds }
-      });
-      
-      const existingUserIds = new Set(existingPatients.map(p => p.user.toString()));
-      
-      // Crear expedientes para los nuevos
-      const newPatientsToCreate = userIds
-        .filter(id => !existingUserIds.has(id))
-        .map(id => {
-          const user = uniqueUsers[id];
-          return {
-            psychologist: psychologistId,
-            user: id,
-            personalInfo: {
-              fullName: user.name,
-              email: user.email,
-              phone: user.phone ? String(user.phone) : '',
-              gender: (user.gender && ['male', 'female', 'other'].includes(user.gender.toLowerCase())) ? user.gender.toLowerCase() : 'prefer-not-to-say',
-              dateOfBirth: new Date(), // Placeholder, se debe actualizar
-            },
-            status: 'active'
-          };
-        });
-      
-      if (newPatientsToCreate.length > 0) {
-        await PsychologicalPatient.insertMany(newPatientsToCreate);
-      }
-    }
-
-    // 2. Obtener lista completa
-    const filter = { psychologist: psychologistId };
+    const filter = { psychologist: psychologistId, isDeleted: { $ne: true } };
     if (status) filter.status = status;
-    
+
     const patients = await PsychologicalPatient.find(filter)
       .sort({ lastSessionDate: -1, createdAt: -1 });
-    
-    res.status(200).json({
+
+    return res.status(200).json({
       success: true,
       data: patients,
     });
   } catch (error) {
     logger.error('❌ Error en getMyPatients:', error);
-    res.status(500).json({ success: false, message: 'Error al obtener pacientes', error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: 'Error al obtener pacientes',
+    });
   }
 };
 
@@ -163,24 +205,48 @@ export const updatePatient = async (req, res) => {
 export const createSession = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const sessionData = { ...req.body, psychologist: psychologistId };
-    
+    const { treatmentPlanId } = req.body || {};
+
+    if (!treatmentPlanId) {
+      return res.status(400).json({
+        success: false,
+        message: 'El plan de tratamiento es obligatorio para registrar una nueva sesión clínica',
+      });
+    }
+
+    const plan = await assertTreatmentPlanAccess({
+      req,
+      treatmentPlanId,
+      action: 'create therapy session',
+    });
+
+    const sessionData = {
+      ...req.body,
+      patient: plan.patient,
+      psychologist: plan.psychologist,
+      treatmentPlanId: plan._id,
+    };
+    delete sessionData.patientId;
+    delete sessionData.psychologistId;
+
     const newSession = await TherapySession.create(sessionData);
-    
-    // Actualizar fecha de última sesión del paciente
+
     await PsychologicalPatient.findByIdAndUpdate(
-      req.body.patient,
+      plan.patient,
       { lastSessionDate: sessionData.sessionDate }
     );
-    
-    res.status(201).json({
+
+    return res.status(201).json({
       success: true,
       message: 'Sesión registrada exitosamente',
       data: newSession,
     });
   } catch (error) {
     logger.error('Error al crear sesión:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar sesión' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar sesión',
+    });
   }
 };
 
@@ -211,15 +277,100 @@ export const getPatientSessions = async (req, res) => {
 export const createAssessment = async (req, res) => {
   try {
     const psychologistId = req.userId;
-    const assessmentData = { ...req.body, psychologist: psychologistId };
-    
-    // Detectar alertas de riesgo automáticamente
-    const { testType, responses, scores } = req.body;
-    
-    // Ejemplo: BDI-II ítem 9 o PHQ-9 ítem 9 (ideación suicida)
-    if ((testType === 'BDI-II' || testType === 'PHQ-9') && responses) {
-      const suicidalItem = responses.find(r => r.itemNumber === 9);
-      if (suicidalItem && suicidalItem.response > 0) {
+    const {
+      patient: requestedPatientId,
+      patientId: requestedPatientIdAlias,
+      treatmentPlanId,
+      testType,
+      responses,
+      testDate,
+      comparisonNotes,
+      interpretation,
+      notes,
+    } = req.body || {};
+
+    let plan = null;
+
+    if (treatmentPlanId) {
+      plan = await assertTreatmentPlanAccess({
+        req,
+        treatmentPlanId,
+        action: 'create psychological assessment',
+      });
+    } else {
+      const patientId = requestedPatientId || requestedPatientIdAlias;
+      if (!patientId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Paciente o plan de tratamiento es obligatorio',
+        });
+      }
+
+      const patient = await PsychologicalPatient.findOne({
+        _id: patientId,
+        psychologist: psychologistId,
+        isDeleted: { $ne: true },
+      }).select('_id psychologist');
+
+      if (!patient) {
+        return res.status(404).json({
+          success: false,
+          message: 'Paciente no encontrado',
+        });
+      }
+
+      plan = {
+        _id: undefined,
+        patient: patient._id,
+        psychologist: patient.psychologist,
+      };
+    }
+
+    const bodyPatientId = requestedPatientId || requestedPatientIdAlias;
+    if (bodyPatientId && String(plan.patient) !== String(bodyPatientId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'El plan de tratamiento no pertenece al paciente indicado',
+      });
+    }
+
+    const normalizedResponses = normalizeAssessmentResponses(
+      Array.isArray(responses) ? responses : []
+    );
+    validateAssessmentResponses(testType, normalizedResponses);
+
+    const total = normalizedResponses.reduce(
+      (sum, response) => sum + response.response,
+      0
+    );
+    const severity = calculateAssessmentSeverity(testType, total);
+
+    const assessmentData = {
+      patient: plan.patient,
+      psychologist: plan.psychologist || psychologistId,
+      ...(plan._id ? { treatmentPlanId: plan._id } : {}),
+      testType,
+      testDate: testDate || new Date(),
+      responses: normalizedResponses,
+      scores: { total },
+      comparisonNotes,
+    };
+
+    const clinicalNotes =
+      (interpretation && typeof interpretation === 'object'
+        ? interpretation.clinicalNotes ?? interpretation.notes
+        : undefined) ?? notes;
+
+    if (severity || clinicalNotes) {
+      assessmentData.interpretation = {
+        ...(severity ? { severity } : {}),
+        ...(clinicalNotes ? { clinicalNotes } : {}),
+      };
+    }
+
+    if (testType === 'BDI-II' || testType === 'PHQ-9') {
+      const suicidalItem = normalizedResponses.find((response) => response.itemNumber === 9);
+      if (suicidalItem?.response > 0) {
         assessmentData.riskAlert = {
           flagged: true,
           reason: 'Respuesta positiva en ítem de ideación suicida',
@@ -227,51 +378,20 @@ export const createAssessment = async (req, res) => {
         };
       }
     }
-    
-    // Normalizar puntajes y severidad (PHQ-9 / GAD-7 / BDI-II)
-    const total = scores?.total ?? (Array.isArray(responses) ? responses.reduce((s, r) => s + Number(r.response || 0), 0) : undefined);
-    if (total !== undefined) {
-      assessmentData.scores = { ...(assessmentData.scores || {}), total };
-      const sev = (() => {
-        if (testType === 'PHQ-9') {
-          if (total >= 20) return 'severe';
-          if (total >= 15) return 'moderately-severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'GAD-7') {
-          if (total >= 15) return 'severe';
-          if (total >= 10) return 'moderate';
-          if (total >= 5) return 'mild';
-          return 'minimal';
-        }
-        if (testType === 'BDI-II') {
-          if (total >= 29) return 'severe';
-          if (total >= 20) return 'moderate';
-          if (total >= 14) return 'mild';
-          return 'minimal';
-        }
-        return undefined;
-      })();
-      if (sev) {
-        assessmentData.interpretation = {
-          ...(assessmentData.interpretation || {}),
-          severity: sev,
-        };
-      }
-    }
 
     const newAssessment = await PsychologicalAssessment.create(assessmentData);
-    
-    res.status(201).json({
+
+    return res.status(201).json({
       success: true,
       message: 'Evaluación registrada exitosamente',
       data: newAssessment,
     });
   } catch (error) {
     logger.error('Error al crear evaluación:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar evaluación' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Error al registrar evaluación',
+    });
   }
 };
 

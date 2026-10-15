@@ -136,66 +136,64 @@ describe('Psychology Schemas - updatePsychPatientSchema', () => {
 */
 
 describe('Psychology Schemas - createAssessmentSchema', () => {
-  const validAssessment = {
-    patient: '507f1f77bcf86cd799439011',
-    testType: 'PHQ-9',
-    totalScore: 15,
-    interpretation: 'moderate',
-    notes: 'Paciente presenta sintomas de ansiedad moderada con episodios ocasionales'
-  };
+  const objectId = '507f1f77bcf86cd799439011';
+  const responses = Array.from({ length: 9 }, (_, index) => ({
+    itemNumber: index + 1,
+    itemText: `Pregunta ${index + 1}`,
+    response: 0,
+  }));
 
-  test('debe aceptar evaluación válida completa', () => {
-    const { error } = createAssessmentSchema.validate(validAssessment);
+  test('acepta el contrato canónico de evaluación', () => {
+    const { error, value } = createAssessmentSchema.validate({
+      patient: objectId,
+      treatmentPlanId: objectId,
+      testType: 'PHQ-9',
+      responses,
+      scores: { total: 0 },
+      interpretation: { severity: 'minimal', clinicalNotes: 'Nota clínica' },
+    }, { stripUnknown: true });
+    expect(error).toBeUndefined();
+    expect(value.responses).toHaveLength(9);
+    expect(value.interpretation.severity).toBe('minimal');
+  });
+
+  test('permite usar treatmentPlanId como identidad clínica', () => {
+    const { error } = createAssessmentSchema.validate({
+      treatmentPlanId: objectId,
+      testType: 'PHQ-9',
+      responses,
+    });
     expect(error).toBeUndefined();
   });
 
-  test('debe rechazar patientId inválido', () => {
+  test('no exige score ni severidad enviados por el cliente', () => {
     const { error } = createAssessmentSchema.validate({
-      ...validAssessment,
-      patient: 'invalid-id'
+      patient: objectId,
+      testType: 'PHQ-9',
+      responses,
+    });
+    expect(error).toBeUndefined();
+  });
+
+  test('rechaza evaluación sin identidad clínica', () => {
+    const { error } = createAssessmentSchema.validate({
+      testType: 'PHQ-9',
+      responses,
     });
     expect(error).toBeDefined();
   });
 
-  test('debe rechazar tipo de evaluación inválido', () => {
+  test('acepta question como alias de migración', () => {
     const { error } = createAssessmentSchema.validate({
-      ...validAssessment,
-      assessmentType: 'invalid-type'
+      patient: objectId,
+      testType: 'GAD-7',
+      responses: Array.from({ length: 7 }, (_, index) => ({
+        itemNumber: index + 1,
+        question: `Pregunta ${index + 1}`,
+        response: 1,
+      })),
     });
-    expect(error).toBeDefined();
-  });
-
-  test('debe rechazar findings muy cortos', () => {
-    const { error } = createAssessmentSchema.validate({
-      ...validAssessment,
-      findings: 'Ansioso'
-    });
-    expect(error).toBeDefined();
-  });
-
-  test('debe rechazar mentalStatusExam incompleto', () => {
-    const { error } = createAssessmentSchema.validate({
-      ...validAssessment,
-      mentalStatusExam: {
-        appearance: 'Normal',
-        behavior: 'Cooperativo'
-        // Faltan campos requeridos
-      }
-    });
-    expect(error).toBeDefined();
-  });
-
-  test('debe rechazar riskAssessment sin riskLevel', () => {
-    const { error } = createAssessmentSchema.validate({
-      ...validAssessment,
-      riskAssessment: {
-        suicidal: false,
-        homicidal: false,
-        selfHarm: false
-        // Falta riskLevel
-      }
-    });
-    expect(error).toBeDefined();
+    expect(error).toBeUndefined();
   });
 });
 

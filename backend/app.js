@@ -215,6 +215,17 @@ export function createApp() {
     }));
   }
 
+  app.use((req, res, next) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+    if (req.path.startsWith('/api/v1/auth')) return next();
+
+    const hasAuthHeader = req.headers.authorization?.startsWith('Bearer ');
+    const hasCookieAuth = Boolean(req.cookies?.access_token);
+
+    if (!hasCookieAuth || hasAuthHeader) return next();
+    return verifyCsrf(req, res, next);
+  });
+
   app.get('/', (req, res) => {
     res.send('La gente, la gente!');
   });
@@ -320,16 +331,7 @@ export function createApp() {
   app.use('/api/v1/auth/2fa', twoFactorRoutes);
   app.use('/api/v1/payment', paymentRoutes);
 
-  app.use((req, res, next) => {
-    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-    if (req.path.startsWith('/api/v1/auth')) return next();
 
-    const hasAuthHeader = req.headers.authorization?.startsWith('Bearer ');
-    const hasCookieAuth = Boolean(req.cookies?.access_token);
-
-    if (!hasCookieAuth || hasAuthHeader) return next();
-    return verifyCsrf(req, res, next);
-  });
 
   app.use(sentryErrorHandler());
 
