@@ -177,7 +177,6 @@ export const progressPhase = async (req, res) => {
 export const updateRiskAssessment = async (req, res) => {
   try {
     const { treatmentPlanId } = req.params;
-    const { riskLevel, riskFactors, columbiaScore, interventionRequired } = req.body || {};
 
     // Validate client-controlled risk snapshot data before accessing or mutating the plan.
     const { error: validationError, value: validatedRiskSnapshot } =
