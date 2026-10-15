@@ -62,7 +62,7 @@ export const createFormalRiskAssessment = async (req, res) => {
       }
 
       const doctor = await Doctor.findById(clinicianId)
-        .select('name licenseNumber')
+        .select('name licenseNumber isApproved')
         .session(session);
 
       if (!doctor) {
@@ -71,9 +71,9 @@ export const createFormalRiskAssessment = async (req, res) => {
         throw clinicianError;
       }
 
-      if (!doctor.licenseNumber?.trim()) {
+      if (doctor.isApproved !== 'approved' || !doctor.licenseNumber?.trim()) {
         const licenseError = new Error(
-          'Clinician profile must contain a verified license number before signing a formal risk assessment',
+          'An approved clinician profile with a recorded professional license number is required to sign a formal risk assessment',
         );
         licenseError.statusCode = 409;
         throw licenseError;
