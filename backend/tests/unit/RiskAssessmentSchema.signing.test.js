@@ -47,8 +47,24 @@ describe('RiskAssessment signing and immutability methods', () => {
     expect(assessment.signature.clinicianName).toBe(clinician.name);
     expect(assessment.signature.licenseNumber).toBe(clinician.licenseNumber);
     expect(assessment.signature.hash).toMatch(/^[a-f0-9]{64}$/);
-    expect(save).toHaveBeenCalledTimes(1);
+    expect(save).toHaveBeenCalledTimes(2);
+    await expect(assessment.verifyIntegrity()).resolves.toBe(true);
     expect(assessment.$locals.allowSigning).toBe(false);
+  });
+
+  test('verifyIntegrity rejects a modified clinical payload', async () => {
+    const assessment = buildAssessment();
+    const clinician = {
+      _id: new mongoose.Types.ObjectId(),
+      name: 'Test Clinician',
+      licenseNumber: 'TEST-LICENSE',
+    };
+    jest.spyOn(assessment, 'save').mockResolvedValue(assessment);
+
+    await assessment.signAndLock(clinician);
+    assessment.assessmentContext = 'Tampered clinical content';
+
+    await expect(assessment.verifyIntegrity()).resolves.toBe(false);
   });
 
   test('signAndLock rejects an already locked record without saving', async () => {
