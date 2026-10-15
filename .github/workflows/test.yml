@@ -100,7 +100,7 @@ jobs:
       
       - name: Frontend - Audit de seguridad
         working-directory: ./Frontend
-        run: npm audit --audit-level=moderate || true
+        run: npm audit --audit-level=low
   
   test-summary:
     needs: [backend-tests, frontend-lint, security-audit]
@@ -115,7 +115,7 @@ jobs:
           echo "Frontend lint: ${{ needs.frontend-lint.result }}"
           echo "Security audit: ${{ needs.security-audit.result }}"
           
-          # Solo falla si backend-tests falló (frontend y security son opcionales)
+          # No se permite marcar CI como aprobado si falla cualquier control crítico.
           if [ "${{ needs.backend-tests.result }}" != "success" ] || \
              [ "${{ needs.frontend-lint.result }}" != "success" ] || \
              [ "${{ needs.security-audit.result }}" != "success" ]; then
