@@ -1,10 +1,11 @@
 /**
-import { updateRiskSnapshotSchema } from '../../validators/schemas/riskSnapshot.schemas.js';
  * Clinical Treatment Controller
- * 
+ *
  * Handles all treatment plan operations, phase transitions, and clinical decision support.
  * Psychologist-only endpoints.
  */
+
+import { updateRiskSnapshotSchema } from '../../validators/schemas/riskSnapshot.schemas.js';
 
 import TreatmentPlan from '../../models/TreatmentPlanSchema.js';
 import TherapySession from '../../models/TherapySessionSchema.js';
