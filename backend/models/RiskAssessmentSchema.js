@@ -217,8 +217,7 @@ const RiskAssessmentSchema = new mongoose.Schema(
         psychiatricDiagnosis: [String], // ["MDD", "BPD", "Schizophrenia"]
         substanceUse: { type: Boolean, default: false },
         chronicPain: { type: Boolean, default: false },
-        insomnia: { type: Boolean, default: false },
-        recentPsychiatricHospitalization: { type: Boolean, default: false },
+        insomnia: { type: Boolean, default: false },        recentPsychiatricHospitalization: { type: Boolean, default: false },
         commandHallucinations: { type: Boolean, default: false },
       },
       psychosocial: {
@@ -437,8 +436,7 @@ RiskAssessmentSchema.index({ "followUp.nextAssessmentDue": 1 });
  * Get latest risk assessment for a patient
  */
 RiskAssessmentSchema.statics.getLatestForPatient = async function (patientId) {
-  return this.findOne({ patientId })
-    .sort({ assessmentDate: -1 })
+  return this.findOne({ patientId })    .sort({ assessmentDate: -1 })
     .select("+columbiaScale +clinicalImpression");
 };
 
@@ -502,32 +500,66 @@ RiskAssessmentSchema.methods.calculateCSSRSScore = function () {
 /**
  * Sign and lock the assessment (makes it immutable)
  */
+const buildIntegrityPayload = (document) => {
+  const payload = document.toObject({ depopulate: true, transform: false });
+  if (payload.signature) payload.signature.hash = undefined;
+  // Mongoose updates updatedAt on save; it is metadata, not signed clinical content.
+  delete payload.updatedAt;
+  return JSON.stringify(payload);
+};
+
+/**
+ * Sign and lock the assessment (makes it immutable).
+ * Save once first so pre-save clinical normalization is included in the signed payload.
+ */
 RiskAssessmentSchema.methods.signAndLock = async function (clinician) {
   if (this.locked) {
     throw new Error("Assessment already locked");
   }
 
+  if (!clinician?._id || !clinician.name || !clinician.licenseNumber?.trim()) {
+    throw new Error("A clinician identity and license number are required to sign");
+  }
+
   const crypto = await import("crypto");
-  const contentString = JSON.stringify(this.toObject(), null, 2);
-  const hash = crypto.createHash("sha256").update(contentString).digest("hex");
+
+  // Run schema middleware first (e.g., risk-based follow-up dates) before hashing.
+  await this.save();
 
   this.$locals.allowSigning = true;
-  this.signature = {
-    clinicianId: clinician._id,
-    clinicianName: clinician.name,
-    licenseNumber: clinician.licenseNumber || "N/A",
-    signedAt: new Date(),
-    hash: hash,
-  };
-
-  this.locked = true;
-
   try {
+    this.signature = {
+      clinicianId: clinician._id,
+      clinicianName: clinician.name,
+      licenseNumber: clinician.licenseNumber,
+      signedAt: new Date(),
+      hash: undefined,
+    };
+    this.locked = true;
+    this.signature.hash = crypto.createHash("sha256")
+      .update(buildIntegrityPayload(this))
+      .digest("hex");
     await this.save();
   } finally {
     this.$locals.allowSigning = false;
   }
   return this;
+};
+
+/**
+ * Verify the stored integrity hash. The caller must load all select:false
+ * clinical fields before verification; a partial projection cannot prove integrity.
+ */
+RiskAssessmentSchema.methods.verifyIntegrity = async function () {
+  if (!this.locked || !this.signature?.hash) return false;
+  const crypto = await import("crypto");
+  const expected = crypto.createHash("sha256")
+    .update(buildIntegrityPayload(this))
+    .digest("hex");
+  return crypto.timingSafeEqual(
+    Buffer.from(expected, "hex"),
+    Buffer.from(this.signature.hash, "hex"),
+  );
 };
 
 /**
