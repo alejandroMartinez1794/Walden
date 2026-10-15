@@ -321,22 +321,8 @@ export const checkCertificateExpiration = async () => {
   try {
     const credentials = loadSSLCertificates();
     
-    // Import dinámico de node-forge
-    let forge;
-    try {
-      forge = await import('node-forge');
-    } catch (error) {
-      logger.error('❌ node-forge library not installed. Cannot check certificate expiration.');
-      return {
-        valid: false,
-        expiresAt: null,
-        daysRemaining: 0
-      };
-    }
-    
-    const cert = forge.default.pki.certificateFromPem(credentials.cert.toString());
-    
-    const expiresAt = cert.validity.notAfter;
+    const certificate = new X509Certificate(credentials.cert);
+    const expiresAt = new Date(certificate.validTo);
     const now = new Date();
     const daysRemaining = Math.floor((expiresAt - now) / (1000 * 60 * 60 * 24));
     
