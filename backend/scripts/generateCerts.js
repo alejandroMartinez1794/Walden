@@ -1,166 +1,38 @@
 #!/usr/bin/env node
 
 /**
- * 🔐 GENERATE SELF-SIGNED CERTIFICATES
- * 
- * Script para generar certificados SSL auto-firmados para desarrollo
- * 
- * ⚠️ SOLO PARA DESARROLLO - No usar en producción
- * 
- * Uso:
- * ```bash
- * npm run generate-certs
- * # o
- * node backend/scripts/generateCerts.js
- * ```
+ * Generate a self-signed TLS certificate for local development only.
+ * Requires the OpenSSL CLI. Never use this certificate in staging or production.
  */
 
-import forge from 'node-forge';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const here = path.dirname(fileURLToPath(import.meta.url));
+const certsDir = path.join(here, '../certs');
+const certPath = path.join(certsDir, 'dev-cert.pem');
+const keyPath = path.join(certsDir, 'dev-key.pem');
 
-const CERTS_DIR = path.join(__dirname, '../certs');
-const CERT_PATH = path.join(CERTS_DIR, 'dev-cert.pem');
-const KEY_PATH = path.join(CERTS_DIR, 'dev-key.pem');
+fs.mkdirSync(certsDir, { recursive: true });
 
-console.log('🔐 Generating self-signed certificates for development...\n');
+execFileSync('openssl', [
+  'req',
+  '-x509',
+  '-newkey', 'rsa:2048',
+  '-nodes',
+  '-keyout', keyPath,
+  '-out', certPath,
+  '-days', '365',
+  '-subj', '/C=CO/ST=Cundinamarca/L=Bogota/O=Basileia Development/OU=Development/CN=localhost',
+  '-addext', 'basicConstraints=critical,CA:FALSE',
+  '-addext', 'keyUsage=critical,digitalSignature,keyEncipherment',
+  '-addext', 'extendedKeyUsage=serverAuth',
+  '-addext', 'subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1,IP:0:0:0:0:0:0:0:1',
+], { stdio: 'inherit' });
 
-// Crear directorio de certificados
-if (!fs.existsSync(CERTS_DIR)) {
-  fs.mkdirSync(CERTS_DIR, { recursive: true });
-  console.log('✅ Created certs directory');
-}
-
-// Generar par de claves RSA
-console.log('🔑 Generating RSA key pair (2048 bits)...');
-const keys = forge.pki.rsa.generateKeyPair(2048);
-
-// Crear certificado
-console.log('📄 Creating certificate...');
-const cert = forge.pki.createCertificate();
-
-// Configurar certificado
-cert.publicKey = keys.publicKey;
-cert.serialNumber = '01';
-cert.validity.notBefore = new Date();
-cert.validity.notAfter = new Date();
-cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1); // Válido por 1 año
-
-// Atributos del certificado
-const attrs = [
-  {
-    name: 'commonName',
-    value: 'localhost'
-  },
-  {
-    name: 'countryName',
-    value: 'CO'
-  },
-  {
-    shortName: 'ST',
-    value: 'Cundinamarca'
-  },
-  {
-    name: 'localityName',
-    value: 'Bogota'
-  },
-  {
-    name: 'organizationName',
-    value: 'basileia Development'
-  },
-  {
-    shortName: 'OU',
-    value: 'Development'
-  }
-];
-
-cert.setSubject(attrs);
-cert.setIssuer(attrs);
-
-// Extensiones del certificado
-cert.setExtensions([
-  {
-    name: 'basicConstraints',
-    cA: true
-  },
-  {
-    name: 'keyUsage',
-    keyCertSign: true,
-    digitalSignature: true,
-    nonRepudiation: true,
-    keyEncipherment: true,
-    dataEncipherment: true
-  },
-  {
-    name: 'extKeyUsage',
-    serverAuth: true,
-    clientAuth: true,
-    codeSigning: true,
-    emailProtection: true,
-    timeStamping: true
-  },
-  {
-    name: 'nsCertType',
-    server: true,
-    client: true,
-    email: true,
-    objsign: true,
-    sslCA: true,
-    emailCA: true,
-    objCA: true
-  },
-  {
-    name: 'subjectAltName',
-    altNames: [
-      {
-        type: 2, // DNS
-        value: 'localhost'
-      },
-      {
-        type: 2,
-        value: '*.localhost'
-      },
-      {
-        type: 7, // IP
-        ip: '127.0.0.1'
-      },
-      {
-        type: 7,
-        ip: '::1'
-      }
-    ]
-  },
-  {
-    name: 'subjectKeyIdentifier'
-  }
-]);
-
-// Auto-firmar certificado
-cert.sign(keys.privateKey, forge.md.sha256.create());
-
-// Convertir a PEM
-const pemCert = forge.pki.certificateToPem(cert);
-const pemKey = forge.pki.privateKeyToPem(keys.privateKey);
-
-// Guardar archivos
-fs.writeFileSync(CERT_PATH, pemCert);
-fs.writeFileSync(KEY_PATH, pemKey);
-
-console.log('✅ Certificates generated successfully!\n');
-console.log('📁 Files created:');
-console.log(`   - Certificate: ${CERT_PATH}`);
-console.log(`   - Private Key: ${KEY_PATH}`);
-console.log('\n⚠️  IMPORTANT:');
-console.log('   - These certificates are SELF-SIGNED');
-console.log('   - ONLY use for local development');
-console.log('   - Browsers will show security warnings (this is normal)');
-console.log('   - For production, use Let\'s Encrypt or commercial certificates');
-console.log('\n🚀 Next steps:');
-console.log('   1. Start backend with HTTPS: npm run start-https');
-console.log('   2. Accept browser security warning');
-console.log('   3. Access: https://localhost:8000');
-console.log('\n📚 Documentation: backend/HTTPS_SETUP.md');
+console.log('Self-signed development certificate created:');
+console.log(`  Certificate: ${certPath}`);
+console.log(`  Private key: ${keyPath}`);
+console.warn('Development only. Use a trusted certificate for staging/production.');
