@@ -25,8 +25,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import tls from 'tls';
-import { constants } from 'crypto';
-import forge from 'node-forge';
+import { constants, X509Certificate } from 'crypto';
 import logger from '../utils/logger.js';
 
 /**
@@ -133,50 +132,22 @@ export const loadSSLCertificates = () => {
  * @param {string} securityTier - Tier de seguridad
  */
 const validateCertificate = (certData, expectedDomain, securityTier) => {
-  if (securityTier === 'dev') {
-    // En desarrollo no validamos para permitir certificados auto-firmados
-    return;
-  }
+  if (securityTier === 'dev') return;
 
-  // Extraer información del certificado
   try {
-    const cert = forge.pki.certificateFromPem(certData);
-    
-    // Verificar Common Name (CN) y Subject Alternative Names (SAN)
-    const cn = cert.subject.getField('CN');
-    const altNamesExt = cert.getExtension('subjectAltName');
-    
-    if (cn && cn.value.toLowerCase().includes(expectedDomain.toLowerCase())) {
-      logger.info(`✅ Certificate CN validation passed: ${cn.value}`);
-    } else {
-      // Para producción, el dominio debe coincidir exactamente
-      if (securityTier === 'prod') {
-        logger.error(`❌ Certificate CN does not match expected domain: ${expectedDomain}`);
-        throw new Error(`Certificate CN validation failed: ${cn ? cn.value : 'no CN found'}`);
-      } else {
-        logger.warn(`⚠️ Certificate CN does not match expected domain: ${expectedDomain}, but continuing for staging`);
-      }
+    // Use Node's maintained X.509 parser and SAN hostname matcher. Substring
+    // checks can accept lookalike domains such as "api.example.com.attacker.test".
+    const certificate = new X509Certificate(certData);
+    const matchingSubjectAltName = certificate.checkHost(expectedDomain, { subject: 'never' });
+
+    if (!matchingSubjectAltName) {
+      throw new Error(`Certificate SAN does not match expected domain: ${expectedDomain}`);
     }
-    
-    if (altNamesExt && altNamesExt.altNames) {
-      const sanDomains = altNamesExt.altNames
-        .filter(altName => altName.type === 2) // DNS Name
-        .map(altName => altName.value.toLowerCase());
-      
-      if (sanDomains.some(domain => domain.includes(expectedDomain.toLowerCase()))) {
-        logger.info(`✅ Certificate SAN validation passed: ${sanDomains.join(', ')}`);
-      } else if (securityTier === 'prod') {
-        logger.error(`❌ Certificate SAN does not include expected domain: ${expectedDomain}`);
-        throw new Error(`Certificate SAN validation failed: ${sanDomains.join(', ')}`);
-      } else {
-        logger.warn(`⚠️ Certificate SAN does not include expected domain: ${expectedDomain}, but continuing for staging`);
-      }
-    }
+
+    logger.info(`Certificate SAN hostname validation passed for ${expectedDomain}`);
   } catch (error) {
-    logger.error(`❌ Certificate validation error: ${error.message}`);
-    if (securityTier === 'prod') {
-      throw error;
-    }
+    logger.error(`Certificate validation failed: ${error.message}`);
+    throw error;
   }
 };
 
