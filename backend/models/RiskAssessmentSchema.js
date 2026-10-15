@@ -217,8 +217,7 @@ const RiskAssessmentSchema = new mongoose.Schema(
         psychiatricDiagnosis: [String], // ["MDD", "BPD", "Schizophrenia"]
         substanceUse: { type: Boolean, default: false },
         chronicPain: { type: Boolean, default: false },
-        insomnia: { type: Boolean, default: false },        recentPsychiatricHospitalization: { type: Boolean, default: false },
-        commandHallucinations: { type: Boolean, default: false },
+        insomnia: { type: Boolean, default: false },        recentPsychiatricHospitalization: { type: Boolean, default: false },        commandHallucinations: { type: Boolean, default: false },
       },
       psychosocial: {
         recentLoss: { type: Boolean, default: false }, // Death, divorce, job loss
@@ -437,8 +436,7 @@ RiskAssessmentSchema.index({ "followUp.nextAssessmentDue": 1 });
  */
 RiskAssessmentSchema.statics.getLatestForPatient = async function (patientId) {
   return this.findOne({ patientId })    .sort({ assessmentDate: -1 })
-    .select("+columbiaScale +clinicalImpression");
-};
+    .select("+columbiaScale +clinicalImpression");};
 
 /**
  * Get overdue assessments (for clinician dashboard alerts)
@@ -497,9 +495,6 @@ RiskAssessmentSchema.methods.calculateCSSRSScore = function () {
   };
 };
 
-/**
- * Sign and lock the assessment (makes it immutable)
- */
 const buildIntegrityPayload = (document) => {
   const payload = document.toObject({ depopulate: true, transform: false });
   if (payload.signature) payload.signature.hash = undefined;
@@ -551,7 +546,7 @@ RiskAssessmentSchema.methods.signAndLock = async function (clinician) {
  * clinical fields before verification; a partial projection cannot prove integrity.
  */
 RiskAssessmentSchema.methods.verifyIntegrity = async function () {
-  if (!this.locked || !this.signature?.hash) return false;
+  if (!this.locked || !/^[a-f0-9]{64}$/i.test(this.signature?.hash || "")) return false;
   const crypto = await import("crypto");
   const expected = crypto.createHash("sha256")
     .update(buildIntegrityPayload(this))
