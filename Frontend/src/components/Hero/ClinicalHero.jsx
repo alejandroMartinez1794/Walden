@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import heroPortrait from '../../assets/images/hero-img01.png'; // Reemplazar por retrato profesional cuando esté disponible
 
