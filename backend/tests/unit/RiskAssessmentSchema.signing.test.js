@@ -80,9 +80,11 @@ describe('RiskAssessment signing and immutability methods', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  test('signing permission is cleared if the persistence operation fails', async () => {
+  test('signing permission is cleared if the signed record fails to persist', async () => {
     const assessment = buildAssessment();
-    jest.spyOn(assessment, 'save').mockRejectedValue(new Error('database failure'));
+    const save = jest.spyOn(assessment, 'save')
+      .mockResolvedValueOnce(assessment)
+      .mockRejectedValueOnce(new Error('database failure'));
 
     await expect(assessment.signAndLock({
       _id: new mongoose.Types.ObjectId(),
@@ -90,6 +92,7 @@ describe('RiskAssessment signing and immutability methods', () => {
       licenseNumber: 'TEST-LICENSE',
     })).rejects.toThrow('database failure');
 
+    expect(save).toHaveBeenCalledTimes(2);
     expect(assessment.$locals.allowSigning).toBe(false);
   });
 });
