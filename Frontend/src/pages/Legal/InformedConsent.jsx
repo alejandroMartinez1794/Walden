@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-
+import { useState, useRef, useEffect } from 'react';
 const InformedConsent = () => {
     // Log de trazabilidad para confirmar montaje en frontend
     useEffect(() => {
