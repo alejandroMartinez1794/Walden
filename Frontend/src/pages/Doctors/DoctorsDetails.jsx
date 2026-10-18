@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import starIcon from '../../assets/images/Star.png';
 import DoctorAbout from './DoctorAbout';
 import DoctorFeedback from './Feedback';
