@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import Testimonial from '../components/Testimonial/testimonial';
 import ConsentModal, { anonymizeTestimony } from '../components/Testimonial/ConsentModal';
