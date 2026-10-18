@@ -1,4 +1,4 @@
-import React from 'react';
+
 import ClinicalSeoHead from '../../components/ClinicalSeoHead';
 
 const FAQ = {
