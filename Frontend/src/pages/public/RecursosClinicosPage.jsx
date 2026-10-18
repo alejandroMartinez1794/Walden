@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import ClinicalSeoHead from '../../components/ClinicalSeoHead';
 import { buildFAQPageSchema, buildMedicalOrganizationSchema, buildWebSiteSchema, PUBLIC_CLINICAL_ORGANIZATION } from '../../seo/medical-schema';
