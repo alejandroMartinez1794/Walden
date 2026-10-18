@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { BiMenu } from 'react-icons/bi';
 import { authContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
