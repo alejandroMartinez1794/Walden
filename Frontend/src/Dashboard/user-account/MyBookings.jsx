@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from 'react';
 import { authContext } from "../../context/AuthContext";
 import { BASE_URL } from "../../config";
 import Loading from "../../components/Loader/Loading";
