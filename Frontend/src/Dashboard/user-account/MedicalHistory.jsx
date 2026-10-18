@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/user-account/MedicalHistory.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BASE_URL } from '../../config';
 import uploadImageToCloudinary from '../../utils/uploadCloudinary';
 
