@@ -1,5 +1,6 @@
 import React from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import PropTypes from 'prop-types';
+import { ToastContainer } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
 class ClinicalErrorBoundary extends React.Component {
@@ -8,7 +9,7 @@ class ClinicalErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -69,7 +70,7 @@ class ClinicalErrorBoundary extends React.Component {
               </button>
             </div>
             
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <details className="mt-6 bg-gray-100 p-4 rounded">
                 <summary className="font-medium text-left text-gray-700 cursor-pointer">Detalles del error</summary>
                 <pre className="text-xs mt-2 text-left overflow-auto max-h-40">
@@ -99,5 +100,9 @@ class ClinicalErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+ClinicalErrorBoundary.propTypes = {
+  children: PropTypes.node,
+};
 
 export default ClinicalErrorBoundary;

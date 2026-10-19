@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { createContext, useEffect, useMemo, useReducer } from "react";
 
 const parseStoredJSON = (value) => {
@@ -88,4 +89,8 @@ export const AuthContextProvider = ({ children }) => {
             {children}
         </authContext.Provider>
     );
+};
+
+AuthContextProvider.propTypes = {
+    children: PropTypes.node,
 };
