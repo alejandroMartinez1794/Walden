@@ -950,7 +950,7 @@ const PsychologyDashboard = () => {
                     type="date"
                     required
                     value={bookingForm.date}
-                    onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
+                    onChange={handleBookingInput}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -960,7 +960,7 @@ const PsychologyDashboard = () => {
                     type="time"
                     required
                     value={bookingForm.time}
-                    onChange={(e) => setBookingForm({ ...bookingForm, time: e.target.value })}
+                    onChange={handleBookingInput}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -972,7 +972,7 @@ const PsychologyDashboard = () => {
                   type="text"
                   placeholder="Ej: Sesión de seguimiento..."
                   value={bookingForm.motivo}
-                  onChange={(e) => setBookingForm({ ...bookingForm, motivo: e.target.value })}
+                  onChange={handleBookingInput}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none"
                 />
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -1298,7 +1298,7 @@ const PsychologyDashboard = () => {
               </div>
             </header>
 
-            <form onSubmit={handleBookingSubmit} className="grid gap-8 lg:grid-cols-12">
+            <form onSubmit={handleCreateBooking} className="grid gap-8 lg:grid-cols-12">
               {/* Columna Izquierda: Selección de Paciente */}
               <div className="flex flex-col gap-6 lg:col-span-5">
                 <div className="relative">
@@ -1364,7 +1364,7 @@ const PsychologyDashboard = () => {
                         className="cursor-pointer bg-slate-50 px-5 py-3 hover:bg-slate-100"
                       >
                         <p className="text-sm font-semibold text-indigo-600 flex items-center gap-2">
-                          <span className="text-lg">+</span> Crear nuevo paciente: "{patientSearchQuery}"
+                          <span className="text-lg">+</span> Crear nuevo paciente: &quot;{patientSearchQuery}&quot;
                         </p>
                         <p className="text-xs text-slate-500 pl-6">Se registrará automáticamente al agendar.</p>
                       </div>
@@ -1388,7 +1388,7 @@ const PsychologyDashboard = () => {
                         type="text"
                         name="patientName"
                         value={bookingForm.patientName}
-                        onChange={(e) => setBookingForm({...bookingForm, patientName: e.target.value})}
+                        onChange={handleBookingInput}
                         readOnly={!!bookingForm.patientId} // Solo lectura si viene de DB
                         className={`w-full rounded-xl border-0 bg-transparent px-0 py-1 text-lg font-bold text-slate-900 focus:ring-0 ${!bookingForm.patientId ? 'border-b border-slate-300 focus:border-indigo-500' : ''}`}
                         placeholder="Nombre del paciente"
@@ -1400,7 +1400,7 @@ const PsychologyDashboard = () => {
                         type="email"
                         name="patientEmail"
                         value={bookingForm.patientEmail}
-                        onChange={(e) => setBookingForm({...bookingForm, patientEmail: e.target.value})}
+                        onChange={handleBookingInput}
                         readOnly={!!bookingForm.patientId}
                         className={`w-full rounded-xl border-0 bg-transparent px-0 py-1 text-sm font-medium text-slate-600 focus:ring-0 ${!bookingForm.patientId ? 'border-b border-slate-300 focus:border-indigo-500' : ''}`}
                         placeholder="correo@ejemplo.com"
