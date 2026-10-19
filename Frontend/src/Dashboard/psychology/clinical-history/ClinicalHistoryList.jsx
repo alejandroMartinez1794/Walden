@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/clinical-history/ClinicalHistoryList.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BASE_URL } from '../../../config';
 import { Link } from 'react-router-dom';
 import Loading from '../../../components/Loader/Loading';
@@ -14,9 +14,9 @@ const ClinicalHistoryList = () => {
 
   useEffect(() => {
     fetchPatients();
-  }, []);
+  }, [fetchPatients]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
@@ -30,7 +30,7 @@ const ClinicalHistoryList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorMessage message={error} />;

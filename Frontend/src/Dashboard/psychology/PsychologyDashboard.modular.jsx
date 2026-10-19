@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { BASE_URL } from '../../config';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/Loader/Loading';
@@ -23,7 +23,7 @@ const PsychologyDashboard = () => {
   const [activePanel, setActivePanel] = useState('resumen');
 
   // Data Fetching
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const [dashboardRes, overviewRes, doctorRes] = await Promise.all([
@@ -53,11 +53,11 @@ const PsychologyDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, navigate]);
 
   useEffect(() => {
     if (token) fetchDashboardData();
-  }, [token]);
+  }, [fetchDashboardData]);
 
   // Configuration
   const quickActions = [

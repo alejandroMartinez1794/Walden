@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/patients/PatientFile.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -32,9 +32,9 @@ const PatientFile = () => {
 
   useEffect(() => {
     fetchPatientData();
-  }, [id]);
+  }, [fetchPatientData]);
 
-  const fetchPatientData = async () => {
+  const fetchPatientData = useCallback(async () => {
     try {
       setLoading(true);
       const authToken = token;
@@ -84,7 +84,7 @@ const PatientFile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, token, navigate]);
 
   const getStatusBadge = (status) => {
     const badges = {

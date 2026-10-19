@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/PatientList.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BASE_URL } from '../../config';
 import { Link } from 'react-router-dom';
 import Loading from '../../components/Loader/Loading';
@@ -16,9 +16,9 @@ const PatientList = () => {
 
   useEffect(() => {
     fetchPatients();
-  }, [statusFilter]);
+  }, [fetchPatients]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       setLoading(true);
       const url = statusFilter 
@@ -36,7 +36,7 @@ const PatientList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, token]);
 
   const filteredPatients = patients.filter(patient => {
     const fullName = patient.personalInfo?.fullName || '';

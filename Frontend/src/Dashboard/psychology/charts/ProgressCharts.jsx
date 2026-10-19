@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/charts/ProgressCharts.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 // Load recharts dynamically to reduce initial bundle size
 import { BASE_URL } from '../../../config';
@@ -52,7 +52,7 @@ const ProgressCharts = ({ patientId }) => {
     if (patientId) {
       fetchAssessments();
     }
-  }, [patientId]);
+  }, [fetchAssessments]);
 
   useEffect(() => {
     let mounted = true;
@@ -66,7 +66,7 @@ const ProgressCharts = ({ patientId }) => {
     };
   }, []);
 
-  const fetchAssessments = async () => {
+  const fetchAssessments = useCallback(async () => {
     try {
       const response = await fetch(`${BASE_URL}/psychology/patients/${patientId}/assessments`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -79,7 +79,7 @@ const ProgressCharts = ({ patientId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId, token]);
 
   const formatChartData = () => {
     // Group by date
