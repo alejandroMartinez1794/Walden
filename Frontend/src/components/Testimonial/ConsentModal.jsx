@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 
 // Simple anonymization helper: remove emails and phone numbers
-export function anonymizeTestimony(text) {
+function anonymizeTestimony(text) {
   if (!text) return text;
   // remove emails
   let out = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[ANONIMIZADO]');

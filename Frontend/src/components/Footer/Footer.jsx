@@ -162,4 +162,6 @@ const Footer = () => {
     );
 };
 
-export default memo(Footer);
+const MemoizedFooter = memo(Footer);
+
+export default MemoizedFooter;

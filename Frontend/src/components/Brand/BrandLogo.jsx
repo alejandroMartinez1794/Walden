@@ -63,5 +63,7 @@ BrandLogo.propTypes = {
   className: PropTypes.string,
 };
 
-export default memo(BrandLogo);
+const MemoizedBrandLogo = memo(BrandLogo);
+
+export default MemoizedBrandLogo;
 

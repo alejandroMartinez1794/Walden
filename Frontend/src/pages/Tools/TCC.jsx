@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import ClinicalSeoHead from '../../components/ClinicalSeoHead';
 
-const TCC = () => {
+const TccToolsPage = () => {
   return (
     <>
       <ClinicalSeoHead
@@ -143,4 +143,4 @@ const TCC = () => {
   );
 };
 
-export default TCC;
+export default TccToolsPage;

@@ -204,4 +204,6 @@ const Header = () => {
   );
 };
 
-export default memo(Header);
+const MemoizedHeader = memo(Header);
+
+export default MemoizedHeader;

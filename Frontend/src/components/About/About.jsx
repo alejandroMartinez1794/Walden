@@ -35,4 +35,6 @@ const About = () => {
     );
 };
 
-export default memo(About);
+const MemoizedAbout = memo(About);
+
+export default MemoizedAbout;
