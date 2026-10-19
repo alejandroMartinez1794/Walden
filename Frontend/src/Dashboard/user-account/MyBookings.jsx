@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useContext } from 'react';
-import { authContext } from "../../context/AuthContext";
+import { authContext } from "../../context/authContext";
 import { BASE_URL } from "../../config";
 import Loading from "../../components/Loader/Loading";
 import ErrorMessage from "../../components/Error/Error";

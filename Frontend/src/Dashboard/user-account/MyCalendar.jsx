@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { BASE_URL } from '../../config';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import { HiOutlineCalendar } from 'react-icons/hi';
 
 const LOCAL_EVENT_COLOR = '#1d4ed8';

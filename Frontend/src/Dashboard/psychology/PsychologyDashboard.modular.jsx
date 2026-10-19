@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/Loader/Loading';
 import ErrorMessage from '../../components/Error/Error';
 import DoctorProfileForm from '../doctor-account/Profile';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 
 // Panels
 import OverviewPanel from './panels/OverviewPanel';

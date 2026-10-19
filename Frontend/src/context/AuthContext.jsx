@@ -1,27 +1,7 @@
 import PropTypes from 'prop-types';
-import { createContext, useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 
-const parseStoredJSON = (value) => {
-    if (!value) return null;
-    try {
-        return JSON.parse(value);
-    } catch (err) {
-        console.warn('❗ No se pudo parsear auth user en storage:', err);
-        return null;
-    }
-};
-
-const fromSession = (key) => sessionStorage.getItem(key);
-
-const initialState = {
-    user: parseStoredJSON(fromSession('user')),
-    role: fromSession('role') || null,
-    token: fromSession('token') || null,
-    authProvider: fromSession('authProvider') || null,
-};
-
-export const authContext = createContext(initialState);
-
+import { authContext, initialState } from './authContext';
 const authReducer = (state, action) => {
 
     switch (action.type) {

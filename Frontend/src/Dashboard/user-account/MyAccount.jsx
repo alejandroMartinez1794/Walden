@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 
 import MyBookings from './MyBookings';
 import Profile from './Profile';

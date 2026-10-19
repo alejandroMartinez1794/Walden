@@ -2,7 +2,7 @@ import { memo, useEffect, useRef, useContext, useState, useCallback, useMemo } f
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { BiMenu } from 'react-icons/bi';
 import { FaUserCircle } from 'react-icons/fa';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import { BASE_URL } from '../../config';
 import logoHeader from '../../assets/images/basileia_logo_header.png';
 

@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import HashLoader from 'react-spinners/HashLoader';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import { BASE_URL } from '../../config';
 import useWompi from '../../hooks/useWompi';
 import { toast } from 'react-toastify';

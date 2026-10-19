@@ -1,7 +1,7 @@
 // Frontend/src/components/Chatbot/Chatbot.jsx
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { getChatbotResponse } from './chatbotLogic';

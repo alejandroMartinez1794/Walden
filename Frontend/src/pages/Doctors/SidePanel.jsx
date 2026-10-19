@@ -3,7 +3,7 @@
 import { useState, useContext } from 'react';
 import { BASE_URL } from './../../config';
 import { toast } from 'react-toastify';
-import { authContext } from './../../context/AuthContext';
+import { authContext } from './../../context/authContext';
 import { useNavigate } from 'react-router-dom';
 
 const SidePanel = ({ doctorId, ticketPrice, timeSlots }) => {

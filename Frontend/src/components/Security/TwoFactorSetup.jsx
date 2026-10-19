@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../config';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import HashLoader from 'react-spinners/HashLoader';
 
 const TwoFactorSetup = () => {

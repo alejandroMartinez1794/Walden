@@ -7,7 +7,7 @@ import Loading from '../../components/Loader/Loading';
 import ErrorMessage from '../../components/Error/Error';
 import DoctorAbout from '../../pages/Doctors/DoctorAbout';
 import DoctorProfileForm from '../doctor-account/Profile';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 
 const PsychologyDashboard = () => {
   const { token } = useContext(authContext);

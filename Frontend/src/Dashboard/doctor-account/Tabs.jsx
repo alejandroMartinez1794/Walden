@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useContext } from 'react';
 import { BiMenu } from 'react-icons/bi';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import { useNavigate } from 'react-router-dom';
 
 const Tabs = ({ tab, setTab }) => {
