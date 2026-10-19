@@ -66,7 +66,7 @@ const CognitiveDistortionsForm = () => {
 
     const preselected = search.get('patient');
     if (preselected) setFormData((d) => ({ ...d, patient: preselected }));
-  }, []);
+  }, [search, token]);
 
   const toggleDistortion = (value) => {
     setFormData((d) => {

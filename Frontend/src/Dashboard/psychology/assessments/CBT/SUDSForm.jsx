@@ -51,7 +51,7 @@ const SUDSForm = () => {
 
     const preselected = search.get('patient');
     if (preselected) setFormData((d) => ({ ...d, patient: preselected }));
-  }, []);
+  }, [search, token]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
