@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useCallback, useEffect, useState, useContext } from 'react';
 import { authContext } from "../../context/AuthContext";
 import { BASE_URL } from "../../config";
 import Loading from "../../components/Loader/Loading";
@@ -40,9 +40,9 @@ const MyBookings = () => {
       }
     };
     loadCalendar();
-  }, [token]);
+  }, [fetchBookings, token]);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       if (!token) {
@@ -86,7 +86,7 @@ const MyBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, dispatch]);
 
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("¿Estás seguro de que deseas cancelar esta cita?")) {

@@ -38,7 +38,7 @@ const useFetchData = (url) => {
         };
 
         fetchData();
-    }, [url, token]);
+    }, [url, token, dispatch]);
 
     return {
         data,
