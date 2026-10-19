@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 // Charts are dynamically loaded to keep the main bundle small
 
 const OverviewPanel = ({ dashboardData, cbtOverview, doctorProfile, quickActions, assessmentShortcuts }) => {
   
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
   const [Recharts, setRecharts] = useState(null);
 
   useEffect(() => {
@@ -127,6 +127,28 @@ const OverviewPanel = ({ dashboardData, cbtOverview, doctorProfile, quickActions
       </div>
     </div>
   );
+};
+
+OverviewPanel.propTypes = {
+  dashboardData: PropTypes.shape({
+    todaySessions: PropTypes.number,
+    activePatients: PropTypes.number,
+    riskAlerts: PropTypes.number,
+  }),
+  cbtOverview: PropTypes.shape({ monthlyProgress: PropTypes.array }),
+  doctorProfile: PropTypes.shape({ name: PropTypes.string }),
+  quickActions: PropTypes.arrayOf(PropTypes.shape({
+    to: PropTypes.string,
+    gradient: PropTypes.string,
+    icon: PropTypes.node,
+    title: PropTypes.string,
+    description: PropTypes.string,
+  })),
+  assessmentShortcuts: PropTypes.arrayOf(PropTypes.shape({
+    to: PropTypes.string,
+    title: PropTypes.string,
+    subtitle: PropTypes.string,
+  })),
 };
 
 export default OverviewPanel;
