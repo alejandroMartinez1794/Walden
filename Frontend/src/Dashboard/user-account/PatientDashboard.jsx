@@ -1033,6 +1033,7 @@ PatientDashboard.propTypes = {
   userData: PropTypes.shape({
     _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     name: PropTypes.string,
+    email: PropTypes.string,
     photo: PropTypes.string,
     cbtProfile: PropTypes.object,
   }).isRequired,

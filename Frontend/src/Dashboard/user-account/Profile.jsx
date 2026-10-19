@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { HiOutlineUserCircle, HiOutlineLockClosed, HiOutlinePhotograph } from 'react-icons/hi';
 
 import uploadImageToCloudinary from '../../utils/uploadCloudinary';
@@ -8,7 +9,6 @@ import HashLoader from 'react-spinners/HashLoader';
 
 const Profile = ({user, onProfileUpdated}) => {
     
-    const [selectFile, setSelectFile] = useState (null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [loading, setLoading] = useState(false);
     const [photoUploading, setPhotoUploading] = useState(false);
@@ -376,6 +376,18 @@ const Profile = ({user, onProfileUpdated}) => {
             </form>
         </div>
     );
+};
+
+Profile.propTypes = {
+  user: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+    email: PropTypes.string,
+    photo: PropTypes.string,
+    gender: PropTypes.string,
+    bloodType: PropTypes.string,
+  }),
+  onProfileUpdated: PropTypes.func,
 };
 
 export default Profile;
