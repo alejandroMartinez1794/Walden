@@ -3,7 +3,6 @@ import {
   FaHeartbeat, 
   FaWeight, 
   FaTint, 
-  FaThermometerHalf,
   FaRunning,
   FaBed,
   FaAppleAlt,
@@ -28,7 +27,7 @@ const HealthTracker = () => {
 
   const [glucoseData, setGlucoseData] = useState([]);
 
-  const [dailyMetrics, setDailyMetrics] = useState({
+  const [dailyMetrics] = useState({
     steps: 8542,
     stepsGoal: 10000,
     water: 6,
@@ -199,7 +198,7 @@ const HealthTracker = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-xl font-bold text-headingColor mb-6 flex items-center gap-2">
           <FaChartLine className="text-primaryColor" />
-          Today's Activity
+          Today&apos;s Activity
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Steps */}
@@ -446,7 +445,7 @@ const HealthTracker = () => {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
-              <span>You're maintaining a healthy BMI</span>
+              <span>You&apos;re maintaining a healthy BMI</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
