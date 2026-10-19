@@ -345,16 +345,16 @@ const DoctorInsightsElite = () => {
                 </linearGradient>
               </defs>
               <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="name" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <Tooltip 
+              <Recharts.XAxis dataKey="name" stroke="#6B7280" />
+              <Recharts.YAxis stroke="#6B7280" />
+              <Recharts.Tooltip 
                 contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
               />
-              <Legend />
-              <Area type="monotone" dataKey="ingresos" stroke="#10B981" fillOpacity={1} fill="url(#colorIngresos)" name="Ingresos" />
-              <Area type="monotone" dataKey="gastos" stroke="#EF4444" fillOpacity={1} fill="url(#colorGastos)" name="Gastos" />
-            </AreaChart>
-          </ResponsiveContainer>
+              <Recharts.Legend />
+              <Recharts.Area type="monotone" dataKey="ingresos" stroke="#10B981" fillOpacity={1} fill="url(#colorIngresos)" name="Ingresos" />
+              <Recharts.Area type="monotone" dataKey="gastos" stroke="#EF4444" fillOpacity={1} fill="url(#colorGastos)" name="Gastos" />
+            </Recharts.AreaChart>
+          </Recharts.ResponsiveContainer>
         </div>
       </div>
 
@@ -526,13 +526,13 @@ const DoctorInsightsElite = () => {
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                <Area type="monotone" dataKey="count" stroke="#10B981" fillOpacity={1} fill="url(#colorSessions)" name="Sesiones" />
-              </AreaChart>
-            </ResponsiveContainer>
+                <Recharts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <Recharts.XAxis dataKey="name" stroke="#6B7280" />
+                <Recharts.YAxis stroke="#6B7280" />
+                <Recharts.Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                <Recharts.Area type="monotone" dataKey="count" stroke="#10B981" fillOpacity={1} fill="url(#colorSessions)" name="Sesiones" />
+              </Recharts.AreaChart>
+            </Recharts.ResponsiveContainer>
           </div>
 
           {/* Techniques used */}
