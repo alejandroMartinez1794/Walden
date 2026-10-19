@@ -121,8 +121,7 @@ const Testimonial = ({ additionalTestimonials = [] }) => {
                         </div>
                     </div>
                     <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
-                        "I have taken medical services from them. They treat so well and 
-                        they are providing the best medical services"
+                        &quot;I have taken medical services from them. They treat so well and they are providing the best medical services&quot;
                     </p>    
                 </div>
             </SwiperSlide>

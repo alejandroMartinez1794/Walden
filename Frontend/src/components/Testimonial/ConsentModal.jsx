@@ -8,7 +8,7 @@ export function anonymizeTestimony(text) {
   // remove emails
   let out = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[ANONIMIZADO]');
   // remove phone numbers (simple patterns)
-  out = out.replace(/\+?\d[\d ()\-]{6,}\d/g, '[ANONIMIZADO]');
+  out = out.replace(/\+?\d[\d ()-]{6,}\d/g, '[ANONIMIZADO]');
   return out;
 }
 

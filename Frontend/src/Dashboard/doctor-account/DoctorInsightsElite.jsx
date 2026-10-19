@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/doctor-account/DoctorInsightsElite.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../config';
 // Load recharts dynamically to split heavy chart code
 const noop = () => {};
@@ -120,23 +120,6 @@ const DoctorInsightsElite = () => {
     { name: 'Otros', value: 5, color: '#6B7280' },
   ];
 
-  const performanceMetrics = [
-    { metric: 'Puntualidad', value: 95 },
-    { metric: 'Satisfacción', value: 92 },
-    { metric: 'Efectividad', value: 88 },
-    { metric: 'Comunicación', value: 94 },
-    { metric: 'Profesionalismo', value: 96 },
-  ];
-
-  const hourlyDistribution = [
-    { hour: '8-10am', sessions: 8 },
-    { hour: '10-12pm', sessions: 15 },
-    { hour: '12-2pm', sessions: 5 },
-    { hour: '2-4pm', sessions: 18 },
-    { hour: '4-6pm', sessions: 12 },
-    { hour: '6-8pm', sessions: 6 },
-  ];
-
   const upcomingAppointments = appointments
     .filter(a => a.status === 'approved' && new Date(a.appointmentDate) >= new Date())
     .sort((a, b) => new Date(a.appointmentDate) - new Date(b.appointmentDate))
@@ -152,11 +135,6 @@ const DoctorInsightsElite = () => {
       lastVisit: a.appointmentDate,
       status: a.status,
     }));
-
-  const calculateGrowth = (current, previous) => {
-    if (!previous) return 0;
-    return (((current - previous) / previous) * 100).toFixed(1);
-  };
 
   if (loading) {
     return (
