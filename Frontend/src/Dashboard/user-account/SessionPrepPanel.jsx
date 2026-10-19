@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState, useContext } from 'react';
+import PropTypes from 'prop-types';
 import { HiOutlineChatAlt2, HiOutlineCalendar } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../config';
 import { authContext } from '../../context/AuthContext';
-
-const EXPERIMENT_STATUSES = ['Pendiente', 'En progreso', 'Completado'];
 
 // Default profile copied from PatientDashboard to keep data shape intact
 const defaultProfile = {
@@ -256,6 +255,14 @@ const SessionPrepPanel = ({ userData, onUserDataUpdate }) => {
       </div>
     </div>
   );
+};
+
+SessionPrepPanel.propTypes = {
+  userData: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    cbtProfile: PropTypes.object,
+  }).isRequired,
+  onUserDataUpdate: PropTypes.func,
 };
 
 export default SessionPrepPanel;
