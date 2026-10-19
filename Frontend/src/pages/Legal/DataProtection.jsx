@@ -77,7 +77,7 @@ const PrivacyPolicy = () => {
           <section>
             <h3 className="text-xl font-bold text-headingColor mb-3">7. Contacto</h3>
             <p>
-              Para ejercer sus derechos de Habeas Data, puede contactarnos a través de nuestros canales oficiales de soporte o en la sección de "Contáctanos".
+              Para ejercer sus derechos de Habeas Data, puede contactarnos a través de nuestros canales oficiales de soporte o en la sección de &quot;Contáctanos&quot;.
             </p>
           </section>
         </div>

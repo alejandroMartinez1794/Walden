@@ -77,7 +77,7 @@ const Footer = () => {
                                     className="text-[0.8rem] italic text-slate-600 leading-relaxed"
                                     style={{ fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}
                                 >
-                                    "Όπου η χρεία, εκεί και η διακονία"
+                                    &quot;Όπου η χρεία, εκεί και η διακονία&quot;
                                 </p>
                                 <p 
                                     className="text-[0.65rem] text-slate-400 font-medium tracking-wide uppercase mt-1"

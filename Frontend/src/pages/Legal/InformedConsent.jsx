@@ -112,7 +112,7 @@ const InformedConsent = () => {
                             <p className="text-xs font-bold text-slate-600 uppercase">Para Telepsicología Clínica</p>
                             <p className="text-[10px] text-slate-400 font-mono mt-1 mb-2">CÓDIGO: LEG-CLI-001 | V.2025</p>
                             <p className="text-[0.65rem] italic text-slate-500 font-serif leading-tight">
-                                "Όπου η χρεία, εκεί και η διακονία"
+                                &quot;Όπου η χρεία, εκεί και η διακονία&quot;
                             </p>
                         </div>
                     </div>
@@ -145,7 +145,7 @@ const InformedConsent = () => {
                                 Se deja constancia explícita de que este servicio <strong>NO INCLUYE</strong> ni constituye: (i) procesos de Coaching, (ii) asesoría espiritual o religiosa, (iii) prácticas esotéricas o pseudocientíficas, (iv) peritajes forenses para litigios (salvo contratación específica diversa), ni (v) servicios de acompañamiento no clínico.
                             </p>
                             <p className="mt-2">
-                                <strong>Corresponsabilidad y Naturaleza del Proceso:</strong> Entendemos la terapia como un viaje compartido donde el éxito se construye a dos manos. Nuestro compromiso "de medios" es brindarle la mejor guía científica y humana posible. Sin embargo, es vital comprender que en salud mental <strong>no existen "curas mágicas" ni resultados garantizados</strong>, pues la transformación real proviene de su propio interior. El alivio del malestar depende fundamentalmente de <strong>su participación activa, su constancia y su voluntad de cambio</strong>; nosotros le daremos las herramientas y el mapa, pero es usted quien recorre el camino hacia su propio bienestar.
+                                <strong>Corresponsabilidad y Naturaleza del Proceso:</strong> Entendemos la terapia como un viaje compartido donde el éxito se construye a dos manos. Nuestro compromiso &quot;de medios&quot; es brindarle la mejor guía científica y humana posible. Sin embargo, es vital comprender que en salud mental <strong>no existen &quot;curas mágicas&quot; ni resultados garantizados</strong>, pues la transformación real proviene de su propio interior. El alivio del malestar depende fundamentalmente de <strong>su participación activa, su constancia y su voluntad de cambio</strong>; nosotros le daremos las herramientas y el mapa, pero es usted quien recorre el camino hacia su propio bienestar.
                             </p>
                         </section>
 
