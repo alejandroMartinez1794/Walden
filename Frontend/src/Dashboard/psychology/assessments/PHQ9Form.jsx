@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/assessments/PHQ9Form.jsx
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -47,9 +47,9 @@ const PHQ9Form = () => {
     if (preselected) {
       setFormData((d) => ({ ...d, patient: preselected }));
     }
-  }, []);
+  }, [fetchPatients, search]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       const authToken = token;
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
@@ -63,7 +63,7 @@ const PHQ9Form = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleResponseChange = (index, value) => {
     const newResponses = [...formData.responses];

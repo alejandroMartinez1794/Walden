@@ -56,7 +56,7 @@ const AssessmentsList = ({ patientId }) => {
       }
     };
     if (patientId) fetchAssessments();
-  }, [patientId]);
+  }, [patientId, token]);
 
   const testsAvailable = useMemo(() => Array.from(new Set(assessments.map(a => a.testType))), [assessments]);
   const filtered = useMemo(() => filter === 'all' ? assessments : assessments.filter(a => a.testType === filter), [assessments, filter]);
