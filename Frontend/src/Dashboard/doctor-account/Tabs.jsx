@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useContext } from 'react';
 import { BiMenu } from 'react-icons/bi';
 import { authContext } from '../../context/AuthContext';
@@ -95,6 +96,11 @@ const Tabs = ({ tab, setTab }) => {
             </div>
         </div>
     );
+};
+
+Tabs.propTypes = {
+  tab: PropTypes.string.isRequired,
+  setTab: PropTypes.func.isRequired,
 };
 
 export default Tabs;

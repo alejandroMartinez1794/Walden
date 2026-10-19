@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 const LicenseLocked = ({ instrument }) => {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -19,6 +20,10 @@ const LicenseLocked = ({ instrument }) => {
       </div>
     </div>
   );
+};
+
+LicenseLocked.propTypes = {
+  instrument: PropTypes.string.isRequired,
 };
 
 export default LicenseLocked;

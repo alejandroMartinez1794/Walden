@@ -1,5 +1,6 @@
 // Frontend/src/Dashboard/psychology/charts/ProgressCharts.jsx
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 // Load recharts dynamically to reduce initial bundle size
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -315,6 +316,10 @@ const ProgressCharts = ({ patientId }) => {
       </div>
     </div>
   );
+};
+
+ProgressCharts.propTypes = {
+  patientId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default ProgressCharts;
