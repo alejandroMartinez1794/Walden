@@ -52,7 +52,7 @@ const ProgressCharts = ({ patientId }) => {
     if (patientId) {
       fetchAssessments();
     }
-  }, [fetchAssessments]);
+  }, [fetchAssessments, patientId]);
 
   useEffect(() => {
     let mounted = true;

@@ -57,7 +57,7 @@ const PsychologyDashboard = () => {
 
   useEffect(() => {
     if (token) fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, [fetchDashboardData, token]);
 
   // Configuration
   const quickActions = [

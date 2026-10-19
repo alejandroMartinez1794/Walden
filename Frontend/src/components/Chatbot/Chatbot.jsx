@@ -41,7 +41,7 @@ const Chatbot = () => {
       };
       setMessages([welcomeMsg]);
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, messages.length]);
 
   // Exponer función global para abrir el chatbot desde otros componentes
   useEffect(() => {
