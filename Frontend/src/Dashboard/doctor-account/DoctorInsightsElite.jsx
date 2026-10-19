@@ -534,6 +534,7 @@ const DoctorInsightsElite = () => {
                 <Recharts.Area type="monotone" dataKey="count" stroke="#10B981" fillOpacity={1} fill="url(#colorSessions)" name="Sesiones" />
               </Recharts.AreaChart>
             </Recharts.ResponsiveContainer>
+            )}
           </div>
 
           {/* Techniques used */}
