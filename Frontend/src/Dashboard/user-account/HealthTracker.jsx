@@ -106,7 +106,6 @@ const HealthTracker = () => {
   }, []);
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState('');
 
   const getProgressColor = (value, goal) => {
     const percentage = (value / goal) * 100;

@@ -84,7 +84,6 @@ const Profile = ({user, onProfileUpdated}) => {
         const previousPhoto = formData.photo;
         const tempUrl = URL.createObjectURL(file);
         setPreviewUrl(tempUrl);
-        setSelectFile(file);
         setPhotoUploading(true);
 
         try {
@@ -106,7 +105,6 @@ const Profile = ({user, onProfileUpdated}) => {
             toast.error(error.message || 'No se pudo subir la imagen. Intenta nuevamente.');
         } finally {
             setPhotoUploading(false);
-            setSelectFile(null);
             if (tempUrl && tempUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(tempUrl);
             }
@@ -386,6 +384,8 @@ Profile.propTypes = {
     photo: PropTypes.string,
     gender: PropTypes.string,
     bloodType: PropTypes.string,
+    role: PropTypes.string,
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
   }),
   onProfileUpdated: PropTypes.func,
 };
