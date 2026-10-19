@@ -1,5 +1,6 @@
 // Frontend/src/components/RiskMitigationChecklist.jsx
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { BASE_URL, token } from '../config';
 
 const RiskMitigationChecklist = ({ alert, onClose, onUpdated }) => {
@@ -42,6 +43,12 @@ const RiskMitigationChecklist = ({ alert, onClose, onUpdated }) => {
       </div>
     </div>
   );
+};
+
+RiskMitigationChecklist.propTypes = {
+  alert: PropTypes.shape({ _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired }).isRequired,
+  onClose: PropTypes.func,
+  onUpdated: PropTypes.func,
 };
 
 export default RiskMitigationChecklist;
