@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { BASE_URL } from '../../config';
 import { authContext } from '../../context/AuthContext';
-import { HiOutlineCalendar, HiOutlineSun, HiOutlineLightBulb } from 'react-icons/hi';
+import { HiOutlineCalendar } from 'react-icons/hi';
 
 const LOCAL_EVENT_COLOR = '#1d4ed8';
 const GOOGLE_EVENT_COLOR = '#0b89da';
@@ -163,7 +163,6 @@ const computeExperience = (events) => {
 			focusSuggestion: 'Registra o importa tu primera cita',
 		};
 	}
-	const localCount = events.filter((evt) => evt.extendedProps?.source === 'basileia').length;
 	const googleCount = events.filter((evt) => evt.extendedProps?.source === 'google').length;
 	const total = events.length;
 	const googleShare = total ? Math.round((googleCount / total) * 100) : 0;
@@ -450,11 +449,6 @@ const MyCalendar = () => {
 		const now = new Date();
 		return sortByStart(localEvents).find((evt) => new Date(evt.start) >= now);
 	}, [localEvents]);
-
-	const selectedDayPrimaryEvent = useMemo(() => {
-		if (dayAgendaEvents.length === 0) return null;
-		return dayAgendaEvents[0];
-	}, [dayAgendaEvents]);
 
 	const dayKey = useMemo(() => toDayKey(selectedDate), [selectedDate]);
 	const weekKey = useMemo(() => toWeekKey(selectedDate), [selectedDate]);

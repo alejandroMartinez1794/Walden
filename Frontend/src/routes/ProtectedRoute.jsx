@@ -6,7 +6,7 @@ import { authContext } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode'; // Assuming this is installed
 
 const ProtectedRoute = ({ children, allowedRoles = [], requiredRole = null, requireCrisisClearance = false }) => {
-  const { token, role, user } = useContext(authContext);
+  const { token, role } = useContext(authContext);
   const [isTokenValid, setIsTokenValid] = useState(true);
 
   // Validate JWT expiration
