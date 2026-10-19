@@ -5,6 +5,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import patientAvatar from '../../assets/images/patient-avatar.png';
 import {HiStar} from "react-icons/hi";
+import PropTypes from 'prop-types';
 
 
 const Testimonial = ({ additionalTestimonials = [] }) => {
@@ -155,6 +156,14 @@ const Testimonial = ({ additionalTestimonials = [] }) => {
         </Swiper>
         </ div>
     );
+};
+
+Testimonial.propTypes = {
+  additionalTestimonials: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string,
+    text: PropTypes.string,
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+  })),
 };
 
 export default Testimonial;

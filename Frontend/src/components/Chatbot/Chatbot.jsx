@@ -144,6 +144,14 @@ const Chatbot = () => {
                 <p className="text-xs opacity-90">Siempre disponible</p>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearChat}
+              className="text-xs text-white hover:bg-white/20 rounded-lg px-2 py-1 transition"
+              aria-label="Limpiar conversación"
+            >
+              Limpiar
+            </button>
             <button
               onClick={() => setIsOpen(false)}
               className="text-white hover:bg-white/20 rounded-full p-2 transition"
@@ -163,6 +171,7 @@ const Chatbot = () => {
                 />
               </svg>
             </button>
+            </div>
           </div>
 
           {/* Messages Area */}

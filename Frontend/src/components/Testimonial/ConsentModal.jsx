@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 
 // Simple anonymization helper: remove emails and phone numbers
@@ -84,6 +85,12 @@ const ConsentModal = ({ isOpen, onClose, onSubmit }) => {
     </div>,
     document.body
   );
+};
+
+ConsentModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func,
+  onSubmit: PropTypes.func,
 };
 
 export default ConsentModal;
