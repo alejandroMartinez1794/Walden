@@ -1,5 +1,6 @@
 // Frontend/src/components/Chatbot/ChatInput.jsx
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 const ChatInput = ({ onSend }) => {
   const [input, setInput] = useState('');
@@ -45,6 +46,10 @@ const ChatInput = ({ onSend }) => {
       </div>
     </form>
   );
+};
+
+ChatInput.propTypes = {
+  onSend: PropTypes.func.isRequired,
 };
 
 export default ChatInput;

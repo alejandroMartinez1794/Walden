@@ -1,5 +1,6 @@
     
-import { formateDate } from "../../utils/formateDate"
+import { formateDate } from '../../utils/formateDate';
+import PropTypes from 'prop-types';
 
 const DoctorAbout = ({name, about, qualifications = [], experiences = []}) => {
     const hasQualifications = qualifications?.length > 0
@@ -101,6 +102,23 @@ const DoctorAbout = ({name, about, qualifications = [], experiences = []}) => {
             </div>
         </section>
     );
+};
+
+DoctorAbout.propTypes = {
+  name: PropTypes.string,
+  about: PropTypes.string,
+  qualifications: PropTypes.arrayOf(PropTypes.shape({
+    startingDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    endingDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    degree: PropTypes.string,
+    university: PropTypes.string,
+  })),
+  experiences: PropTypes.arrayOf(PropTypes.shape({
+    startingDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    endingDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    position: PropTypes.string,
+    hospital: PropTypes.string,
+  })),
 };
 
 export default DoctorAbout;
