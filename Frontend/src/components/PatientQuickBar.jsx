@@ -1,5 +1,6 @@
 // Frontend/src/components/PatientQuickBar.jsx
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { BASE_URL, token } from '../config';
 import { toast } from 'react-toastify';
 
@@ -27,6 +28,11 @@ const PatientQuickBar = ({ patientId, onSummary }) => {
       </button>
     </div>
   );
+};
+
+PatientQuickBar.propTypes = {
+  patientId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  onSummary: PropTypes.func,
 };
 
 export default PatientQuickBar;

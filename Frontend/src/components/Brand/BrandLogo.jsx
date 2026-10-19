@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import PropTypes from 'prop-types';
 import brandImage from '../../assets/images/logo_principal_basileia.png';
 
 const BrandLogo = ({ variant = 'header', className = '' }) => {
@@ -55,6 +56,11 @@ const BrandLogo = ({ variant = 'header', className = '' }) => {
       className={`h-14 w-auto object-contain md:h-16 ${className}`}
     />
   );
+};
+
+BrandLogo.propTypes = {
+  variant: PropTypes.oneOf(['header', 'icon', 'footer']),
+  className: PropTypes.string,
 };
 
 export default memo(BrandLogo);
