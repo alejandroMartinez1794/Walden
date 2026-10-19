@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/assessments/BAI/BAIForm.jsx
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../../config';
 import Loading from '../../../../components/Loader/Loading';
@@ -55,9 +55,9 @@ const BAIForm = () => {
     fetchPatients();
     const preselected = search.get('patient');
     if (preselected) setFormData(d => ({ ...d, patient: preselected }));
-  }, []);
+  }, [fetchPatients, search]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       const authToken = sessionStorage.getItem('token');
       const res = await fetch(`${BASE_URL}/psychology/patients`, {
@@ -71,7 +71,7 @@ const BAIForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleResponseChange = (index, value) => {
     const next = [...formData.responses];

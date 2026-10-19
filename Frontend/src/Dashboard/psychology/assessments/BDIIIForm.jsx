@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/assessments/BDIIIForm.jsx
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -218,9 +218,9 @@ const BDIIIForm = () => {
     if (preselected) {
       setFormData((d) => ({ ...d, patient: preselected }));
     }
-  }, []);
+  }, [fetchPatients, search]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
         headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
@@ -233,7 +233,7 @@ const BDIIIForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleResponseChange = (index, value) => {
     const newResponses = [...formData.responses];
