@@ -96,8 +96,6 @@ const PHQ9Form = () => {
     }
 
     const totalScore = calculateScore();
-    const severity = getSeverity(totalScore);
-
     // Show warning for suicidal ideation
     if (hasSuicidalIdeation()) {
       if (!window.confirm('⚠️ ALERTA: El paciente ha reportado ideación suicida. Este caso requiere evaluación inmediata de riesgo. ¿Desea continuar guardando esta evaluación?')) {

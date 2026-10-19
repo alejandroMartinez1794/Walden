@@ -21,7 +21,6 @@ const PatientFile = () => {
   const [patient, setPatient] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [assessments, setAssessments] = useState([]);
-  const [treatmentPlan, setTreatmentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
@@ -68,15 +67,6 @@ const PatientFile = () => {
       });
       const assessmentsData = await assessmentsRes.json();
       if (assessmentsRes.ok) setAssessments(assessmentsData.data || []);
-
-      // Fetch treatment plan
-      const planRes = await fetch(`${BASE_URL}/psychology/patients/${id}/treatment-plans`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      const planData = await planRes.json();
-      if (planRes.ok && planData.data && planData.data.length > 0) {
-        setTreatmentPlan(planData.data[0]); // Get the most recent plan
-      }
 
       // Fetch alerts
       const alertsRes = await fetch(`${BASE_URL}/clinical/patients/${id}/alerts`, {
