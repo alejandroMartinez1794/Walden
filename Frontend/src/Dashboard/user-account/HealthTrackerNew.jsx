@@ -3,7 +3,6 @@ import {
   FaHeartbeat, 
   FaWeight, 
   FaTint, 
-  FaThermometerHalf,
   FaRunning,
   FaBed,
   FaAppleAlt,
@@ -27,7 +26,7 @@ const HealthTracker = () => {
     return () => { mounted = false; };
   }, []);
 
-  const [dailyMetrics, setDailyMetrics] = useState({
+  const [dailyMetrics] = useState({
     steps: 8542,
     stepsGoal: 10000,
     water: 6,
@@ -468,22 +467,26 @@ const HealthTracker = () => {
           <FaTint className="text-primaryColor" />
           Glucosa del día
         </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={glucoseData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="meal" angle={-45} textAnchor="end" height={100} />
-            <YAxis domain={[70, 160]} />
-            <Tooltip />
-            <Legend />
-            <Line 
+        {!Recharts ? (
+          <p className="text-sm text-gray-500">Cargando gráfico...</p>
+        ) : (
+        <Recharts.ResponsiveContainer width="100%" height={300}>
+          <Recharts.LineChart data={glucoseData}>
+            <Recharts.CartesianGrid strokeDasharray="3 3" />
+            <Recharts.XAxis dataKey="meal" angle={-45} textAnchor="end" height={100} />
+            <Recharts.YAxis domain={[70, 160]} />
+            <Recharts.Tooltip />
+            <Recharts.Legend />
+            <Recharts.Line 
               type="monotone" 
               dataKey="level" 
               stroke="#10b981" 
               strokeWidth={2}
               name="Glucosa (mg/dL)"
             />
-          </LineChart>
-        </ResponsiveContainer>
+          </Recharts.LineChart>
+        </Recharts.ResponsiveContainer>
+        )}
         <div className="mt-4 p-4 bg-green-50 rounded-lg">
           <p className="text-sm text-textColor">
             <strong>Rangos objetivo:</strong>
