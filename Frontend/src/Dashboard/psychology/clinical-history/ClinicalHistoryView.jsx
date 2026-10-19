@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -31,6 +32,7 @@ const ClinicalHistoryView = ({ patientId }) => {
   }, [patientId, token]);
 
   if (loading) return <Loading />;
+  if (error) return <p className="rounded-lg bg-red-50 p-4 text-red-700">No se pudo cargar la historia clínica: {error}</p>;
   
   if (!history) {
     return (
@@ -57,6 +59,12 @@ const ClinicalHistoryView = ({ patientId }) => {
     </div>
   );
 
+  Section.propTypes = {
+    title: PropTypes.string.isRequired,
+    children: PropTypes.node,
+    icon: PropTypes.node,
+  };
+
   const Field = ({ label, value }) => (
     value ? (
       <div className="mb-3">
@@ -65,6 +73,11 @@ const ClinicalHistoryView = ({ patientId }) => {
       </div>
     ) : null
   );
+
+  Field.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.node,
+  };
 
   return (
     <div className="space-y-6">
@@ -157,6 +170,10 @@ const ClinicalHistoryView = ({ patientId }) => {
       </div>
     </div>
   );
+};
+
+ClinicalHistoryView.propTypes = {
+  patientId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default ClinicalHistoryView;

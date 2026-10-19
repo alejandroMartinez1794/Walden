@@ -1,10 +1,11 @@
-import React from 'react';
+
 import {Pagination} from 'swiper/modules';
 import {Swiper, SwiperSlide} from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import patientAvatar from '../../assets/images/patient-avatar.png';
 import {HiStar} from "react-icons/hi";
+import PropTypes from 'prop-types';
 
 
 const Testimonial = ({ additionalTestimonials = [] }) => {
@@ -120,8 +121,7 @@ const Testimonial = ({ additionalTestimonials = [] }) => {
                         </div>
                     </div>
                     <p className="text-[16px] leading-7 mt-4 text-textColor font-[400]">
-                        "I have taken medical services from them. They treat so well and 
-                        they are providing the best medical services"
+                        &quot;I have taken medical services from them. They treat so well and they are providing the best medical services&quot;
                     </p>    
                 </div>
             </SwiperSlide>
@@ -155,6 +155,14 @@ const Testimonial = ({ additionalTestimonials = [] }) => {
         </Swiper>
         </ div>
     );
+};
+
+Testimonial.propTypes = {
+  additionalTestimonials: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string,
+    text: PropTypes.string,
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+  })),
 };
 
 export default Testimonial;

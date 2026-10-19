@@ -1,7 +1,7 @@
 // Frontend/src/components/Chatbot/Chatbot.jsx
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { getChatbotResponse } from './chatbotLogic';
@@ -41,7 +41,7 @@ const Chatbot = () => {
       };
       setMessages([welcomeMsg]);
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, messages.length]);
 
   // Exponer función global para abrir el chatbot desde otros componentes
   useEffect(() => {
@@ -144,6 +144,14 @@ const Chatbot = () => {
                 <p className="text-xs opacity-90">Siempre disponible</p>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearChat}
+              className="text-xs text-white hover:bg-white/20 rounded-lg px-2 py-1 transition"
+              aria-label="Limpiar conversación"
+            >
+              Limpiar
+            </button>
             <button
               onClick={() => setIsOpen(false)}
               className="text-white hover:bg-white/20 rounded-full p-2 transition"
@@ -163,6 +171,7 @@ const Chatbot = () => {
                 />
               </svg>
             </button>
+            </div>
           </div>
 
           {/* Messages Area */}

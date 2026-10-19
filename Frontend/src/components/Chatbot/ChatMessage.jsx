@@ -1,5 +1,6 @@
 // Frontend/src/components/Chatbot/ChatMessage.jsx
 import { formatDistance } from 'date-fns';
+import PropTypes from 'prop-types';
 import { es } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 
@@ -93,6 +94,25 @@ const ChatMessage = ({ message, onQuickReply }) => {
       )}
     </div>
   );
+};
+
+ChatMessage.propTypes = {
+  message: PropTypes.shape({
+    sender: PropTypes.string.isRequired,
+    text: PropTypes.string,
+    quickReplies: PropTypes.arrayOf(PropTypes.string),
+    data: PropTypes.shape({
+      type: PropTypes.string,
+      items: PropTypes.arrayOf(PropTypes.shape({
+        _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        name: PropTypes.string,
+        photo: PropTypes.string,
+        specialization: PropTypes.string,
+      })),
+    }),
+    timestamp: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.instanceOf(Date)]),
+  }).isRequired,
+  onQuickReply: PropTypes.func,
 };
 
 export default ChatMessage;

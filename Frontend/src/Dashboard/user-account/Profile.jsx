@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { HiOutlineUserCircle, HiOutlineLockClosed, HiOutlinePhotograph } from 'react-icons/hi';
 
 import uploadImageToCloudinary from '../../utils/uploadCloudinary';
@@ -8,7 +9,6 @@ import HashLoader from 'react-spinners/HashLoader';
 
 const Profile = ({user, onProfileUpdated}) => {
     
-    const [selectFile, setSelectFile] = useState (null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [loading, setLoading] = useState(false);
     const [photoUploading, setPhotoUploading] = useState(false);
@@ -84,7 +84,6 @@ const Profile = ({user, onProfileUpdated}) => {
         const previousPhoto = formData.photo;
         const tempUrl = URL.createObjectURL(file);
         setPreviewUrl(tempUrl);
-        setSelectFile(file);
         setPhotoUploading(true);
 
         try {
@@ -106,7 +105,6 @@ const Profile = ({user, onProfileUpdated}) => {
             toast.error(error.message || 'No se pudo subir la imagen. Intenta nuevamente.');
         } finally {
             setPhotoUploading(false);
-            setSelectFile(null);
             if (tempUrl && tempUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(tempUrl);
             }
@@ -376,6 +374,20 @@ const Profile = ({user, onProfileUpdated}) => {
             </form>
         </div>
     );
+};
+
+Profile.propTypes = {
+  user: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+    email: PropTypes.string,
+    photo: PropTypes.string,
+    gender: PropTypes.string,
+    bloodType: PropTypes.string,
+    role: PropTypes.string,
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+  }),
+  onProfileUpdated: PropTypes.func,
 };
 
 export default Profile;

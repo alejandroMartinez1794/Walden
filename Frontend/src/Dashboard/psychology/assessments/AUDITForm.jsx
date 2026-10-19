@@ -95,7 +95,7 @@ const AUDITForm = () => {
 
     const preselected = search.get('patient');
     if (preselected) setFormData((prev) => ({ ...prev, patient: preselected }));
-  }, []);
+  }, [search, token]);
 
   const setResponse = (questionIdx, optionIdx) => {
     const updated = [...formData.responses];

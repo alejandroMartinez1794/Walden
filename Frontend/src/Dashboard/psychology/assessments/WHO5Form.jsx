@@ -65,7 +65,7 @@ const WHO5Form = () => {
     if (preselected) {
       setFormData((prev) => ({ ...prev, patient: preselected }));
     }
-  }, []);
+  }, [search, token]);
 
   const setResponse = (idx, value) => {
     const updated = [...formData.responses];

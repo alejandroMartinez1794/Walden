@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 
 const Error = ({ errMessage, message }) => {
     const content = errMessage || message || 'Ocurrió un error';
@@ -6,6 +7,11 @@ const Error = ({ errMessage, message }) => {
             <h3 className="text-headingColor text-[20px] leading-[30px] font-semibold">{content}</h3>
         </div>
     );
+};
+
+Error.propTypes = {
+  errMessage: PropTypes.string,
+  message: PropTypes.string,
 };
 
 export default Error;

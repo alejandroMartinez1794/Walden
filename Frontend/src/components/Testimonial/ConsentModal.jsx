@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 
 // Simple anonymization helper: remove emails and phone numbers
-export function anonymizeTestimony(text) {
+function anonymizeTestimony(text) {
   if (!text) return text;
   // remove emails
   let out = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[ANONIMIZADO]');
   // remove phone numbers (simple patterns)
-  out = out.replace(/\+?\d[\d ()\-]{6,}\d/g, '[ANONIMIZADO]');
+  out = out.replace(/\+?\d[\d ()-]{6,}\d/g, '[ANONIMIZADO]');
   return out;
 }
 
@@ -84,6 +85,12 @@ const ConsentModal = ({ isOpen, onClose, onSubmit }) => {
     </div>,
     document.body
   );
+};
+
+ConsentModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func,
+  onSubmit: PropTypes.func,
 };
 
 export default ConsentModal;

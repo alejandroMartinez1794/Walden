@@ -1,5 +1,4 @@
-import React, { memo } from 'react';
-
+import { memo } from 'react';
 import {Link} from 'react-router-dom';
 import {RiLinkedinFill} from 'react-icons/ri';
 import {AiFillYoutube, AiFillGithub, AiOutlineInstagram} from 'react-icons/ai';
@@ -78,7 +77,7 @@ const Footer = () => {
                                     className="text-[0.8rem] italic text-slate-600 leading-relaxed"
                                     style={{ fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}
                                 >
-                                    "Όπου η χρεία, εκεί και η διακονία"
+                                    &quot;Όπου η χρεία, εκεί και η διακονία&quot;
                                 </p>
                                 <p 
                                     className="text-[0.65rem] text-slate-400 font-medium tracking-wide uppercase mt-1"
@@ -163,4 +162,6 @@ const Footer = () => {
     );
 };
 
-export default memo(Footer);
+const MemoizedFooter = memo(Footer);
+
+export default MemoizedFooter;

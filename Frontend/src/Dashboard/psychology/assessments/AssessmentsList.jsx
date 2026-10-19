@@ -1,6 +1,7 @@
 // Frontend/src/Dashboard/psychology/assessments/AssessmentsList.jsx
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
 import ErrorMessage from '../../../components/Error/Error';
@@ -33,7 +34,6 @@ const testMeta = {
 
 const AssessmentsList = ({ patientId }) => {
   const token = useAuthToken();
-  const [search] = useSearchParams();
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,7 +56,7 @@ const AssessmentsList = ({ patientId }) => {
       }
     };
     if (patientId) fetchAssessments();
-  }, [patientId]);
+  }, [patientId, token]);
 
   const testsAvailable = useMemo(() => Array.from(new Set(assessments.map(a => a.testType))), [assessments]);
   const filtered = useMemo(() => filter === 'all' ? assessments : assessments.filter(a => a.testType === filter), [assessments, filter]);
@@ -131,6 +131,10 @@ const AssessmentsList = ({ patientId }) => {
       )}
     </div>
   );
+};
+
+AssessmentsList.propTypes = {
+  patientId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default AssessmentsList;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ClinicalSeoHead from '../components/ClinicalSeoHead';
 import { buildMedicalOrganizationSchema, PUBLIC_CLINICAL_ORGANIZATION } from '../seo/medical-schema';
 

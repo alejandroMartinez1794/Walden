@@ -50,7 +50,7 @@ const PCPTSD5Form = () => {
 
     const pre = search.get('patient');
     if (pre) setFormData((prev) => ({ ...prev, patient: pre }));
-  }, []);
+  }, [search, token]);
 
   const setResponse = (idx, value) => {
     const updated = [...formData.responses];

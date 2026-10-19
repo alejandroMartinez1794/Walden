@@ -91,6 +91,8 @@ const treatmentPlanSchema = new mongoose.Schema({
     assessedBy: { type: mongoose.Types.ObjectId, ref: 'Doctor' },
     columbiaScore: Number,
     interventionRequired: Boolean,
+    // Canonical link to the formal RiskAssessment record.
+    riskAssessmentId: { type: mongoose.Types.ObjectId, ref: 'RiskAssessment', index: true },
   },
 
   // ============= NEW: BASELINE AND PROGRESS METRICS =============

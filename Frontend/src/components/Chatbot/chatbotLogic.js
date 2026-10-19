@@ -1,5 +1,4 @@
 // Frontend/src/components/Chatbot/chatbotLogic.js
-import { BASE_URL } from '../../config';
 
 // Intents y palabras clave
 const intents = {
@@ -95,7 +94,7 @@ const getRandomResponse = (responses) => {
 };
 
 // Función principal para obtener respuesta del chatbot
-export const getChatbotResponse = async (userMessage, user) => {
+export const getChatbotResponse = async (userMessage) => {
   const intent = detectIntent(userMessage);
 
   if (intent === 'unknown') {

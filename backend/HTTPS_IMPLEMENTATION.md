@@ -28,7 +28,7 @@ Se completó la configuración completa de HTTPS/TLS para el backend de Basileia
 **File:** `backend/scripts/generateCerts.js`
 
 ✅ **Features:**
-- Genera certificados auto-firmados usando `node-forge`
+- Genera certificados auto-firmados usando la CLI de OpenSSL
 - RSA 2048-bit key generation
 - Certificate con localhost y 127.0.0.1 SANs
 - 1 año de validez
@@ -79,7 +79,7 @@ HTTP_REDIRECT_PORT=8080
 
 ### 7. Dependencies
 ✅ **Installed:**
-- `node-forge@^1.3.1` - Para generación de certificados
+- `OpenSSL@^1.3.1` - Para generación de certificados
 
 ### 8. Documentation
 **File:** `backend/HTTPS_SETUP.md`

@@ -1,4 +1,4 @@
-import React from "react";
+
 import heroImg01 from "../assets/images/hero-img01.png";
 import heroImg02 from "../assets/images/hero-img02.png";
 import heroImg03 from "../assets/images/hero-img03.png";
@@ -11,9 +11,7 @@ import videoIcon from "../assets/images/video-icon.png";
 import avatarIcon from "../assets/images/avatar-icon.png"
 import { Link } from "react-router-dom";
 import About from "../components/About/About";
-import ServiceList from "../components/Services/ServiceList";
 import Faqlist from "../components/faq/Faqlist";
-import Testimonial from "../components/Testimonial/testimonial";
 import ClinicalSeoHead from "../components/ClinicalSeoHead";
 import { buildFAQPageSchema, buildMedicalOrganizationSchema, buildWebSiteSchema, PUBLIC_CLINICAL_ORGANIZATION } from "../seo/medical-schema";
 
@@ -71,7 +69,7 @@ const Home = () => {
 
                                     <div className="pl-4 border-l-4 border-primaryColor/20 py-1 my-6 bg-gray-50/50 rounded-r-lg">
                                         <p className="italic text-slate-700">
-                                            "El servicio psicológico se concibe como una responsabilidad profesional frente al sufrimiento humano. Cada proceso se desarrolla con rigor metodológico, compromiso ético y respeto profundo por la dignidad de la persona."
+                                            &quot;El servicio psicológico se concibe como una responsabilidad profesional frente al sufrimiento humano. Cada proceso se desarrolla con rigor metodológico, compromiso ético y respeto profundo por la dignidad de la persona.&quot;
                                         </p>
                                     </div>
 
@@ -118,12 +116,12 @@ const Home = () => {
                         <div className="lg:w-6/12 flex items-center justify-end">
                             <div className="flex items-center gap-8 lg:gap-10">
                                 <div className="w-[280px] sm:w-[360px] md:w-[440px] lg:w-[560px]">
-                                    <img src={heroImg01} fetchpriority="high" loading="eager" decoding="async" width="560" height="560" alt="Imagen principal" className="w-full h-auto rounded-lg shadow-lg object-cover" />
+                                    <img src={heroImg01} fetchPriority="high" loading="eager" decoding="async" width="560" height="560" alt="Imagen principal" className="w-full h-auto rounded-lg shadow-lg object-cover" />
                                 </div>
 
                                 <div className="flex flex-col gap-6 pt-6 lg:pt-0">
-                                    <img src={heroImg02} fetchpriority="low" loading="lazy" decoding="async" width="240" height="240" alt="Secundaria 1" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
-                                    <img src={heroImg03} fetchpriority="low" loading="lazy" decoding="async" width="240" height="240" alt="Secundaria 2" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
+                                    <img src={heroImg02} fetchPriority="low" loading="lazy" decoding="async" width="240" height="240" alt="Secundaria 1" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
+                                    <img src={heroImg03} fetchPriority="low" loading="lazy" decoding="async" width="240" height="240" alt="Secundaria 2" className="w-[200px] sm:w-[220px] md:w-[240px] lg:w-[240px] rounded-lg shadow-sm object-cover" />
                                 </div>
                             </div>
                         </div>

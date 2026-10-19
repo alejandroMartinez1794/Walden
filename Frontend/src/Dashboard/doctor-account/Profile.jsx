@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { AiOutlineDelete } from "react-icons/ai";
 import uploadImageToCloudinary from "../../utils/uploadCloudinary";
 import { BASE_URL } from "../../config";
@@ -590,6 +591,24 @@ const Profile = ({doctorData}) => {
             </form>
         </div>
     );
+};
+
+Profile.propTypes = {
+  doctorData: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+    email: PropTypes.string,
+    phone: PropTypes.string,
+    bio: PropTypes.string,
+    gender: PropTypes.string,
+    specialization: PropTypes.string,
+    ticketPrice: PropTypes.number,
+    qualifications: PropTypes.array,
+    experiences: PropTypes.array,
+    timeSlots: PropTypes.array,
+    about: PropTypes.string,
+    photo: PropTypes.string,
+  }),
 };
 
 export default Profile;

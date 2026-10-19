@@ -1,7 +1,7 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import Testimonial from '../components/Testimonial/testimonial';
-import ConsentModal, { anonymizeTestimony } from '../components/Testimonial/ConsentModal';
+import ConsentModal from '../components/Testimonial/ConsentModal';
 import { useState } from 'react';
 import ClinicalSeoHead from '../components/ClinicalSeoHead';
 import { buildMedicalOrganizationSchema, PUBLIC_CLINICAL_ORGANIZATION } from '../seo/medical-schema';

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 
 import MyBookings from './MyBookings';
 import Profile from './Profile';
@@ -13,8 +13,7 @@ import { BASE_URL } from '../../config';
 
 import Loading from '../../components/Loader/Loading';
 import ErrorState from '../../components/Error/Error';
-import MyCalendar from './MyCalendar';
-import { HiOutlineCalendar, HiShieldCheck } from 'react-icons/hi';
+import { HiShieldCheck } from 'react-icons/hi';
 
 const MyAccount = () => {
   const { dispatch, token: authToken, role: authRole, authProvider } = useContext(authContext);

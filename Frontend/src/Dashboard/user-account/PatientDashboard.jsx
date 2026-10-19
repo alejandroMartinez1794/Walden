@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
@@ -1026,6 +1027,18 @@ const PatientDashboard = ({ userData, bookingsCount = 0, onUserDataUpdate }) => 
     </div>
     </section>
   );
+};
+
+PatientDashboard.propTypes = {
+  userData: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+    email: PropTypes.string,
+    photo: PropTypes.string,
+    cbtProfile: PropTypes.object,
+  }).isRequired,
+  bookingsCount: PropTypes.number,
+  onUserDataUpdate: PropTypes.func,
 };
 
 export default PatientDashboard;

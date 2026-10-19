@@ -1,4 +1,5 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
+import PropTypes from 'prop-types';
 import brandImage from '../../assets/images/logo_principal_basileia.png';
 
 const BrandLogo = ({ variant = 'header', className = '' }) => {
@@ -57,5 +58,12 @@ const BrandLogo = ({ variant = 'header', className = '' }) => {
   );
 };
 
-export default memo(BrandLogo);
+BrandLogo.propTypes = {
+  variant: PropTypes.oneOf(['header', 'icon', 'footer']),
+  className: PropTypes.string,
+};
+
+const MemoizedBrandLogo = memo(BrandLogo);
+
+export default MemoizedBrandLogo;
 

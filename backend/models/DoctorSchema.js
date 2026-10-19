@@ -5,6 +5,8 @@ const DoctorSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
+  // Professional license identifier; verification status must be established separately.
+  licenseNumber: { type: String, trim: true },
   phone: { type: Number },
   photo: { type: String },
   ticketPrice: { type: Number },

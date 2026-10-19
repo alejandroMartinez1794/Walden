@@ -57,7 +57,7 @@ const BehavioralActivationForm = () => {
 
     const preselected = search.get('patient');
     if (preselected) setFormData((d) => ({ ...d, patient: preselected }));
-  }, []);
+  }, [search, token]);
 
   const updateActivity = (index, key, value) => {
     setFormData((d) => {

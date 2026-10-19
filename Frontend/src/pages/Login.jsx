@@ -3,7 +3,7 @@ import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BASE_URL } from '../config';
 import { toast } from 'react-toastify';
-import { authContext } from '../context/AuthContext.jsx';
+import { authContext } from '../context/authContext.js';
 import Hashloader from 'react-spinners/HashLoader';
 import { getDashboardPath } from '../utils/getDashboardPath';
 

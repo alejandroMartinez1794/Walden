@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/patients/PatientFile.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
 import Loading from '../../../components/Loader/Loading';
@@ -21,7 +21,6 @@ const PatientFile = () => {
   const [patient, setPatient] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [assessments, setAssessments] = useState([]);
-  const [treatmentPlan, setTreatmentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
@@ -33,9 +32,9 @@ const PatientFile = () => {
 
   useEffect(() => {
     fetchPatientData();
-  }, [id]);
+  }, [fetchPatientData]);
 
-  const fetchPatientData = async () => {
+  const fetchPatientData = useCallback(async () => {
     try {
       setLoading(true);
       const authToken = token;
@@ -69,15 +68,6 @@ const PatientFile = () => {
       const assessmentsData = await assessmentsRes.json();
       if (assessmentsRes.ok) setAssessments(assessmentsData.data || []);
 
-      // Fetch treatment plan
-      const planRes = await fetch(`${BASE_URL}/psychology/patients/${id}/treatment-plans`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      const planData = await planRes.json();
-      if (planRes.ok && planData.data && planData.data.length > 0) {
-        setTreatmentPlan(planData.data[0]); // Get the most recent plan
-      }
-
       // Fetch alerts
       const alertsRes = await fetch(`${BASE_URL}/clinical/patients/${id}/alerts`, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -94,7 +84,7 @@ const PatientFile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, token, navigate]);
 
   const getStatusBadge = (status) => {
     const badges = {

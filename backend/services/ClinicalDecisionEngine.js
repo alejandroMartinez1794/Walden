@@ -1,9 +1,9 @@
 /**
  * ClinicalDecisionEngine - Business Logic for CBT Treatment State Transitions
- * 
+ *
  * This service implements the clinical decision-making logic for the therapy lifecycle.
  * It analyzes patient data and suggests (never auto-executes) clinical actions.
- * 
+ *
  * Key Principles:
  * 1. SUGGEST, don't decide - Clinician has final say
  * 2. EXPLAIN reasoning - All suggestions must be traceable
@@ -14,16 +14,12 @@
 import TreatmentPlan from '../models/TreatmentPlanSchema.js';
 import TherapySession from '../models/TherapySessionSchema.js';
 import ClinicalAlert from '../models/ClinicalAlertSchema.js';
+import ConsentForm from '../models/ConsentFormSchema.js';
 
 class ClinicalDecisionEngine {
-  /**
-   * Assess if a patient can progress to the next therapy phase
-   * @param {String} treatmentPlanId - MongoDB ObjectId
-   * @returns {Object} { canProgress: Boolean, reasoning: String, confidence: String, blockers: Array }
-   */
   static async assessPhaseProgression(treatmentPlanId) {
     const plan = await TreatmentPlan.findById(treatmentPlanId)
-      .select('+riskLevel') // Explicitly include hidden field
+      .select('+riskLevel')
       .lean();
 
     if (!plan) throw new Error('Treatment plan not found');
@@ -33,26 +29,17 @@ class ClinicalDecisionEngine {
       .limit(5)
       .lean();
 
-    const currentPhase = plan.currentPhase;
-    const nextPhase = this._getNextPhase(currentPhase);
-
-    // Phase-specific progression logic
-    switch (currentPhase) {
+    switch (plan.currentPhase) {
       case 'INTAKE':
         return this._assessIntakeToAssessment(plan);
-      
       case 'ASSESSMENT':
         return this._assessAssessmentToFormulation(plan, sessions);
-      
       case 'FORMULATION':
         return this._assessFormulationToIntervention(plan);
-      
       case 'INTERVENTION':
         return this._assessInterventionToConsolidation(plan, sessions);
-      
       case 'CONSOLIDATION':
         return this._assessConsolidationToFollowUp(plan, sessions);
-      
       default:
         return {
           canProgress: false,
@@ -62,17 +49,11 @@ class ClinicalDecisionEngine {
     }
   }
 
-  /**
-   * Detect clinical risk factors from patient data
-   * @param {Object} patientData - User/session/journal data
-   * @returns {Array} Array of detected risks
-   */
   static async detectRiskFactors(patientData) {
     const risks = [];
 
-    // 1. SUICIDE RISK DETECTION
     if (patientData.phq9Responses) {
-      const suicidalIdeationItem = patientData.phq9Responses[8]; // Item #9 (0-indexed)
+      const suicidalIdeationItem = patientData.phq9Responses[8];
       if (suicidalIdeationItem >= 2) {
         risks.push({
           type: 'SUICIDE_RISK',
@@ -84,7 +65,6 @@ class ClinicalDecisionEngine {
       }
     }
 
-    // 2. CLINICAL DETERIORATION
     if (patientData.baselineMetrics && patientData.currentMetrics) {
       const phq9Increase = patientData.currentMetrics.phq9 - patientData.baselineMetrics.phq9;
       const gad7Increase = patientData.currentMetrics.gad7 - patientData.baselineMetrics.gad7;
@@ -100,7 +80,6 @@ class ClinicalDecisionEngine {
       }
     }
 
-    // 3. NON-ADHERENCE PATTERN
     if (patientData.adherenceMetrics) {
       const { totalSessionsScheduled, totalSessionsAttended, homeworkCompletionRate } = patientData.adherenceMetrics;
       const attendanceRate = totalSessionsScheduled > 0 ? (totalSessionsAttended / totalSessionsScheduled) * 100 : 100;
@@ -116,10 +95,9 @@ class ClinicalDecisionEngine {
       }
     }
 
-    // 4. ABANDONMENT RISK
     if (patientData.lastAttendedSession) {
       const daysSinceLastSession = Math.floor((new Date() - new Date(patientData.lastAttendedSession)) / (1000 * 60 * 60 * 24));
-      
+
       if (daysSinceLastSession > 14 && daysSinceLastSession < 21) {
         risks.push({
           type: 'ABANDONMENT_RISK',
@@ -139,7 +117,6 @@ class ClinicalDecisionEngine {
       }
     }
 
-    // 5. KEYWORD DETECTION (if journal/notes provided)
     if (patientData.journalEntries || patientData.sessionNotes) {
       const textContent = (patientData.journalEntries?.join(' ') || '') + ' ' + (patientData.sessionNotes || '');
       const suicideKeywords = [
@@ -147,7 +124,7 @@ class ClinicalDecisionEngine {
         'acabar con mi vida', 'ya no quiero vivir', 'plan para morir'
       ];
 
-      const detectedKeywords = suicideKeywords.filter(kw => 
+      const detectedKeywords = suicideKeywords.filter((kw) =>
         textContent.toLowerCase().includes(kw)
       );
 
@@ -165,12 +142,6 @@ class ClinicalDecisionEngine {
     return risks;
   }
 
-  /**
-   * Calculate treatment progress metrics
-   * @param {Object} treatmentPlan
-   * @param {Array} sessions
-   * @returns {Object} Progress metrics
-   */
   static calculateProgressMetrics(treatmentPlan, sessions) {
     const metrics = {
       symptomReduction: 0,
@@ -180,17 +151,15 @@ class ClinicalDecisionEngine {
       phaseCompliance: false,
     };
 
-    // Symptom reduction (PHQ-9 + GAD-7 combined)
     if (treatmentPlan.baselineMetrics && treatmentPlan.currentMetrics) {
       const baselineTotal = (treatmentPlan.baselineMetrics.phq9 || 0) + (treatmentPlan.baselineMetrics.gad7 || 0);
       const currentTotal = (treatmentPlan.currentMetrics.phq9 || 0) + (treatmentPlan.currentMetrics.gad7 || 0);
-      
+
       if (baselineTotal > 0) {
         metrics.symptomReduction = Math.round(((baselineTotal - currentTotal) / baselineTotal) * 100);
       }
     }
 
-    // Adherence rate
     if (treatmentPlan.adherenceMetrics) {
       const { totalSessionsScheduled, totalSessionsAttended } = treatmentPlan.adherenceMetrics;
       if (totalSessionsScheduled > 0) {
@@ -199,7 +168,6 @@ class ClinicalDecisionEngine {
       metrics.homeworkCompletion = treatmentPlan.adherenceMetrics.homeworkCompletionRate || 0;
     }
 
-    // Phase compliance (minimum sessions per phase)
     const phaseRequirements = {
       ASSESSMENT: 2,
       FORMULATION: 1,
@@ -212,12 +180,6 @@ class ClinicalDecisionEngine {
     return metrics;
   }
 
-  /**
-   * Determine if a clinical protocol should be activated
-   * @param {String} alertType
-   * @param {Object} context
-   * @returns {Object} { shouldActivate: Boolean, protocolType: String, urgency: String, reasoning: String }
-   */
   static shouldActivateProtocol(alertType, context) {
     switch (alertType) {
       case 'SUICIDE_RISK':
@@ -227,7 +189,6 @@ class ClinicalDecisionEngine {
           urgency: 'IMMEDIATE',
           reasoning: 'Suicide risk detected. Columbia Scale assessment and safety planning required.',
         };
-
       case 'ABANDONMENT_RISK':
         return {
           shouldActivate: context.daysSinceContact >= 21,
@@ -235,7 +196,6 @@ class ClinicalDecisionEngine {
           urgency: 'HIGH',
           reasoning: 'Patient has not been reached in 21+ days. Formal abandonment protocol recommended.',
         };
-
       case 'NON_ADHERENCE':
         return {
           shouldActivate: context.attendanceRate < 50 && context.sessionCount >= 4,
@@ -243,7 +203,6 @@ class ClinicalDecisionEngine {
           urgency: 'MODERATE',
           reasoning: 'Persistent non-adherence pattern. Intervention to address barriers recommended.',
         };
-
       case 'CLINICAL_DETERIORATION':
         return {
           shouldActivate: context.symptomIncrease >= 30,
@@ -251,29 +210,27 @@ class ClinicalDecisionEngine {
           urgency: 'HIGH',
           reasoning: 'Significant symptom worsening. Treatment modification or crisis intervention needed.',
         };
-
       default:
         return { shouldActivate: false, reasoning: 'No protocol activation criteria met.' };
     }
   }
 
-  // ========== PRIVATE PHASE-SPECIFIC ASSESSMENT METHODS ==========
-
-  static _assessIntakeToAssessment(plan) {
+  static async _assessIntakeToAssessment(plan) {
     const blockers = [];
 
-    // Check informed consent
-    if (!plan.consentHistory || plan.consentHistory.length === 0) {
-      blockers.push('Informed consent not documented');
+    if (!plan.patientId) {
+      blockers.push('Canonical patient identity is missing');
+    } else {
+      const hasConsent = await ConsentForm.hasActiveConsent(plan.patientId, 'GENERAL_THERAPY');
+      if (!hasConsent) {
+        blockers.push('Active general therapy consent is not documented');
+      }
     }
-
-    // Check payment/insurance
-    // (Placeholder - would integrate with actual payment system)
 
     return {
       canProgress: blockers.length === 0,
       nextPhase: 'ASSESSMENT',
-      reasoning: blockers.length === 0 
+      reasoning: blockers.length === 0
         ? 'Intake complete. Ready for clinical assessment.'
         : `Cannot proceed: ${blockers.join(', ')}`,
       confidence: blockers.length === 0 ? 'HIGH' : 'N/A',
@@ -284,17 +241,17 @@ class ClinicalDecisionEngine {
   static _assessAssessmentToFormulation(plan, sessions) {
     const blockers = [];
 
-    // Must have baseline metrics
-    if (!plan.baselineMetrics || !plan.baselineMetrics.phq9 || !plan.baselineMetrics.gad7) {
+    if (
+      plan.baselineMetrics?.phq9 == null ||
+      plan.baselineMetrics?.gad7 == null
+    ) {
       blockers.push('Missing baseline PHQ-9/GAD-7 scores');
     }
 
-    // Must have minimum sessions
     if (sessions.length < 2) {
       blockers.push(`Insufficient assessment sessions (${sessions.length}/2)`);
     }
 
-    // Risk check
     if (plan.riskLevel === 'IMMINENT') {
       blockers.push('Imminent risk detected. Crisis protocol must be completed first.');
     }
@@ -313,19 +270,16 @@ class ClinicalDecisionEngine {
   static _assessFormulationToIntervention(plan) {
     const blockers = [];
 
-    // Must have clinical hypothesis
     if (!plan.clinicalHypothesis || plan.clinicalHypothesis.length < 50) {
       blockers.push('CBT case formulation not documented or incomplete');
     }
 
-    // Must have treatment goals
-    if (!plan.treatmentGoals || plan.treatmentGoals.length === 0) {
+    if (!plan.goals || plan.goals.length === 0) {
       blockers.push('No treatment goals defined');
     }
 
-    // Safety plan if any risk
     if (plan.riskLevel !== 'LOW' && (!plan.riskFactors || plan.riskFactors.length === 0)) {
-      blockers.push('Risk identified but no safety plan documented');
+      blockers.push('Risk identified but no risk-factor mitigation documented');
     }
 
     return {
@@ -343,12 +297,10 @@ class ClinicalDecisionEngine {
     const blockers = [];
     const metrics = this.calculateProgressMetrics(plan, sessions);
 
-    // Minimum sessions completed
     if (sessions.length < 8) {
       blockers.push(`Minimum intervention duration not met (${sessions.length}/8 sessions)`);
     }
 
-    // Clinical improvement required
     if (metrics.symptomReduction < 30) {
       return {
         canProgress: false,
@@ -360,7 +312,6 @@ class ClinicalDecisionEngine {
       };
     }
 
-    // Adherence check
     if (metrics.adherenceRate < 70) {
       blockers.push(`Low adherence (${metrics.adherenceRate}%) may indicate premature consolidation`);
     }
@@ -379,13 +330,11 @@ class ClinicalDecisionEngine {
   static _assessConsolidationToFollowUp(plan, sessions) {
     const blockers = [];
 
-    // Check for remission
     if (!plan.currentMetrics || plan.currentMetrics.phq9 > 5 || plan.currentMetrics.gad7 > 5) {
       blockers.push('Symptoms not in remission (PHQ-9 >5 or GAD-7 >5)');
     }
 
-    // Relapse prevention plan
-    const hasRelapsePlan = sessions.some(s => 
+    const hasRelapsePlan = sessions.some(s =>
       s.soapNotes?.plan?.includes('relapse') || s.soapNotes?.plan?.includes('recaída')
     );
     if (!hasRelapsePlan) {

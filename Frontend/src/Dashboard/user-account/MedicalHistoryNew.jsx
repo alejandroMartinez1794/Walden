@@ -1,14 +1,11 @@
 // Frontend/src/Dashboard/user-account/MedicalHistory.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BASE_URL } from '../../config';
-import uploadImageToCloudinary from '../../utils/uploadCloudinary';
-import { toast } from 'react-toastify';
 import {
   HiOutlineClipboardList,
   HiOutlineDocumentText,
   HiOutlineBeaker,
   HiOutlineTag,
-  HiOutlinePlus,
   HiOutlineHeart,
   HiOutlineScale,
 } from 'react-icons/hi';
@@ -16,16 +13,6 @@ import {
 const MedicalHistory = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [records, setRecords] = useState([]);
-  const [showUpload, setShowUpload] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({
-    type: 'consultation',
-    title: '',
-    description: '',
-    date: new Date().toISOString().substring(0, 10),
-    files: [],
-  });
-
   useEffect(() => {
     const fetchRecords = async () => {
       const token = sessionStorage.getItem('token');
@@ -68,75 +55,6 @@ const MedicalHistory = () => {
     return labels[type] || type;
   };
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const maxSize = 5 * 1024 * 1024;
-    const invalidFiles = selectedFiles.filter(f => f.size > maxSize);
-    if (invalidFiles.length > 0) {
-      toast.error('Algunos archivos superan el límite de 5 MB');
-      return;
-    }
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    const invalidTypes = selectedFiles.filter(f => !allowedTypes.includes(f.type));
-    if (invalidTypes.length > 0) {
-      toast.error('Solo se permiten archivos JPG, PNG o PDF');
-      return;
-    }
-    setForm({ ...form, files: selectedFiles });
-  };
-
-  const handleSubmit = async () => {
-    if (!form.title) {
-      toast.error('El título es obligatorio');
-      return;
-    }
-
-    try {
-      setUploading(true);
-      let attachments = [];
-      
-      // Upload multiple files
-      if (form.files.length > 0) {
-        toast.info(`Subiendo ${form.files.length} archivo(s)...`);
-        for (let file of form.files) {
-          const uploaded = await uploadImageToCloudinary(file);
-          if (uploaded?.secure_url) {
-            attachments.push({ url: uploaded.secure_url, name: file.name, type: uploaded.resource_type });
-          }
-        }
-        toast.success(`${attachments.length} archivo(s) cargado(s)`);
-      }
-
-      const token = sessionStorage.getItem('token');
-      const res = await fetch(`${BASE_URL}/health/records`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          type: form.type,
-          title: form.title,
-          description: form.description,
-          date: new Date(form.date).toISOString(),
-          attachments,
-        })
-      });
-      const json = await res.json();
-      if (res.ok) {
-        const list = await fetch(`${BASE_URL}/health/records`, { headers: { Authorization: `Bearer ${token}` } });
-        const listJson = await list.json();
-        if (list.ok) setRecords(listJson.data || []);
-        setShowUpload(false);
-        setForm({ type: 'consultation', title: '', description: '', date: new Date().toISOString().substring(0, 10), files: [] });
-        toast.success('Registro médico creado con éxito');
-      } else {
-        toast.error(json.message || 'No se pudo crear el registro');
-      }
-    } catch (error) {
-      toast.error('Error al subir los archivos');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -164,8 +82,11 @@ const MedicalHistory = () => {
           {categories.map((category) => {
             const Icon = category.icon;
             return (
-              <div
+              <button
+                type="button"
                 key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                aria-pressed={activeCategory === category.id}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold ${
                   activeCategory === category.id
                     ? 'border-slate-900 bg-slate-900 text-white'
@@ -174,7 +95,7 @@ const MedicalHistory = () => {
               >
                 <Icon className="text-base" />
                 {category.label}
-              </div>
+              </button>
             );
           })}
         </div>

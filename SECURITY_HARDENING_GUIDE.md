@@ -133,14 +133,13 @@ const validateCertificate = (certData, expectedDomain, securityTier) => {
     return; // No validar en desarrollo
   }
 
-  const forge = require('node-forge');
-  const cert = forge.pki.certificateFromPem(certData);
-  
-  // Verificar Common Name (CN) y Subject Alternative Names (SAN)
-  const cn = cert.subject.getField('CN');
-  const altNamesExt = cert.getExtension('subjectAltName');
-  
-  // Validación de dominio...
+  const { X509Certificate } = require('crypto');
+  const cert = new X509Certificate(certData);
+  const matchingSubjectAltName = cert.checkHost(expectedDomain, { subject: 'never' });
+
+  if (!matchingSubjectAltName) {
+    throw new Error(`Certificate SAN does not match expected domain: ${expectedDomain}`);
+  }
 };
 ```
 

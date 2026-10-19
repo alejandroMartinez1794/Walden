@@ -1,5 +1,5 @@
 // Frontend/src/Dashboard/psychology/sessions/SessionForm.jsx
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BASE_URL } from '../../../config';
@@ -62,9 +62,9 @@ const SessionForm = () => {
 
   useEffect(() => {
     fetchPatients();
-  }, []);
+  }, [fetchPatients]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       const response = await fetch(`${BASE_URL}/psychology/patients`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -77,7 +77,7 @@ const SessionForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleSoapChange = (field, value) => {
     setFormData({

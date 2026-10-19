@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useContext } from "react";
-import { authContext } from "../../context/AuthContext";
+import { useCallback, useEffect, useState, useContext } from 'react';
+import { authContext } from "../../context/authContext";
 import { BASE_URL } from "../../config";
 import Loading from "../../components/Loader/Loading";
 import ErrorMessage from "../../components/Error/Error";
 // FullCalendar is heavy; load dynamically to keep initial bundle small
 // Will set `calendarLib` with `FullCalendar` and plugins when loaded
 import { toast } from "react-toastify";
-import { HiOutlineCalendar, HiOutlineClipboardList, HiBadgeCheck, HiCurrencyDollar } from "react-icons/hi";
+import { HiOutlineCalendar, HiBadgeCheck, HiCurrencyDollar } from "react-icons/hi";
 import PaymentButton from "../../components/Payment/PaymentButton";
 
 const MyBookings = () => {
@@ -40,9 +40,9 @@ const MyBookings = () => {
       }
     };
     loadCalendar();
-  }, [token]);
+  }, [fetchBookings, token]);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       if (!token) {
@@ -86,7 +86,7 @@ const MyBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, dispatch]);
 
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("¿Estás seguro de que deseas cancelar esta cita?")) {
@@ -225,7 +225,7 @@ const MyBookings = () => {
                       
                       {booking.reason && (
                         <div className="text-slate-600 italic bg-yellow-50/50 p-2 rounded border border-yellow-100/50 text-sm">
-                          "{booking.reason}"
+                          &quot;{booking.reason}&quot;
                         </div>
                       )}
 

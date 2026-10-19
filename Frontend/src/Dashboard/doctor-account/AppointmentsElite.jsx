@@ -1,8 +1,7 @@
 // Frontend/src/Dashboard/doctor-account/AppointmentsElite.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BASE_URL } from '../../config';
 import { toast } from 'react-toastify';
-import { formateDate } from '../../utils/formateDate';
 
 const AppointmentsElite = () => {
   const [appointments, setAppointments] = useState([]);

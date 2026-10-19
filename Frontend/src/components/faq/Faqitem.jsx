@@ -1,5 +1,6 @@
 import {useState } from "react";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
+import PropTypes from "prop-types";
 
 
 const Faqitem = ({item}) => {
@@ -36,6 +37,13 @@ const Faqitem = ({item}) => {
         </div>
     );
 
+};
+
+Faqitem.propTypes = {
+  item: PropTypes.shape({
+    question: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 export default Faqitem;

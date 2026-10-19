@@ -1,11 +1,12 @@
 import { useState, useContext } from 'react';
+import PropTypes from 'prop-types';
 import HashLoader from 'react-spinners/HashLoader';
-import { authContext } from '../../context/AuthContext';
+import { authContext } from '../../context/authContext';
 import { BASE_URL } from '../../config';
 import useWompi from '../../hooks/useWompi';
 import { toast } from 'react-toastify';
 
-const PaymentButton = ({ bookingId, amount, onPaymentSuccess }) => {
+const PaymentButton = ({ bookingId, amount }) => {
     const { token, user } = useContext(authContext);
     const { openCheckout } = useWompi();
     const [loading, setLoading] = useState(false);
@@ -63,6 +64,11 @@ const PaymentButton = ({ bookingId, amount, onPaymentSuccess }) => {
             </>}
         </button>
     );
+};
+
+PaymentButton.propTypes = {
+  bookingId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  amount: PropTypes.number.isRequired,
 };
 
 export default PaymentButton;

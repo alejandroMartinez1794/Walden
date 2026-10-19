@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../../config';
 
@@ -299,6 +300,17 @@ const AgendaPanel = ({ appointments, doctorProfile, token, onRefresh }) => {
       </div>
     </div>
   );
+};
+
+AgendaPanel.propTypes = {
+  appointments: PropTypes.arrayOf(PropTypes.shape({
+    status: PropTypes.string,
+    appointmentDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    user: PropTypes.shape({ name: PropTypes.string, email: PropTypes.string }),
+  })).isRequired,
+  doctorProfile: PropTypes.shape({ _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]) }),
+  token: PropTypes.string,
+  onRefresh: PropTypes.func,
 };
 
 export default AgendaPanel;

@@ -1,4 +1,5 @@
-import { useState} from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { formateDate } from '../../utils/formateDate';
 import { AiFillStar } from 'react-icons/ai';
 import Feedbackform from './FeedbackForm';
@@ -53,6 +54,16 @@ const Feedback = ({reviews, totalRating}) => {
         {showFeedbackform && <Feedbackform />}    
     </div>
     );
+};
+
+Feedback.propTypes = {
+  reviews: PropTypes.arrayOf(PropTypes.shape({
+    user: PropTypes.shape({ photo: PropTypes.string, name: PropTypes.string }),
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    reviewText: PropTypes.string,
+    rating: PropTypes.number,
+  })),
+  totalRating: PropTypes.number,
 };
 
 export default Feedback;

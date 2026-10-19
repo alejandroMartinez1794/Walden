@@ -1,5 +1,6 @@
 // Frontend/src/components/SessionToolkit.jsx
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 import { BASE_URL, token } from '../config';
 
@@ -7,7 +8,7 @@ const SessionToolkit = ({ summary, logId, onAccepted }) => {
   const [note, setNote] = useState('');
   if (!summary) return null;
   const { formulation, suggestedInterventions = [], prioritizedTargets = [] } = summary;
-  const accept = async (s) => {
+  const accept = async () => {
     if (!logId) return;
     await fetch(`${BASE_URL}/clinical/suggestions/${logId}/accept`, {
       method: 'PATCH',
@@ -32,7 +33,7 @@ const SessionToolkit = ({ summary, logId, onAccepted }) => {
             <p className="text-sm text-gray-700">{s.rationale}</p>
             <p className="text-sm mt-1"><strong>Script:</strong> {s.script}</p>
             <p className="text-sm"><strong>Tarea:</strong> {Array.isArray(s.homework) ? s.homework.join('; ') : s.homework}</p>
-            <button onClick={() => accept(s)} className="mt-2 bg-primaryColor text-white px-3 py-1 rounded">Aceptar y aplicar</button>
+            <button onClick={accept} className="mt-2 bg-primaryColor text-white px-3 py-1 rounded">Aceptar y aplicar</button>
           </div>
         ))}
       </div>
@@ -42,6 +43,26 @@ const SessionToolkit = ({ summary, logId, onAccepted }) => {
       </div>
     </aside>
   );
+};
+
+SessionToolkit.propTypes = {
+  summary: PropTypes.shape({
+    formulation: PropTypes.string,
+    suggestedInterventions: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name: PropTypes.string,
+      rationale: PropTypes.string,
+      script: PropTypes.string,
+      homework: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
+    })),
+    prioritizedTargets: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      label: PropTypes.string,
+      rationale: PropTypes.string,
+    })),
+  }),
+  logId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onAccepted: PropTypes.func,
 };
 
 export default SessionToolkit;

@@ -1,5 +1,6 @@
 // Frontend/src/components/RiskBanner.jsx
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { BASE_URL, token } from '../config';
 
 const RiskBanner = ({ patientId }) => {
@@ -10,7 +11,9 @@ const RiskBanner = ({ patientId }) => {
       const res = await fetch(`${BASE_URL}/clinical/patients/${patientId}/alerts`, { headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
       if (res.ok) setAlerts(json.data || []);
-    } catch {}
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('No se pudieron cargar las alertas clínicas:', error);
+    }
   })(); }, [patientId]);
 
   if (!alerts.length) return null;
@@ -26,6 +29,10 @@ const RiskBanner = ({ patientId }) => {
       ))}
     </div>
   );
+};
+
+RiskBanner.propTypes = {
+  patientId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default RiskBanner;

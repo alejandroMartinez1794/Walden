@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { useAuthToken } from '../../../hooks/useAuthToken';
 import { BASE_URL } from '../../../config';
 import { toast } from 'react-toastify';
@@ -360,6 +360,10 @@ const TreatmentPersonalizationPanel = ({ patientId }) => {
       </div>
     </div>
   );
+};
+
+TreatmentPersonalizationPanel.propTypes = {
+  patientId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default TreatmentPersonalizationPanel;

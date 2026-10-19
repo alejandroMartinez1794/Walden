@@ -1,5 +1,6 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
-import { authContext } from './AuthContext';
+import { useReducer, useCallback } from 'react';
+import { ClinicalSessionContext } from './clinicalSessionContext';
+import PropTypes from 'prop-types';
 
 // Initial clinical state
 const initialClinicalState = {
@@ -106,12 +107,9 @@ const clinicalReducer = (state, action) => {
 };
 
 // Context
-const ClinicalSessionContext = createContext();
-
 // Provider component
 export const ClinicalSessionProvider = ({ children }) => {
   const [state, dispatch] = useReducer(clinicalReducer, initialClinicalState);
-  const { token } = useContext(authContext);
 
   // Memoized actions
   const setPhq9Score = useCallback((score) => {
@@ -170,15 +168,7 @@ export const ClinicalSessionProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the context
-export const useClinicalSession = () => {
-  const context = useContext(ClinicalSessionContext);
-  
-  if (!context) {
-    throw new Error('useClinicalSession must be used within a ClinicalSessionProvider');
-  }
-  
-  return context;
+ClinicalSessionProvider.propTypes = {
+  children: PropTypes.node,
 };
 
-export default ClinicalSessionContext;

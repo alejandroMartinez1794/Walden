@@ -19,6 +19,10 @@ module.exports = {
     '!**/node_modules/**',
     '!**/coverage/**',
     '!jest.config.js',
+    '!jest.config.cjs',
+    '!scripts/mongo-init.js',
+    '!**/scripts/mongo-init.js',
+    '!**/scripts/validateCoverage.js',
     '!index.js'
   ],
   testMatch: [

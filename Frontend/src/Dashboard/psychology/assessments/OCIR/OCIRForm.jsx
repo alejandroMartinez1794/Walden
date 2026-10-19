@@ -54,7 +54,7 @@ const OCIRForm = () => {
     fetchPatients();
     const preselected = search.get('patient');
     if (preselected) setFormData(d => ({ ...d, patient: preselected }));
-  }, []);
+  }, [search]);
 
   const fetchPatients = async () => {
     try {

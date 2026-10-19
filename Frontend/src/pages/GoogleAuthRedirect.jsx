@@ -1,6 +1,6 @@
 import { useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { authContext } from '../context/AuthContext';
+import { authContext } from '../context/authContext';
 import { toast } from 'react-toastify';
 
 const GoogleAuthRedirect = () => {
