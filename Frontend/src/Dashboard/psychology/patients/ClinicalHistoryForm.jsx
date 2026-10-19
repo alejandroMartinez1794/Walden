@@ -649,7 +649,7 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
-      case 9: // Consentimiento
+      case 9: { // Consentimiento
         const consentLink = `${window.location.protocol}//${window.location.host}/consentimiento`;
         
         const copyLink = () => {
@@ -773,10 +773,11 @@ const ClinicalHistoryForm = () => {
                             </div>
                             <button 
                                 onClick={save}
+                                disabled={saving}
                                 className="text-xs bg-slate-900 text-white px-3 py-1.5 rounded flex items-center gap-1 hover:bg-slate-700 transition shadow-sm"
                                 title="Guardar nota y finalizar"
                             >
-                                <span>💾</span> Guardar Nota
+                                <span>💾</span> {saving ? 'Guardando...' : 'Guardar Nota'}
                             </button>
                         </div>
                         <textarea 
@@ -847,10 +848,14 @@ const ClinicalHistoryForm = () => {
           </div>
         );
 
+      }
       default:
         return null;
     }
   };
+
+  if (loading) return <Loading />;
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
