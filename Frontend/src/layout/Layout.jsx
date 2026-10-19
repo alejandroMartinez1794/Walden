@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useClinicalSession } from '../context/ClinicalSessionContext';
+import { useClinicalSession } from '../context/useClinicalSession';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

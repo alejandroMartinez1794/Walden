@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { useReducer, useCallback } from 'react';
+import { ClinicalSessionContext } from './clinicalSessionContext';
 import PropTypes from 'prop-types';
 
 // Initial clinical state
@@ -106,8 +107,6 @@ const clinicalReducer = (state, action) => {
 };
 
 // Context
-const ClinicalSessionContext = createContext();
-
 // Provider component
 export const ClinicalSessionProvider = ({ children }) => {
   const [state, dispatch] = useReducer(clinicalReducer, initialClinicalState);
@@ -173,15 +172,3 @@ ClinicalSessionProvider.propTypes = {
   children: PropTypes.node,
 };
 
-// Custom hook to use the context
-export const useClinicalSession = () => {
-  const context = useContext(ClinicalSessionContext);
-  
-  if (!context) {
-    throw new Error('useClinicalSession must be used within a ClinicalSessionProvider');
-  }
-  
-  return context;
-};
-
-export default ClinicalSessionContext;
