@@ -6,6 +6,7 @@ backend/.env.production
 backend/.env.staging
 backend/node_modules/
 backend/mongodb-binaries/
+backend/certs/*.pem
 
 # Frontend environment
 Frontend/.env
